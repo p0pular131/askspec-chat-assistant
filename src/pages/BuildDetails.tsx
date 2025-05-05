@@ -1,13 +1,11 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBuilds } from '@/hooks/useBuilds';
 import { BuildDetails as BuildDetailsComponent } from '@/components/BuildDetails';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2, FileText } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 const BuildDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +14,6 @@ const BuildDetailsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadAttempted, setLoadAttempted] = useState(false);
-  const buildContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadBuild = async () => {
@@ -62,46 +59,6 @@ const BuildDetailsPage: React.FC = () => {
     }
   };
 
-  const handleExportPDF = async () => {
-    if (!buildContentRef.current || !selectedBuild) return;
-
-    try {
-      toast({
-        title: "Exporting",
-        description: "Preparing your PDF...",
-      });
-
-      const contentElement = buildContentRef.current;
-      const canvas = await html2canvas(contentElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.setFontSize(16);
-      pdf.text(`PC Build: ${selectedBuild.name}`, 15, 15);
-      pdf.addImage(imgData, 'PNG', 0, 25, imgWidth, imgHeight);
-      pdf.save(`PC-Build-${selectedBuild.name}.pdf`);
-      
-      toast({
-        title: "Success",
-        description: "PDF exported successfully",
-      });
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      toast({
-        title: "Error",
-        description: "Failed to export PDF",
-        variant: "destructive",
-      });
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -132,27 +89,17 @@ const BuildDetailsPage: React.FC = () => {
       
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{selectedBuild.name}</h1>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={handleExportPDF} 
-            className="flex items-center gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            <span>Export</span>
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={handleDelete} 
-            className="flex items-center gap-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span>Delete</span>
-          </Button>
-        </div>
+        <Button 
+          variant="destructive" 
+          onClick={handleDelete} 
+          className="flex items-center gap-2"
+        >
+          <Trash2 className="h-4 w-4" />
+          <span>Delete</span>
+        </Button>
       </div>
       
-      <div ref={buildContentRef}>
+      <div>
         <BuildDetailsComponent build={selectedBuild} />
       </div>
     </div>
