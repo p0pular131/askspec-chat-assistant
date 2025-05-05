@@ -8,6 +8,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   setChatMode,
   showExample,
   exampleText,
+  isDisabled,
 }) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -23,7 +24,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, [message]);
 
   const handleSend = () => {
-    if (message.trim()) {
+    if (message.trim() && !isDisabled) {
       onSendMessage(message);
       setMessage('');
       if (textareaRef.current) {
@@ -47,11 +48,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             <button
               key={mode}
               onClick={() => setChatMode(mode)}
+              disabled={isDisabled}
               className={`px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap ${
                 chatMode === mode
                   ? 'bg-askspec-purple text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {mode}
             </button>
@@ -65,16 +67,19 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={showExample ? exampleText : "컴퓨터 견적 관련 질문을 입력하세요..."}
-          className="py-3 pl-4 pr-12 w-full max-h-[150px] min-h-[48px] text-sm resize-none bg-transparent focus:outline-none"
+          disabled={isDisabled}
+          className={`py-3 pl-4 pr-12 w-full max-h-[150px] min-h-[48px] text-sm resize-none bg-transparent focus:outline-none ${
+            isDisabled ? 'text-gray-400 cursor-not-allowed' : ''
+          }`}
           rows={1}
         />
         <button
           onClick={handleSend}
-          disabled={!message.trim()}
+          disabled={!message.trim() || isDisabled}
           className={`absolute right-3 bottom-3 p-2 rounded-full ${
-            message.trim()
+            message.trim() && !isDisabled
               ? 'text-askspec-purple hover:bg-askspec-purple-light'
-              : 'text-gray-300'
+              : 'text-gray-300 cursor-not-allowed'
           }`}
         >
           <svg

@@ -22,6 +22,7 @@ export interface MessageInputProps {
   setChatMode: (mode: string) => void;
   showExample: boolean;
   exampleText: string;
+  isDisabled?: boolean;
 }
 
 export interface SurveyOptionProps {

@@ -1,10 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { ChatMessage } from './ChatMessage';
+import { ChatMessage as ChatMessageComponent } from './ChatMessage';
 import { MessageInput } from './MessageInput';
 import { SurveyOption } from './SurveyOption';
 import { Message } from './types';
+import { useAuth } from '../contexts/AuthContext';
+import { useConversations, Conversation } from '../hooks/useConversations';
+import { useMessages } from '../hooks/useMessages';
+import { toast } from '../components/ui/use-toast';
 
 export const ChatLayout: React.FC = () => {
   const [leftOpen, setLeftOpen] = useState(true);
@@ -14,21 +19,112 @@ export const ChatLayout: React.FC = () => {
   const [chatMode, setChatMode] = useState('범용 검색');
   const [messages, setMessages] = useState<Message[]>([]);
   const [showExample, setShowExample] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  
+  const { user, isLoading: authLoading } = useAuth();
+  const { conversations, loading: convoLoading, createConversation, deleteConversation } = useConversations();
+  const { messages: dbMessages, loading: msgLoading, addMessage, loadMessages, callOpenAI } = useMessages(currentConversation?.id || null);
+  
+  const navigate = useNavigate();
 
-  const sendMessage = (text: string) => {
+  // Check authentication
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [authLoading, user, navigate]);
+
+  // Sync messages from database
+  useEffect(() => {
+    if (currentConversation?.id) {
+      loadMessages(currentConversation.id);
+    }
+  }, [currentConversation]);
+
+  // Convert database messages to UI messages
+  useEffect(() => {
+    if (dbMessages) {
+      const uiMessages = dbMessages.map(msg => ({
+        text: msg.content,
+        isUser: msg.role === 'user',
+      }));
+      setMessages(uiMessages);
+    }
+  }, [dbMessages]);
+
+  const startNewConversation = async () => {
+    try {
+      const conversation = await createConversation('New Conversation');
+      setCurrentConversation(conversation);
+      setMessages([]);
+      setShowExample(true);
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "새 대화를 시작하는데 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const selectConversation = async (conversation: Conversation) => {
+    setCurrentConversation(conversation);
+  };
+
+  const sendMessage = async (text: string) => {
     if (!text.trim()) return;
-    setMessages([
-      ...messages,
-      {
-        text,
-        isUser: true,
-      },
-      {
-        text: `Response based on ${chatMode} mode...`,
-        isUser: false,
-      },
-    ]);
-    setShowExample(false);
+    
+    setIsLoading(true);
+    
+    try {
+      // Create a new conversation if none exists
+      if (!currentConversation) {
+        const newConversation = await createConversation('New Conversation');
+        setCurrentConversation(newConversation);
+        
+        // Add user message
+        await addMessage(text, 'user', newConversation.id);
+        
+        // Create OpenAI messages array
+        const apiMessages = [{ role: 'user', content: text }];
+        
+        // Get response from OpenAI
+        const response = await callOpenAI(apiMessages, chatMode);
+        
+        // Add assistant response to database
+        await addMessage(response, 'assistant', newConversation.id);
+      } else {
+        // Add user message
+        await addMessage(text, 'user', currentConversation.id);
+        
+        // Create OpenAI messages array from existing messages
+        const apiMessages = dbMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        
+        // Add the new user message
+        apiMessages.push({ role: 'user', content: text });
+        
+        // Get response from OpenAI
+        const response = await callOpenAI(apiMessages, chatMode);
+        
+        // Add assistant response to database
+        await addMessage(response, 'assistant', currentConversation.id);
+      }
+      
+      setShowExample(false);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "오류",
+        description: "메시지 전송에 실패했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getExamplePrompt = () => {
@@ -43,12 +139,16 @@ export const ChatLayout: React.FC = () => {
     return examples[chatMode as keyof typeof examples] || examples["범용 검색"];
   };
 
+  if (authLoading) {
+    return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
+  }
+
   return (
     <div className="flex w-screen h-screen bg-neutral-100">
       <Sidebar
         isOpen={leftOpen}
         onToggle={() => setLeftOpen(!leftOpen)}
-        title="작업목록"
+        title="대화 목록"
         position="left"
       >
         <div className="flex flex-col gap-2">
@@ -69,54 +169,65 @@ export const ChatLayout: React.FC = () => {
             </svg>
             채팅
           </button>
-          <button
-            className={`flex gap-2 items-center p-3 w-full text-sm text-left rounded-lg text-zinc-900 ${
-              activeTab === 'build' ? 'bg-neutral-100' : ''
-            }`}
-            onClick={() => setActiveTab('build')}
-          >
-            <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
-              <path
-                d="M6.5 13.5H4.5C3.94772 13.5 3.5 13.0523 3.5 12.5V10.5M13.5 6.5V4.5C13.5 3.94772 13.0523 3.5 12.5 3.5H10.5M3.5 6.5V4.5C3.5 3.94772 3.94772 3.5 4.5 3.5H6.5M10.5 13.5H12.5C13.0523 13.5 13.5 13.0523 13.5 12.5V10.5"
-                stroke="#404040"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            빌드
-          </button>
         </div>
+
         <div className="pt-4 mt-4 border-t border-gray-200">
           {activeTab === 'chat' && (
             <div className="flex flex-col gap-2">
-              <div className="pl-2 mb-2 text-xs text-stone-500">
-                최근 채팅 목록
+              <div className="flex items-center justify-between pl-2 mb-2 text-xs text-stone-500">
+                <span>대화 목록</span>
+                <button 
+                  onClick={startNewConversation}
+                  className="p-1 text-xs text-white bg-askspec-purple rounded-full hover:bg-askspec-purple-dark"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                  </svg>
+                </button>
               </div>
-              <button className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100">
-                게이밍 PC 견적 문의
-              </button>
-              <button className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100">
-                사무용 컴퓨터 추천
-              </button>
-              <button className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100">
-                그래픽카드 비교
-              </button>
+
+              {convoLoading ? (
+                <div className="p-2 text-sm text-center">Loading...</div>
+              ) : conversations.length === 0 ? (
+                <div className="p-2 text-sm text-center text-gray-500">대화 내역이 없습니다.</div>
+              ) : (
+                conversations.map((convo) => (
+                  <div key={convo.id} className="flex items-center gap-2">
+                    <button
+                      className={`p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100 ${
+                        currentConversation?.id === convo.id ? 'bg-neutral-100 font-medium' : ''
+                      }`}
+                      onClick={() => selectConversation(convo)}
+                    >
+                      {convo.title || 'Untitled conversation'}
+                    </button>
+                    <button
+                      onClick={() => deleteConversation(convo.id)}
+                      className="p-1 text-red-500 rounded hover:bg-red-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                        <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           )}
-          {activeTab === 'build' && (
-            <div className="flex flex-col gap-2">
-              <div className="pl-2 mb-2 text-xs text-stone-500">
-                견적 목록
-              </div>
-              <button className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100">
-                게이밍 PC (150만원)
-              </button>
-              <button className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100">
-                영상편집용 워크스테이션
-              </button>
-              <button className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100">
-                사무용 미니 PC
+        </div>
+        
+        <div className="mt-auto pt-4 border-t border-gray-200">
+          {user && (
+            <div className="p-2 flex items-center justify-between">
+              <div className="text-sm text-gray-700 truncate">{user.email}</div>
+              <button
+                onClick={() => {
+                  supabase.auth.signOut();
+                  navigate('/auth');
+                }}
+                className="px-2 py-1 text-xs bg-gray-100 rounded hover:bg-gray-200"
+              >
+                로그아웃
               </button>
             </div>
           )}
@@ -136,8 +247,14 @@ export const ChatLayout: React.FC = () => {
 
           <div className="flex overflow-y-auto flex-col flex-1 gap-4 mb-20">
             {messages.map((message, index) => (
-              <ChatMessage key={index} message={message} />
+              <ChatMessageComponent key={index} message={message} />
             ))}
+            
+            {isLoading && (
+              <div className="self-start max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
+                <p className="text-sm">생각 중...</p>
+              </div>
+            )}
           </div>
 
           {showExample && messages.length === 0 && (
@@ -152,6 +269,7 @@ export const ChatLayout: React.FC = () => {
             setChatMode={setChatMode}
             showExample={showExample}
             exampleText={getExamplePrompt()}
+            isDisabled={isLoading}
           />
         </div>
       </main>
