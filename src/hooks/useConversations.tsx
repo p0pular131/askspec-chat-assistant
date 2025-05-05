@@ -44,7 +44,9 @@ export function useConversations() {
       
       if (error) throw error;
       
-      await loadConversations();
+      // Instead of reloading all conversations from the database,
+      // add the new conversation directly to the state
+      setConversations([data, ...conversations]);
       return data;
     } catch (err) {
       console.error('Error creating conversation:', err);
@@ -60,7 +62,11 @@ export function useConversations() {
         .eq('id', id);
       
       if (error) throw error;
-      await loadConversations();
+      
+      // Update the local state without having to reload
+      setConversations(conversations.map(convo => 
+        convo.id === id ? { ...convo, title } : convo
+      ));
     } catch (err) {
       console.error('Error updating conversation title:', err);
       throw err;
