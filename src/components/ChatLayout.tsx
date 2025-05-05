@@ -108,6 +108,10 @@ export const ChatLayout: React.FC = () => {
     }
   };
 
+  const handleViewBuild = (buildId: string) => {
+    navigate(`/build/${buildId}`);
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
     
@@ -209,6 +213,24 @@ export const ChatLayout: React.FC = () => {
             </svg>
             채팅
           </button>
+          
+          <button
+            className={`flex gap-2 items-center p-3 w-full text-sm text-left rounded-lg text-zinc-900 ${
+              activeTab === 'builds' ? 'bg-neutral-100' : ''
+            }`}
+            onClick={() => setActiveTab('builds')}
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
+              <path
+                d="M5.5 14V11.5M10.5 14V11.5M2 5.5V14H14V5.5M2 5.5H14M2 5.5L3.5 2H12.5L14 5.5"
+                stroke="#404040"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            PC 빌드
+          </button>
         </div>
 
         <div className="pt-4 mt-4 border-t border-gray-200">
@@ -253,53 +275,31 @@ export const ChatLayout: React.FC = () => {
                   </div>
                 ))
               )}
-              
-              {/* Builds Section */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <Collapsible
-                  open={buildsSectionOpen}
-                  onOpenChange={setBuildsSectionOpen}
-                  className="w-full"
-                >
-                  <div className="flex items-center justify-between pl-2 mb-2">
-                    <CollapsibleTrigger asChild>
-                      <button className="flex items-center text-xs text-stone-500 hover:text-stone-700">
-                        <span>PC 빌드</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          className={`w-3 h-3 ml-1 transition-transform ${buildsSectionOpen ? 'rotate-180' : ''}`}
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </button>
-                    </CollapsibleTrigger>
-                  </div>
-                  
-                  <CollapsibleContent className="space-y-2">
-                    {buildsLoading ? (
-                      <div className="p-2 text-sm text-center">Loading...</div>
-                    ) : builds.length === 0 ? (
-                      <div className="p-2 text-sm text-center text-gray-500">저장된 빌드가 없습니다.</div>
-                    ) : (
-                      builds.map((build) => (
-                        <button
-                          key={build.id}
-                          className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100"
-                          onClick={() => navigate(`/build/${build.id}`)}
-                        >
-                          {build.name}
-                        </button>
-                      ))
-                    )}
-                  </CollapsibleContent>
-                </Collapsible>
+            </div>
+          )}
+          
+          {activeTab === 'builds' && (
+            <div className="flex flex-col gap-2">
+              {/* PC Builds Section */}
+              <div className="flex items-center justify-between pl-2 mb-2 text-xs text-stone-500">
+                <span>PC 빌드 목록</span>
               </div>
+              
+              {buildsLoading ? (
+                <div className="p-2 text-sm text-center">Loading...</div>
+              ) : builds.length === 0 ? (
+                <div className="p-2 text-sm text-center text-gray-500">저장된 빌드가 없습니다.</div>
+              ) : (
+                builds.map((build) => (
+                  <button
+                    key={build.id}
+                    className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100"
+                    onClick={() => handleViewBuild(build.id)}
+                  >
+                    {build.name}
+                  </button>
+                ))
+              )}
             </div>
           )}
         </div>

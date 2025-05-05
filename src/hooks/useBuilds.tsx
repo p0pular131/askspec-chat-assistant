@@ -103,6 +103,7 @@ export function useBuilds() {
 
   const getBuild = async (id: string) => {
     try {
+      setLoading(true);
       const { data: rawBuild, error } = await supabase
         .from('pc_builds')
         .select('*')
@@ -113,9 +114,11 @@ export function useBuilds() {
       
       const transformedBuild = convertRawBuild(rawBuild);
       setSelectedBuild(transformedBuild);
+      setLoading(false);
       return transformedBuild;
     } catch (err) {
       console.error('Error getting build:', err);
+      setLoading(false);
       throw err;
     }
   };
