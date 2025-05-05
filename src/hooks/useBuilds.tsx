@@ -48,11 +48,30 @@ export function useBuilds() {
 
   // Function to convert raw build data to our Build interface
   const convertRawBuild = (rawBuild: RawBuild): Build => {
+    // Parse the components from JSON to Component[] with proper type checking
+    const componentsArray = Array.isArray(rawBuild.components) 
+      ? rawBuild.components.map((comp: any): Component => ({
+          name: comp.name || '',
+          type: comp.type || '',
+          image: comp.image || '',
+          specs: comp.specs || '',
+          reason: comp.reason || '',
+          purchase_link: comp.purchase_link || '',
+          alternatives: Array.isArray(comp.alternatives) 
+            ? comp.alternatives.map((alt: any) => ({
+                name: alt.name || '',
+                specs: alt.specs || '',
+                purchase_link: alt.purchase_link || ''
+              }))
+            : []
+        }))
+      : [];
+    
     return {
       id: rawBuild.id,
       name: rawBuild.name,
       conversation_id: rawBuild.conversation_id,
-      components: rawBuild.components as Component[], // Type assertion here
+      components: componentsArray,
       total_price: rawBuild.total_price,
       recommendation: rawBuild.recommendation,
       created_at: rawBuild.created_at
@@ -109,12 +128,15 @@ export function useBuilds() {
     recommendation: string
   ) => {
     try {
+      // Prepare components for saving to database - convert from Component[] to Json
+      const componentsJson = components as unknown as Json;
+      
       const { data: rawBuild, error } = await supabase
         .from('pc_builds')
         .insert({
           name,
           conversation_id: conversationId,
-          components: components as unknown as Json, // Type assertion for Supabase
+          components: componentsJson,
           total_price: totalPrice,
           recommendation,
           rating: {}

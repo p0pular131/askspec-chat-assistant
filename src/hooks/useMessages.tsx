@@ -26,9 +26,17 @@ export function useMessages(conversationId: string | null) {
 
   // Function to convert raw message data to our DatabaseMessage interface
   const convertRawMessage = (rawMessage: RawDatabaseMessage): DatabaseMessage => {
+    // Validate that role is either 'user' or 'assistant'
+    const validRole = (rawMessage.role === 'user' || rawMessage.role === 'assistant') 
+      ? rawMessage.role 
+      : 'user'; // Default to user if for some reason we get an invalid role
+      
     return {
-      ...rawMessage,
-      role: rawMessage.role as 'user' | 'assistant' // Type assertion to ensure role is the expected union type
+      id: rawMessage.id,
+      conversation_id: rawMessage.conversation_id,
+      content: rawMessage.content,
+      role: validRole,
+      created_at: rawMessage.created_at
     };
   };
 
