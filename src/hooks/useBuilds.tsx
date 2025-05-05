@@ -104,22 +104,36 @@ export function useBuilds() {
   const getBuild = async (id: string) => {
     try {
       setLoading(true);
+      setError(null);
+      
+      // Check if the build is already in our local state
+      const cachedBuild = builds.find(build => build.id === id);
+      if (cachedBuild) {
+        setSelectedBuild(cachedBuild);
+        setLoading(false);
+        return cachedBuild;
+      }
+      
+      // If not in cache, fetch from database
       const { data: rawBuild, error } = await supabase
         .from('pc_builds')
         .select('*')
         .eq('id', id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       
       const transformedBuild = convertRawBuild(rawBuild);
       setSelectedBuild(transformedBuild);
-      setLoading(false);
       return transformedBuild;
     } catch (err) {
       console.error('Error getting build:', err);
-      setLoading(false);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -131,7 +145,7 @@ export function useBuilds() {
     recommendation: string
   ) => {
     try {
-      // Prepare components for saving to database - convert from Component[] to Json
+      // Prepare components for saving to database
       const componentsJson = components as unknown as Json;
       
       const { data: rawBuild, error } = await supabase

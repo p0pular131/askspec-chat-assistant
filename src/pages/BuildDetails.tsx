@@ -10,30 +10,35 @@ import { toast } from '@/hooks/use-toast';
 const BuildDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getBuild, selectedBuild, deleteBuild } = useBuilds();
+  const { getBuild, selectedBuild, deleteBuild, error } = useBuilds();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempted, setLoadAttempted] = useState(false);
 
   useEffect(() => {
     const loadBuild = async () => {
-      if (id) {
-        try {
-          setLoading(true);
-          await getBuild(id);
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to load build details",
-            variant: "destructive",
-          });
-          navigate('/');
-        } finally {
-          setLoading(false);
-        }
+      if (!id || loadAttempted) return;
+      
+      try {
+        setLoading(true);
+        setLoadError(null);
+        await getBuild(id);
+        setLoadAttempted(true);
+      } catch (error) {
+        console.error('Error getting build:', error);
+        setLoadError('Failed to load build details');
+        toast({
+          title: "Error",
+          description: "Failed to load build details",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
     loadBuild();
-  }, [id, getBuild, navigate]);
+  }, [id, getBuild, loadAttempted]);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -62,10 +67,10 @@ const BuildDetailsPage: React.FC = () => {
     );
   }
 
-  if (!selectedBuild) {
+  if (loadError || !selectedBuild) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <p>Build not found</p>
+        <p>{loadError || "Build not found"}</p>
         <Button onClick={() => navigate('/')} className="mt-4">
           Go back home
         </Button>

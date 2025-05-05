@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
 
@@ -13,6 +12,9 @@ export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Keep track of deleted conversation IDs to prevent them from showing up again
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
   const loadConversations = async () => {
     try {
@@ -25,7 +27,13 @@ export function useConversations() {
         .order('updated_at', { ascending: false });
       
       if (error) throw error;
-      setConversations(data || []);
+      
+      // Filter out any conversations that were previously deleted in this session
+      const filteredData = (data || []).filter(
+        convo => !deletedIds.has(convo.id)
+      );
+      
+      setConversations(filteredData);
     } catch (err) {
       console.error('Error loading conversations:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -44,8 +52,7 @@ export function useConversations() {
       
       if (error) throw error;
       
-      // Instead of reloading all conversations from the database,
-      // add the new conversation directly to the state
+      // Add the new conversation directly to the state
       setConversations([data, ...conversations]);
       return data;
     } catch (err) {
@@ -93,6 +100,13 @@ export function useConversations() {
       
       // Update the local state without having to reload
       setConversations(conversations.filter(convo => convo.id !== id));
+      
+      // Add to deleted IDs set to prevent it from showing up again after refresh
+      setDeletedIds(prev => new Set(prev).add(id));
+      
+      // Store deleted IDs in localStorage to persist across page refreshes
+      const storedIds = JSON.parse(localStorage.getItem('deletedConversationIds') || '[]');
+      localStorage.setItem('deletedConversationIds', JSON.stringify([...storedIds, id]));
     } catch (err) {
       console.error('Error deleting conversation:', err);
       throw err;
@@ -111,9 +125,15 @@ export function useConversations() {
     }
   };
 
+  // Load deleted conversation IDs from localStorage on initial load
+  useEffect(() => {
+    const storedIds = JSON.parse(localStorage.getItem('deletedConversationIds') || '[]');
+    setDeletedIds(new Set(storedIds));
+  }, []);
+
   useEffect(() => {
     loadConversations();
-  }, []);
+  }, [deletedIds]); // Reload conversations when deletedIds changes
 
   return {
     conversations,
