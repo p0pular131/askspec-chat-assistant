@@ -29,7 +29,14 @@ export function useMessages(conversationId: string | null) {
         .order('created_at');
       
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Explicitly cast the data to ensure type safety
+      const typedMessages = data?.map(msg => ({
+        ...msg,
+        role: msg.role as 'user' | 'assistant'
+      })) || [];
+      
+      setMessages(typedMessages);
     } catch (err) {
       console.error('Error loading messages:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -52,9 +59,15 @@ export function useMessages(conversationId: string | null) {
       
       if (error) throw error;
       
-      // Don't wait for loadMessages, add the message to state immediately
-      setMessages(prev => [...prev, data]);
-      return data;
+      // Ensure the response has the correct type
+      const typedMessage: ChatMessage = {
+        ...data,
+        role: data.role as 'user' | 'assistant'
+      };
+      
+      // Add the message to state immediately
+      setMessages(prev => [...prev, typedMessage]);
+      return typedMessage;
     } catch (err) {
       console.error('Error adding message:', err);
       throw err;

@@ -1,15 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { ChatMessage as ChatMessageComponent } from './ChatMessage';
 import { MessageInput } from './MessageInput';
 import { SurveyOption } from './SurveyOption';
 import { Message } from './types';
-import { useAuth } from '../contexts/AuthContext';
 import { useConversations, Conversation } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessages';
 import { toast } from '../components/ui/use-toast';
+import { supabase } from '../integrations/supabase/client';
 
 export const ChatLayout: React.FC = () => {
   const [leftOpen, setLeftOpen] = useState(true);
@@ -22,19 +21,9 @@ export const ChatLayout: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   
-  const { user, isLoading: authLoading } = useAuth();
   const { conversations, loading: convoLoading, createConversation, deleteConversation } = useConversations();
   const { messages: dbMessages, loading: msgLoading, addMessage, loadMessages, callOpenAI } = useMessages(currentConversation?.id || null);
   
-  const navigate = useNavigate();
-
-  // Check authentication
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [authLoading, user, navigate]);
-
   // Sync messages from database
   useEffect(() => {
     if (currentConversation?.id) {
@@ -139,10 +128,6 @@ export const ChatLayout: React.FC = () => {
     return examples[chatMode as keyof typeof examples] || examples["범용 검색"];
   };
 
-  if (authLoading) {
-    return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
-  }
-
   return (
     <div className="flex w-screen h-screen bg-neutral-100">
       <Sidebar
@@ -212,23 +197,6 @@ export const ChatLayout: React.FC = () => {
                   </div>
                 ))
               )}
-            </div>
-          )}
-        </div>
-        
-        <div className="mt-auto pt-4 border-t border-gray-200">
-          {user && (
-            <div className="p-2 flex items-center justify-between">
-              <div className="text-sm text-gray-700 truncate">{user.email}</div>
-              <button
-                onClick={() => {
-                  supabase.auth.signOut();
-                  navigate('/auth');
-                }}
-                className="px-2 py-1 text-xs bg-gray-100 rounded hover:bg-gray-200"
-              >
-                로그아웃
-              </button>
             </div>
           )}
         </div>

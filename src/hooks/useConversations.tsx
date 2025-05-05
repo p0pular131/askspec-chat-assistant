@@ -5,7 +5,6 @@ import { supabase } from '../integrations/supabase/client';
 export interface Conversation {
   id: string;
   title: string;
-  user_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -84,10 +83,7 @@ export function useConversations() {
   };
 
   useEffect(() => {
-    const session = supabase.auth.getSession();
-    if (session) {
-      loadConversations();
-    }
+    loadConversations();
   }, []);
 
   return {
