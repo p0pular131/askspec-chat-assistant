@@ -96,7 +96,7 @@ export function useConversations() {
   const deleteBuild = async (buildId: string) => {
     try {
       const { error } = await supabase
-        .from('builds')
+        .from('pc_builds')  // Changed from 'builds' to 'pc_builds' to match the actual table name
         .delete()
         .eq('id', buildId);
       
