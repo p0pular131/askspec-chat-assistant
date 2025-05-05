@@ -11,7 +11,7 @@ export const ChatLayout: React.FC = () => {
   const [rightOpen, setRightOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('chat');
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [chatMode, setChatMode] = useState('Analyze');
+  const [chatMode, setChatMode] = useState('범용 검색');
   const [messages, setMessages] = useState<Message[]>([]);
   const [showExample, setShowExample] = useState(true);
 
@@ -33,14 +33,14 @@ export const ChatLayout: React.FC = () => {
 
   const getExamplePrompt = () => {
     const examples = {
-      Analyze: "게이밍용 컴퓨터 견적 추천해주세요. 예산은 150만원 정도입니다.",
-      Create: "영상 편집용 컴퓨터 견적을 만들어주세요. 4K 영상 작업이 필요합니다.",
-      Explain: "RTX 4060과 RTX 3060의 차이점을 설명해주세요.",
-      Solve: "컴퓨터가 갑자기 느려졌는데, 어떤 부품을 업그레이드해야 할까요?",
-      Compare: "인텔 13세대와 AMD 라이젠 7000 시리즈 중 어떤 CPU가 더 나을까요?",
-      Suggest: "현재 시장에서 가성비가 좋은 그래픽카드를 추천해주세요.",
+      '범용 검색': "게이밍용 컴퓨터 견적 추천해주세요. 예산은 150만원 정도입니다.",
+      '부품 추천': "게이밍에 적합한 그래픽카드 추천해주세요.",
+      '견적 추천': "영상 편집용 컴퓨터 견적을 만들어주세요. 4K 영상 작업이 필요합니다.",
+      '호환성 검사': "인텔 13세대 CPU와 B660 메인보드가 호환되나요?",
+      '스펙 업그레이드': "현재 i5-10400, GTX 1660 사용 중인데 업그레이드할 부품을 추천해주세요.",
+      '견적 평가': "RTX 4060, i5-13400F, 16GB RAM, 1TB SSD로 구성된 견적 어떤가요?",
     };
-    return examples[chatMode as keyof typeof examples] || examples["Analyze"];
+    return examples[chatMode as keyof typeof examples] || examples["범용 검색"];
   };
 
   return (

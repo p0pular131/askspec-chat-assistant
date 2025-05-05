@@ -11,7 +11,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 }) => {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const modes = ['Analyze', 'Create', 'Explain', 'Solve', 'Compare', 'Suggest'];
+  const modes = ['범용 검색', '부품 추천', '견적 추천', '호환성 검사', '스펙 업그레이드', '견적 평가'];
 
   // Auto-resize textarea
   useEffect(() => {
@@ -41,13 +41,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   return (
     <div className="absolute bottom-6 left-6 right-6 bg-white border border-gray-200 rounded-lg shadow-sm">
-      <div className="flex items-center px-3 h-10 border-b border-gray-200">
+      <div className="flex items-center px-3 h-10 border-b border-gray-200 overflow-x-auto">
         <div className="flex items-center gap-2">
           {modes.map((mode) => (
             <button
               key={mode}
               onClick={() => setChatMode(mode)}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap ${
                 chatMode === mode
                   ? 'bg-askspec-purple text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
