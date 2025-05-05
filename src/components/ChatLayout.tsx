@@ -8,7 +8,6 @@ import { Message } from './types';
 import { useConversations, Conversation } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessages';
 import { toast } from '../components/ui/use-toast';
-import { supabase } from '../integrations/supabase/client';
 
 export const ChatLayout: React.FC = () => {
   const [leftOpen, setLeftOpen] = useState(true);
@@ -21,8 +20,21 @@ export const ChatLayout: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   
-  const { conversations, loading: convoLoading, createConversation, deleteConversation } = useConversations();
-  const { messages: dbMessages, loading: msgLoading, addMessage, loadMessages, callOpenAI } = useMessages(currentConversation?.id || null);
+  const { 
+    conversations, 
+    loading: convoLoading, 
+    createConversation, 
+    deleteConversation,
+    updateTitleFromFirstMessage 
+  } = useConversations();
+  
+  const { 
+    messages: dbMessages, 
+    loading: msgLoading, 
+    addMessage, 
+    loadMessages, 
+    callOpenAI 
+  } = useMessages(currentConversation?.id || null);
   
   // Sync messages from database
   useEffect(() => {
@@ -61,6 +73,30 @@ export const ChatLayout: React.FC = () => {
     setCurrentConversation(conversation);
   };
 
+  const handleDeleteConversation = async (id: string) => {
+    try {
+      await deleteConversation(id);
+      
+      // If the deleted conversation was the current one, reset the current conversation
+      if (currentConversation?.id === id) {
+        setCurrentConversation(null);
+        setMessages([]);
+        setShowExample(true);
+      }
+      
+      toast({
+        title: "성공",
+        description: "대화가 삭제되었습니다.",
+      });
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "대화 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
     
@@ -75,6 +111,9 @@ export const ChatLayout: React.FC = () => {
         // Add user message
         await addMessage(text, 'user', newConversation.id);
         
+        // Update the title based on the first message
+        await updateTitleFromFirstMessage(newConversation.id, text);
+        
         // Create OpenAI messages array
         const apiMessages = [{ role: 'user', content: text }];
         
@@ -86,6 +125,11 @@ export const ChatLayout: React.FC = () => {
       } else {
         // Add user message
         await addMessage(text, 'user', currentConversation.id);
+        
+        // If this is the first message, update the title
+        if (dbMessages.length === 0) {
+          await updateTitleFromFirstMessage(currentConversation.id, text);
+        }
         
         // Create OpenAI messages array from existing messages
         const apiMessages = dbMessages.map(msg => ({
@@ -187,7 +231,7 @@ export const ChatLayout: React.FC = () => {
                       {convo.title || 'Untitled conversation'}
                     </button>
                     <button
-                      onClick={() => deleteConversation(convo.id)}
+                      onClick={() => handleDeleteConversation(convo.id)}
                       className="p-1 text-red-500 rounded hover:bg-red-50"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">

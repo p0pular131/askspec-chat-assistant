@@ -69,16 +69,39 @@ export function useConversations() {
 
   const deleteConversation = async (id: string) => {
     try {
+      // First delete all messages associated with this conversation
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', id);
+      
+      if (messagesError) throw messagesError;
+      
+      // Then delete the conversation
       const { error } = await supabase
         .from('conversations')
         .delete()
         .eq('id', id);
       
       if (error) throw error;
-      await loadConversations();
+      
+      // Update the local state without having to reload
+      setConversations(conversations.filter(convo => convo.id !== id));
     } catch (err) {
       console.error('Error deleting conversation:', err);
       throw err;
+    }
+  };
+
+  // Function to create a title summary from the first user message
+  const updateTitleFromFirstMessage = async (conversationId: string, message: string) => {
+    try {
+      // Create a simple summary (truncate to 50 chars if too long)
+      const summary = message.length > 50 ? message.substring(0, 47) + '...' : message;
+      
+      await updateConversationTitle(conversationId, summary);
+    } catch (err) {
+      console.error('Error updating conversation title from message:', err);
     }
   };
 
@@ -94,5 +117,6 @@ export function useConversations() {
     createConversation,
     updateConversationTitle,
     deleteConversation,
+    updateTitleFromFirstMessage,
   };
 }
