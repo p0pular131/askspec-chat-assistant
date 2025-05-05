@@ -112,6 +112,20 @@ export const ChatLayout: React.FC = () => {
     navigate(`/build/${buildId}`);
   };
 
+  // Map the selected answer to an expertise level
+  const getExpertiseLevel = () => {
+    switch(selectedAnswer) {
+      case 1:
+        return 'expert';
+      case 2:
+        return 'intermediate';
+      case 3:
+        return 'beginner';
+      default:
+        return 'intermediate'; // Default to intermediate if no selection
+    }
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
     
@@ -132,8 +146,8 @@ export const ChatLayout: React.FC = () => {
         // Create OpenAI messages array
         const apiMessages = [{ role: 'user', content: text }];
         
-        // Get response from OpenAI
-        const response = await callOpenAI(apiMessages, chatMode);
+        // Get response from OpenAI, passing expertise level
+        const response = await callOpenAI(apiMessages, chatMode, getExpertiseLevel());
         
         // Add assistant response to database
         await addMessage(response, 'assistant', newConversation.id);
@@ -155,8 +169,8 @@ export const ChatLayout: React.FC = () => {
         // Add the new user message
         apiMessages.push({ role: 'user', content: text });
         
-        // Get response from OpenAI
-        const response = await callOpenAI(apiMessages, chatMode);
+        // Get response from OpenAI, passing expertise level
+        const response = await callOpenAI(apiMessages, chatMode, getExpertiseLevel());
         
         // Add assistant response to database
         await addMessage(response, 'assistant', currentConversation.id);

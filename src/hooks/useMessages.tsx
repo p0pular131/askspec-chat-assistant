@@ -90,7 +90,11 @@ export function useMessages(conversationId: string | null) {
     }
   };
 
-  const callOpenAI = async (messages: { role: string; content: string }[], chatMode: string) => {
+  const callOpenAI = async (
+    messages: { role: string; content: string }[], 
+    chatMode: string,
+    expertiseLevel: string = 'intermediate'
+  ) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-completion`, {
         method: 'POST',
@@ -101,7 +105,8 @@ export function useMessages(conversationId: string | null) {
         body: JSON.stringify({
           messages,
           chatMode,
-          conversationId, // Pass the conversation ID to the function
+          conversationId,
+          expertiseLevel,
         }),
       });
       

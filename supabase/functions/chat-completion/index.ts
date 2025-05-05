@@ -80,6 +80,50 @@ const extractPcBuild = (content: string) => {
   };
 };
 
+// Function to get system message with appropriate expertise level
+const getSystemMessage = (chatMode: string, expertiseLevel: string): string => {
+  let baseSystemMessage = "You are AskSpec, a helpful assistant that specializes in computer hardware and PC building advice.";
+  
+  // Add chat mode specific instructions
+  switch(chatMode) {
+    case '범용 검색':
+      baseSystemMessage += " Answer general questions about computer hardware and PC building.";
+      break;
+    case '부품 추천':
+      baseSystemMessage += " Provide specific component recommendations based on user needs.";
+      break;
+    case '견적 추천':
+      baseSystemMessage += " Create complete PC build recommendations within user's budget and requirements. Include links to purchase components.";
+      break;
+    case '호환성 검사':
+      baseSystemMessage += " Verify compatibility between different PC components.";
+      break;
+    case '스펙 업그레이드':
+      baseSystemMessage += " Suggest upgrade paths for existing PC builds to improve performance.";
+      break;
+    case '견적 평가':
+      baseSystemMessage += " Evaluate PC builds and provide feedback on their performance, value, and balance.";
+      break;
+  }
+  
+  // Add expertise level specific instructions
+  switch(expertiseLevel) {
+    case 'expert':
+      baseSystemMessage += " Use technical terminology and detailed specifications. Include model numbers, architecture details, and in-depth technical explanations. Your responses should be suitable for computer hardware enthusiasts and professionals.";
+      break;
+    case 'intermediate':
+      baseSystemMessage += " Use a balanced approach with some technical terms, but explain them. Focus on practical information and provide enough context for users with some hardware knowledge. Strike a balance between technical accuracy and accessibility.";
+      break;
+    case 'beginner':
+      baseSystemMessage += " Use simple, non-technical language. Avoid jargon and explain concepts in everyday terms. Use analogies where helpful. Focus on practical advice and basic information suitable for complete beginners in computer hardware.";
+      break;
+    default:
+      baseSystemMessage += " Use a balanced approach with some technical terms, but explain them.";
+  }
+  
+  return baseSystemMessage;
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -97,31 +141,10 @@ serve(async (req) => {
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     });
 
-    const { messages, chatMode, conversationId } = await req.json();
+    const { messages, chatMode, conversationId, expertiseLevel = 'intermediate' } = await req.json();
 
-    // Add system message based on chat mode
-    let systemMessage = "You are AskSpec, a helpful assistant that specializes in computer hardware and PC building advice.";
-    
-    switch(chatMode) {
-      case '범용 검색':
-        systemMessage += " Answer general questions about computer hardware and PC building.";
-        break;
-      case '부품 추천':
-        systemMessage += " Provide specific component recommendations based on user needs.";
-        break;
-      case '견적 추천':
-        systemMessage += " Create complete PC build recommendations within user's budget and requirements. Include links to purchase components.";
-        break;
-      case '호환성 검사':
-        systemMessage += " Verify compatibility between different PC components.";
-        break;
-      case '스펙 업그레이드':
-        systemMessage += " Suggest upgrade paths for existing PC builds to improve performance.";
-        break;
-      case '견적 평가':
-        systemMessage += " Evaluate PC builds and provide feedback on their performance, value, and balance.";
-        break;
-    }
+    // Get system message with appropriate expertise level
+    const systemMessage = getSystemMessage(chatMode, expertiseLevel);
 
     // Add system message to the beginning
     const fullMessages = [
