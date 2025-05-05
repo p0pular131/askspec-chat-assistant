@@ -10,24 +10,44 @@ export interface DatabaseMessage {
   created_at: string;
 }
 
+// Interface for raw message data from the database
+interface RawDatabaseMessage {
+  id: string;
+  conversation_id: string;
+  content: string;
+  role: string;
+  created_at: string;
+}
+
 export function useMessages(conversationId: string | null) {
   const [messages, setMessages] = useState<DatabaseMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Function to convert raw message data to our DatabaseMessage interface
+  const convertRawMessage = (rawMessage: RawDatabaseMessage): DatabaseMessage => {
+    return {
+      ...rawMessage,
+      role: rawMessage.role as 'user' | 'assistant' // Type assertion to ensure role is the expected union type
+    };
+  };
 
   const loadMessages = async (convoId: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', convoId)
         .order('created_at');
       
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Transform the raw data to match our DatabaseMessage interface
+      const transformedMessages = (rawData || []).map(convertRawMessage);
+      setMessages(transformedMessages);
     } catch (err) {
       console.error('Error loading messages:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -44,7 +64,7 @@ export function useMessages(conversationId: string | null) {
         role,
       };
       
-      const { data, error } = await supabase
+      const { data: rawMessage, error } = await supabase
         .from('messages')
         .insert(newMessage)
         .select();
@@ -52,8 +72,9 @@ export function useMessages(conversationId: string | null) {
       if (error) throw error;
       
       // Update local state with the newly added message
-      if (data && data[0]) {
-        setMessages(prevMessages => [...prevMessages, data[0]]);
+      if (rawMessage && rawMessage[0]) {
+        const transformedMessage = convertRawMessage(rawMessage[0]);
+        setMessages(prevMessages => [...prevMessages, transformedMessage]);
       }
     } catch (err) {
       console.error('Error adding message:', err);
