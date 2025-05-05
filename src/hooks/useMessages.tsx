@@ -1,8 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 
-export interface ChatMessage {
+export interface DatabaseMessage {
   id: string;
   conversation_id: string;
   content: string;
@@ -11,13 +11,11 @@ export interface ChatMessage {
 }
 
 export function useMessages(conversationId: string | null) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<DatabaseMessage[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadMessages = async (convoId: string) => {
-    if (!convoId) return;
-    
     try {
       setLoading(true);
       setError(null);
@@ -29,14 +27,7 @@ export function useMessages(conversationId: string | null) {
         .order('created_at');
       
       if (error) throw error;
-      
-      // Explicitly cast the data to ensure type safety
-      const typedMessages = data?.map(msg => ({
-        ...msg,
-        role: msg.role as 'user' | 'assistant'
-      })) || [];
-      
-      setMessages(typedMessages);
+      setMessages(data || []);
     } catch (err) {
       console.error('Error loading messages:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -47,27 +38,23 @@ export function useMessages(conversationId: string | null) {
 
   const addMessage = async (content: string, role: 'user' | 'assistant', convoId: string) => {
     try {
+      const newMessage = {
+        conversation_id: convoId,
+        content,
+        role,
+      };
+      
       const { data, error } = await supabase
         .from('messages')
-        .insert({
-          conversation_id: convoId,
-          content,
-          role
-        })
-        .select()
-        .single();
+        .insert(newMessage)
+        .select();
       
       if (error) throw error;
       
-      // Ensure the response has the correct type
-      const typedMessage: ChatMessage = {
-        ...data,
-        role: data.role as 'user' | 'assistant'
-      };
-      
-      // Add the message to state immediately
-      setMessages(prev => [...prev, typedMessage]);
-      return typedMessage;
+      // Update local state with the newly added message
+      if (data && data[0]) {
+        setMessages(prevMessages => [...prevMessages, data[0]]);
+      }
     } catch (err) {
       console.error('Error adding message:', err);
       throw err;
@@ -76,18 +63,40 @@ export function useMessages(conversationId: string | null) {
 
   const callOpenAI = async (messages: { role: string; content: string }[], chatMode: string) => {
     try {
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: { messages, chatMode }
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-completion`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          messages,
+          chatMode,
+          conversationId, // Pass the conversation ID to the function
+        }),
       });
       
-      if (response.error) throw new Error(response.error.message || 'Error calling OpenAI');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to call OpenAI API');
+      }
       
-      return response.data.response;
+      const data = await response.json();
+      return data.response;
     } catch (err) {
       console.error('Error calling OpenAI:', err);
       throw err;
     }
   };
+
+  useEffect(() => {
+    if (conversationId) {
+      loadMessages(conversationId);
+    } else {
+      setMessages([]);
+      setLoading(false);
+    }
+  }, [conversationId]);
 
   return {
     messages,
@@ -95,6 +104,6 @@ export function useMessages(conversationId: string | null) {
     error,
     loadMessages,
     addMessage,
-    callOpenAI
+    callOpenAI,
   };
 }

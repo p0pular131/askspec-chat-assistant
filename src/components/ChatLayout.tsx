@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { ChatMessage as ChatMessageComponent } from './ChatMessage';
 import { MessageInput } from './MessageInput';
@@ -7,7 +8,9 @@ import { SurveyOption } from './SurveyOption';
 import { Message } from './types';
 import { useConversations, Conversation } from '../hooks/useConversations';
 import { useMessages } from '../hooks/useMessages';
+import { useBuilds } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export const ChatLayout: React.FC = () => {
   const [leftOpen, setLeftOpen] = useState(true);
@@ -19,6 +22,9 @@ export const ChatLayout: React.FC = () => {
   const [showExample, setShowExample] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  const [buildsSectionOpen, setBuildsSectionOpen] = useState(true);
+  
+  const navigate = useNavigate();
   
   const { 
     conversations, 
@@ -35,6 +41,11 @@ export const ChatLayout: React.FC = () => {
     loadMessages, 
     callOpenAI 
   } = useMessages(currentConversation?.id || null);
+
+  const {
+    builds,
+    loading: buildsLoading
+  } = useBuilds();
   
   // Sync messages from database
   useEffect(() => {
@@ -177,7 +188,7 @@ export const ChatLayout: React.FC = () => {
       <Sidebar
         isOpen={leftOpen}
         onToggle={() => setLeftOpen(!leftOpen)}
-        title="대화 목록"
+        title="메뉴"
         position="left"
       >
         <div className="flex flex-col gap-2">
@@ -203,6 +214,7 @@ export const ChatLayout: React.FC = () => {
         <div className="pt-4 mt-4 border-t border-gray-200">
           {activeTab === 'chat' && (
             <div className="flex flex-col gap-2">
+              {/* Conversations Section */}
               <div className="flex items-center justify-between pl-2 mb-2 text-xs text-stone-500">
                 <span>대화 목록</span>
                 <button 
@@ -241,6 +253,53 @@ export const ChatLayout: React.FC = () => {
                   </div>
                 ))
               )}
+              
+              {/* Builds Section */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <Collapsible
+                  open={buildsSectionOpen}
+                  onOpenChange={setBuildsSectionOpen}
+                  className="w-full"
+                >
+                  <div className="flex items-center justify-between pl-2 mb-2">
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center text-xs text-stone-500 hover:text-stone-700">
+                        <span>PC 빌드</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          className={`w-3 h-3 ml-1 transition-transform ${buildsSectionOpen ? 'rotate-180' : ''}`}
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </CollapsibleTrigger>
+                  </div>
+                  
+                  <CollapsibleContent className="space-y-2">
+                    {buildsLoading ? (
+                      <div className="p-2 text-sm text-center">Loading...</div>
+                    ) : builds.length === 0 ? (
+                      <div className="p-2 text-sm text-center text-gray-500">저장된 빌드가 없습니다.</div>
+                    ) : (
+                      builds.map((build) => (
+                        <button
+                          key={build.id}
+                          className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100"
+                          onClick={() => navigate(`/build/${build.id}`)}
+                        >
+                          {build.name}
+                        </button>
+                      ))
+                    )}
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             </div>
           )}
         </div>
