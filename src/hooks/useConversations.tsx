@@ -103,9 +103,45 @@ export function useConversations() {
 
   const updateTitleFromFirstMessage = async (conversationId: string, message: string) => {
     try {
-      // Create a title from the message (use the first 50 characters)
-      const title = message.length > 50 ? message.substring(0, 47) + '...' : message;
+      console.log("Generating title from message:", message);
       
+      // Call the edge function to generate a concise title
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages: [{ role: 'user', content: message }],
+          generateTitleOnly: true,
+          chatMode: '범용 검색',
+          expertiseLevel: 'intermediate'
+        },
+      });
+      
+      if (error) {
+        console.error("Error invoking title generation:", error);
+        // Fallback to simple title generation
+        const title = message.length > 50 ? message.substring(0, 47) + '...' : message;
+        await updateConversationTitle(conversationId, title);
+        return;
+      }
+      
+      // If we got a title back, use it
+      if (data && data.title) {
+        console.log("Generated title:", data.title);
+        await updateConversationTitle(conversationId, data.title);
+      } else {
+        // Fallback to simple title generation
+        const title = message.length > 50 ? message.substring(0, 47) + '...' : message;
+        await updateConversationTitle(conversationId, title);
+      }
+    } catch (err) {
+      console.error('Error updating conversation title:', err);
+      // Fallback to simple title generation
+      const title = message.length > 50 ? message.substring(0, 47) + '...' : message;
+      await updateConversationTitle(conversationId, title);
+    }
+  };
+  
+  const updateConversationTitle = async (conversationId: string, title: string) => {
+    try {
       const { error } = await supabase
         .from('conversations')
         .update({ title })
@@ -120,7 +156,7 @@ export function useConversations() {
         )
       );
     } catch (err) {
-      console.error('Error updating conversation title:', err);
+      console.error('Error updating conversation title in DB:', err);
     }
   };
 

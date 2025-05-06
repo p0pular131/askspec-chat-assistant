@@ -202,6 +202,46 @@ const getSystemMessage = (chatMode, expertiseLevel) => {
   return baseSystemMessage;
 };
 
+// Function to generate a concise name based on request content
+const generateConciseName = async (openai, content, isConversation = true) => {
+  try {
+    const prompt = isConversation 
+      ? `Generate a concise one-line summary (maximum 5-7 words) for this question about computer hardware: "${content}"`
+      : `Generate a concise name (maximum 5-7 words) for a PC build with this purpose and components: "${content}". Include the purpose and budget if mentioned.`;
+    
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a concise labeling assistant. Generate very short, descriptive titles."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.5,
+      max_tokens: 30,
+    });
+    
+    let name = completion.choices[0].message.content.trim();
+    
+    // Remove quotes if present
+    name = name.replace(/^["']|["']$/g, '');
+    
+    // Ensure the name is not too long
+    if (name.length > 50) {
+      name = name.substring(0, 47) + '...';
+    }
+    
+    return name;
+  } catch (error) {
+    console.error("Error generating name:", error);
+    return isConversation ? "New Conversation" : "New PC Build";
+  }
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -249,19 +289,15 @@ serve(async (req) => {
     if (buildInfo && conversationId && buildInfo.components.length > 0) {
       // Extract a title from the user's last message
       const userLastMessage = messages.findLast(msg => msg.role === 'user')?.content;
-      let buildTitle = '새 PC 빌드';
       
-      if (userLastMessage) {
-        const titleText = userLastMessage.length > 30 
-          ? userLastMessage.substring(0, 27) + '...' 
-          : userLastMessage;
-        buildTitle = `${titleText} 빌드`;
-      }
+      // Generate a better name for the build
+      const buildName = await generateConciseName(openai, userLastMessage, false);
+      console.log("Generated build name:", buildName);
       
       // Save the build to the database
       try {
         console.log("Saving build to database:", {
-          name: buildTitle,
+          name: buildName,
           conversation_id: conversationId,
           components: buildInfo.components.length,
           total_price: buildInfo.totalPrice,
@@ -270,7 +306,7 @@ serve(async (req) => {
         const { data, error } = await supabaseClient
           .from('pc_builds')
           .insert({
-            name: buildTitle,
+            name: buildName,
             conversation_id: conversationId,
             components: buildInfo.components,
             total_price: buildInfo.totalPrice || 0,

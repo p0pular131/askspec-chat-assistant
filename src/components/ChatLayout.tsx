@@ -35,7 +35,8 @@ export const ChatLayout: React.FC = () => {
 
   const {
     builds,
-    loading: buildsLoading
+    loading: buildsLoading,
+    loadBuilds
   } = useBuilds();
   
   // Sync messages from database
@@ -49,6 +50,14 @@ export const ChatLayout: React.FC = () => {
   useEffect(() => {
     syncMessagesFromDB(dbMessages);
   }, [dbMessages]);
+  
+  // Refresh builds list when the active tab changes to builds
+  useEffect(() => {
+    if (activeTab === 'builds') {
+      console.log("Refreshing builds list");
+      loadBuilds();
+    }
+  }, [activeTab, loadBuilds]);
 
   // Map the selected answer to an expertise level
   const getExpertiseLevel = () => {

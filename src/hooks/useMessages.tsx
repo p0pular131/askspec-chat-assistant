@@ -96,6 +96,8 @@ export function useMessages(conversationId: string | null) {
     expertiseLevel: string = 'intermediate'
   ) => {
     try {
+      console.log("Calling OpenAI with messages:", messages);
+      
       // Use supabase.functions.invoke instead of making a direct fetch request
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
@@ -111,6 +113,7 @@ export function useMessages(conversationId: string | null) {
         throw new Error(error.message || 'Failed to call OpenAI API');
       }
       
+      console.log("Got response from OpenAI:", data?.response?.substring(0, 100) + "...");
       return data.response;
     } catch (err) {
       console.error('Error calling OpenAI:', err);

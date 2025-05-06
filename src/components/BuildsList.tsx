@@ -2,6 +2,16 @@
 import React, { useEffect } from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 interface BuildsListProps {
   builds: Build[];
@@ -16,26 +26,43 @@ const BuildsList: React.FC<BuildsListProps> = ({
   onViewBuild,
   onDelete
 }) => {
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [buildToDelete, setBuildToDelete] = React.useState<string | null>(null);
+
   useEffect(() => {
     console.log('BuildsList rendered with builds:', builds);
   }, [builds]);
 
   const handleDelete = (e: React.MouseEvent, buildId: string) => {
     e.stopPropagation();
-    try {
-      onDelete(buildId);
-      toast({
-        title: "빌드 삭제됨",
-        description: "PC 빌드가 성공적으로 삭제되었습니다.",
-      });
-    } catch (error) {
-      console.error('Error deleting build:', error);
-      toast({
-        title: "오류 발생",
-        description: "PC 빌드를 삭제하는 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
+    setBuildToDelete(buildId);
+    setDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (buildToDelete) {
+      try {
+        onDelete(buildToDelete);
+        toast({
+          title: "빌드 삭제됨",
+          description: "PC 빌드가 성공적으로 삭제되었습니다.",
+        });
+      } catch (error) {
+        console.error('Error deleting build:', error);
+        toast({
+          title: "오류 발생",
+          description: "PC 빌드를 삭제하는 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+      }
+      setBuildToDelete(null);
     }
+    setDialogOpen(false);
+  };
+
+  const cancelDelete = () => {
+    setBuildToDelete(null);
+    setDialogOpen(false);
   };
 
   return (
@@ -69,6 +96,24 @@ const BuildsList: React.FC<BuildsListProps> = ({
           </div>
         ))
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>정말로 이 빌드를 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 작업은 되돌릴 수 없으며 빌드와 관련된 모든 데이터가 영구적으로 삭제됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
