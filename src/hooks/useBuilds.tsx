@@ -88,7 +88,12 @@ export function useBuilds() {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading builds:', error);
+        throw error;
+      }
+      
+      console.log('Loaded builds:', rawData?.length || 0);
       
       // Transform the raw data to match our Build interface
       const transformedBuilds = (rawData || []).map(convertRawBuild);
@@ -194,6 +199,7 @@ export function useBuilds() {
     }
   };
 
+  // This effect runs when the component mounts
   useEffect(() => {
     loadBuilds();
   }, []);

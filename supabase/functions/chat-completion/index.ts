@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { OpenAI } from "https://esm.sh/openai@4.28.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
@@ -12,8 +13,10 @@ const extractPcBuild = (content) => {
   // Basic pattern matching for PC build recommendations
   const hasBuildRecommendation = content.includes('CPU') && 
     (content.includes('GPU') || content.includes('그래픽카드')) && 
-    content.includes('RAM') && 
-    content.includes('SSD') || content.includes('HDD');
+    (content.includes('RAM') || content.includes('메모리')) && 
+    (content.includes('SSD') || content.includes('HDD') || content.includes('스토리지'));
+  
+  console.log("Has build recommendation:", hasBuildRecommendation);
   
   if (!hasBuildRecommendation) return null;
   
@@ -24,6 +27,7 @@ const extractPcBuild = (content) => {
   if (priceMatch && priceMatch[1]) {
     // Convert string like "1,500,000" to number 1500000
     totalPrice = Number(priceMatch[1].replace(/,/g, ''));
+    console.log("Extracted price:", totalPrice);
   }
   
   // Extract components
@@ -42,8 +46,8 @@ const extractPcBuild = (content) => {
   
   for (const component of components) {
     const match = content.match(component.pattern);
-    if (match && match[2]) {
-      const componentText = match[2].trim();
+    if (match && match.length > 1) {
+      const componentText = match[match.length - 1].trim();
       const purchaseLinkMatch = componentText.match(/https?:\/\/[^\s)]+/i);
       
       extractedComponents.push({
@@ -57,6 +61,8 @@ const extractPcBuild = (content) => {
       });
     }
   }
+
+  console.log("Extracted components:", extractedComponents.length);
   
   // Extract purpose/recommendation
   let recommendation = '';
@@ -72,11 +78,39 @@ const extractPcBuild = (content) => {
     }
   }
   
-  return {
-    components: extractedComponents,
-    totalPrice,
-    recommendation
-  };
+  // For non-specific PC build recommendations, try to extract components from numbered lists
+  if (extractedComponents.length === 0 && content.includes('1.') && content.includes('2.')) {
+    const componentTypes = ['CPU', 'GPU', 'RAM', 'Storage', 'Motherboard', 'Case', 'PSU'];
+    
+    for (const type of componentTypes) {
+      const regex = new RegExp(`\\*\\*${type}[^*]*\\*\\*:?\\s*([^\\n]+)`, 'i');
+      const match = content.match(regex);
+      if (match && match[1]) {
+        extractedComponents.push({
+          name: match[1].trim(),
+          type: type,
+          image: '',
+          specs: match[1].trim(),
+          reason: 'Recommended component',
+          purchase_link: '',
+          alternatives: []
+        });
+      }
+    }
+    
+    console.log("Extracted components from numbered list:", extractedComponents.length);
+  }
+
+  // Only return a build if we found at least some components
+  if (extractedComponents.length > 0) {
+    return {
+      components: extractedComponents,
+      totalPrice: totalPrice || 1000000, // Default to 1,000,000 if price not found
+      recommendation: recommendation || '맞춤형 PC 빌드 추천'
+    };
+  }
+  
+  return null;
 };
 
 // Function to get system message with appropriate expertise level
@@ -163,39 +197,53 @@ serve(async (req) => {
     const assistantResponse = completion.choices[0].message.content;
     console.log("Got response from OpenAI:", assistantResponse.substring(0, 100) + "...");
     
-    // Check if the response contains a PC build recommendation
-    if (chatMode === '견적 추천' || chatMode === '스펙 업그레이드') {
-      const buildInfo = extractPcBuild(assistantResponse);
+    // We'll try to extract a PC build from ALL responses, not just specific modes
+    const buildInfo = extractPcBuild(assistantResponse);
+    
+    // If we detected a PC build and have a conversation ID, save it
+    if (buildInfo && conversationId && buildInfo.components.length > 0) {
+      // Extract a title from the user's last message
+      const userLastMessage = messages.findLast(msg => msg.role === 'user')?.content;
+      let buildTitle = '새 PC 빌드';
       
-      // If we detected a PC build and have a conversation ID, save it
-      if (buildInfo && conversationId && buildInfo.components.length > 0) {
-        // Extract a title from the user's last message
-        const userLastMessage = messages.findLast(msg => msg.role === 'user')?.content;
-        let buildTitle = '새 PC 빌드';
-        
-        if (userLastMessage) {
-          const titleText = userLastMessage.length > 30 
-            ? userLastMessage.substring(0, 27) + '...' 
-            : userLastMessage;
-          buildTitle = `${titleText} 빌드`;
-        }
-        
-        // Save the build to the database
-        try {
-          await supabaseClient
-            .from('pc_builds')
-            .insert({
-              name: buildTitle,
-              conversation_id: conversationId,
-              components: buildInfo.components,
-              total_price: buildInfo.totalPrice || 0,
-              recommendation: buildInfo.recommendation || '맞춤형 PC 빌드 추천',
-              rating: {}  // Empty JSON object for future ratings
-            });
-        } catch (error) {
-          console.error("Error saving build:", error);
-        }
+      if (userLastMessage) {
+        const titleText = userLastMessage.length > 30 
+          ? userLastMessage.substring(0, 27) + '...' 
+          : userLastMessage;
+        buildTitle = `${titleText} 빌드`;
       }
+      
+      // Save the build to the database
+      try {
+        console.log("Saving build to database:", {
+          name: buildTitle,
+          conversation_id: conversationId,
+          components: buildInfo.components.length,
+          total_price: buildInfo.totalPrice,
+        });
+        
+        const { data, error } = await supabaseClient
+          .from('pc_builds')
+          .insert({
+            name: buildTitle,
+            conversation_id: conversationId,
+            components: buildInfo.components,
+            total_price: buildInfo.totalPrice || 0,
+            recommendation: buildInfo.recommendation || '맞춤형 PC 빌드 추천',
+            rating: {}  // Empty JSON object for future ratings
+          })
+          .select();
+        
+        if (error) {
+          console.error("Error saving build:", error);
+        } else {
+          console.log("Successfully saved build:", data);
+        }
+      } catch (error) {
+        console.error("Error saving build:", error);
+      }
+    } else {
+      console.log("No valid PC build detected or not enough components found.");
     }
 
     // Return the response
