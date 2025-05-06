@@ -1,7 +1,8 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Json } from '../integrations/supabase/types';
+import { toast } from '../components/ui/use-toast';
 
 export interface Component {
   name: string;
@@ -45,6 +46,7 @@ export function useBuilds() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedBuild, setSelectedBuild] = useState<Build | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Function to convert raw build data to our Build interface
   const convertRawBuild = (rawBuild: RawBuild): Build => {
@@ -78,20 +80,21 @@ export function useBuilds() {
     };
   };
 
-  const loadBuilds = async () => {
+  const loadBuilds = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
       console.log('Fetching builds from database...');
-      const { data: rawData, error } = await supabase
+      const { data: rawData, error: fetchError } = await supabase
         .from('pc_builds')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error('Error loading builds:', error);
-        throw error;
+      if (fetchError) {
+        console.error('Error loading builds:', fetchError);
+        setError(`오류가 발생했습니다: ${fetchError.message}`);
+        throw fetchError;
       }
       
       console.log('Raw builds data:', rawData);
@@ -101,13 +104,26 @@ export function useBuilds() {
       const transformedBuilds = (rawData || []).map(convertRawBuild);
       console.log('Transformed builds:', transformedBuilds);
       setBuilds(transformedBuilds);
+      return transformedBuilds;
     } catch (err) {
       console.error('Error loading builds:', err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+      setError(errorMessage);
+      
+      // Show an error toast only on the first attempt
+      if (retryCount === 0) {
+        toast({
+          title: "빌드 로딩 실패",
+          description: "PC 빌드 목록을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          variant: "destructive",
+        });
+      }
+      
+      return [];
     } finally {
       setLoading(false);
     }
-  };
+  }, [retryCount]);
 
   const getBuild = async (id: string) => {
     try {
@@ -123,14 +139,15 @@ export function useBuilds() {
       }
       
       // If not in cache, fetch from database
-      const { data: rawBuild, error } = await supabase
+      const { data: rawBuild, error: fetchError } = await supabase
         .from('pc_builds')
         .select('*')
         .eq('id', id)
         .single();
       
-      if (error) {
-        throw error;
+      if (fetchError) {
+        setError(`빌드를 불러오는 중 오류가 발생했습니다: ${fetchError.message}`);
+        throw fetchError;
       }
       
       const transformedBuild = convertRawBuild(rawBuild);
@@ -138,7 +155,13 @@ export function useBuilds() {
       return transformedBuild;
     } catch (err) {
       console.error('Error getting build:', err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+      setError(errorMessage);
+      toast({
+        title: "빌드 로딩 실패",
+        description: "PC 빌드 정보를 불러오는 중 문제가 발생했습니다.",
+        variant: "destructive",
+      });
       throw err;
     } finally {
       setLoading(false);
@@ -177,6 +200,11 @@ export function useBuilds() {
       return transformedBuild;
     } catch (err) {
       console.error('Error saving build:', err);
+      toast({
+        title: "빌드 저장 실패",
+        description: "PC 빌드를 저장하는 중 문제가 발생했습니다.",
+        variant: "destructive",
+      });
       throw err;
     }
   };
@@ -198,20 +226,31 @@ export function useBuilds() {
       }
     } catch (err) {
       console.error('Error deleting build:', err);
+      toast({
+        title: "빌드 삭제 실패",
+        description: "PC 빌드를 삭제하는 중 문제가 발생했습니다.",
+        variant: "destructive",
+      });
       throw err;
     }
   };
 
-  // This effect runs when the component mounts
+  // Effect to load builds when the component mounts
   useEffect(() => {
     loadBuilds();
-  }, []);
+  }, [loadBuilds]);
+
+  // Provide a manual retry function
+  const retryLoadBuilds = () => {
+    setRetryCount(prev => prev + 1);
+  };
 
   return {
     builds,
     loading,
     error,
     loadBuilds,
+    retryLoadBuilds,
     saveBuild,
     deleteBuild,
     getBuild,

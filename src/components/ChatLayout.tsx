@@ -36,6 +36,7 @@ export const ChatLayout: React.FC = () => {
   const {
     builds,
     loading: buildsLoading,
+    error: buildsError,
     loadBuilds
   } = useBuilds();
   
@@ -151,6 +152,7 @@ export const ChatLayout: React.FC = () => {
             <BuildsList
               builds={builds}
               loading={buildsLoading}
+              error={buildsError}
               onViewBuild={handleViewBuild}
               onDelete={handleDeleteBuild}
             />

@@ -12,10 +12,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+import { AlertCircle } from 'lucide-react';
 
 interface BuildsListProps {
   builds: Build[];
   loading: boolean;
+  error: string | null;
   onViewBuild: (buildId: string) => void;
   onDelete: (buildId: string) => void;
 }
@@ -23,6 +25,7 @@ interface BuildsListProps {
 const BuildsList: React.FC<BuildsListProps> = ({
   builds,
   loading,
+  error,
   onViewBuild,
   onDelete
 }) => {
@@ -71,7 +74,22 @@ const BuildsList: React.FC<BuildsListProps> = ({
         <span>PC 빌드 목록</span>
       </div>
       
-      {loading ? (
+      {error ? (
+        <div className="p-4 rounded-md bg-red-50">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">데이터 로딩 실패</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>PC 빌드 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+                <p className="mt-1 text-xs text-red-600">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : loading ? (
         <div className="p-2 text-sm text-center">Loading...</div>
       ) : builds.length === 0 ? (
         <div className="p-2 text-sm text-center text-gray-500">저장된 빌드가 없습니다.</div>
