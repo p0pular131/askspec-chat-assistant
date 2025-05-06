@@ -65,32 +65,20 @@ export function useConversationState() {
 
   const handleDeleteConversation = async (id: string) => {
     try {
-      console.log(`Handling deletion of conversation: ${id}`);
-      
       // Check if the conversation to delete is the current one
       const isCurrentConversation = currentConversation?.id === id;
       
-      // Delete the conversation (this will also update the conversations list in useConversations)
+      // Delete the conversation
       await deleteConversation(id);
       
       // If the deleted conversation was the current one, reset the current conversation
       if (isCurrentConversation) {
-        console.log("Resetting current conversation as it was deleted");
         setCurrentConversation(null);
         setMessages([]);
         setShowExample(true);
       }
-      
-      // Refresh the conversations list to ensure UI is in sync with database
-      await fetchConversations();
-      
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
-      toast({
-        title: "오류",
-        description: "대화 삭제에 실패했습니다.",
-        variant: "destructive",
-      });
     }
   };
 

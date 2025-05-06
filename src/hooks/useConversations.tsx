@@ -57,8 +57,6 @@ export function useConversations() {
 
   const deleteConversation = async (id: string) => {
     try {
-      console.log(`Starting deletion for conversation ID: ${id}`);
-      
       // First, delete all messages associated with this conversation
       const { error: messagesError } = await supabase
         .from('messages')
@@ -69,8 +67,6 @@ export function useConversations() {
         console.error('Error deleting associated messages:', messagesError);
         throw messagesError;
       }
-      
-      console.log(`Successfully deleted messages for conversation ID: ${id}`);
       
       // After deleting messages, delete the conversation itself
       const { error: conversationError } = await supabase
@@ -83,14 +79,8 @@ export function useConversations() {
         throw conversationError;
       }
       
-      console.log(`Successfully deleted conversation with ID: ${id}`);
-      
       // Update the local state to remove the deleted conversation
-      setConversations(prev => {
-        const filtered = prev.filter(convo => convo.id !== id);
-        console.log('Updated conversations after deletion:', filtered);
-        return filtered;
-      });
+      setConversations(prev => prev.filter(convo => convo.id !== id));
       
       toast({
         title: "성공",

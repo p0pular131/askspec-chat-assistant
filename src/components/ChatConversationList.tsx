@@ -34,14 +34,12 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation(); // Prevent clicking the parent conversation item
-    console.log(`Delete button clicked for conversation ID: ${id}`);
     setConversationToDelete(id);
     setDialogOpen(true);
   };
 
   const confirmDelete = () => {
     if (conversationToDelete) {
-      console.log(`Confirming deletion of conversation ID: ${conversationToDelete}`);
       onDelete(conversationToDelete);
       setConversationToDelete(null);
     }
@@ -49,7 +47,6 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
   };
 
   const cancelDelete = () => {
-    console.log('Deletion cancelled');
     setConversationToDelete(null);
     setDialogOpen(false);
   };
