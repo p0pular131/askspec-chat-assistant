@@ -4,6 +4,7 @@ import { Conversation } from './useConversations';
 import { Message } from '../components/types';
 import { useConversations } from './useConversations';
 import { useMessages } from './useMessages';
+import { useBuilds } from './useBuilds';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../components/ui/use-toast';
 
@@ -21,9 +22,15 @@ export function useConversationState() {
     createConversation, 
     deleteConversation,
     updateTitleFromFirstMessage,
-    deleteBuild,
     fetchConversations
   } = useConversations();
+  
+  const {
+    builds,
+    loading: buildsLoading,
+    loadBuilds,
+    deleteBuild
+  } = useBuilds();
   
   const { 
     messages: dbMessages, 
@@ -80,7 +87,11 @@ export function useConversationState() {
 
   const handleDeleteBuild = async (buildId: string) => {
     try {
-      await deleteBuild(buildId);
+      const result = await deleteBuild(buildId);
+      if (result) {
+        // Reload the builds list
+        await loadBuilds();
+      }
     } catch (error) {
       toast({
         title: "오류",
@@ -119,6 +130,9 @@ export function useConversationState() {
         
         // Add assistant response to database
         await addMessage(response, 'assistant', newConversation.id);
+        
+        // Reload builds list to catch any new builds created from this conversation
+        await loadBuilds();
       } else {
         // Add user message
         await addMessage(text, 'user', currentConversation.id);
@@ -142,6 +156,9 @@ export function useConversationState() {
         
         // Add assistant response to database
         await addMessage(response, 'assistant', currentConversation.id);
+        
+        // Reload builds list to catch any new builds created from this conversation
+        await loadBuilds();
       }
       
       setShowExample(false);
@@ -166,6 +183,8 @@ export function useConversationState() {
     convoLoading,
     msgLoading,
     dbMessages,
+    builds,
+    buildsLoading,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
@@ -174,6 +193,7 @@ export function useConversationState() {
     sendMessage,
     loadMessages,
     syncMessagesFromDB,
+    loadBuilds,
     setShowExample
   };
 }

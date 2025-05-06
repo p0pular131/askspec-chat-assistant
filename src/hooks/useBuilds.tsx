@@ -224,6 +224,8 @@ export function useBuilds() {
       if (selectedBuild?.id === id) {
         setSelectedBuild(null);
       }
+      
+      return true;
     } catch (err) {
       console.error('Error deleting build:', err);
       toast({

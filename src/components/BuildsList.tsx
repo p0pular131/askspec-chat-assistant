@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
 import { 
@@ -12,7 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface BuildsListProps {
   builds: Build[];
@@ -20,6 +21,7 @@ interface BuildsListProps {
   error: string | null;
   onViewBuild: (buildId: string) => void;
   onDelete: (buildId: string) => void;
+  onRefresh?: () => void;
 }
 
 const BuildsList: React.FC<BuildsListProps> = ({
@@ -27,7 +29,8 @@ const BuildsList: React.FC<BuildsListProps> = ({
   loading,
   error,
   onViewBuild,
-  onDelete
+  onDelete,
+  onRefresh
 }) => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [buildToDelete, setBuildToDelete] = React.useState<string | null>(null);
@@ -55,10 +58,32 @@ const BuildsList: React.FC<BuildsListProps> = ({
     setDialogOpen(false);
   };
 
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
+      toast({
+        title: "새로고침",
+        description: "PC 빌드 목록을 새로고침 합니다.",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between pl-2 mb-2 text-xs text-stone-500">
-        <span>PC 빌드 목록</span>
+      <div className="flex items-center justify-between pl-2 mb-2">
+        <span className="text-xs text-stone-500">PC 빌드 목록</span>
+        {onRefresh && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-6 w-6 p-0" 
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span className="sr-only">새로고침</span>
+          </Button>
+        )}
       </div>
       
       {error ? (
@@ -72,14 +97,30 @@ const BuildsList: React.FC<BuildsListProps> = ({
               <div className="mt-2 text-sm text-red-700">
                 <p>PC 빌드 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
                 <p className="mt-1 text-xs text-red-600">{error}</p>
+                {onRefresh && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2" 
+                    onClick={handleRefresh}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                    다시 시도
+                  </Button>
+                )}
               </div>
             </div>
           </div>
         </div>
       ) : loading ? (
-        <div className="p-2 text-sm text-center">Loading...</div>
+        <div className="p-2 text-sm text-center">로딩 중...</div>
       ) : builds.length === 0 ? (
-        <div className="p-2 text-sm text-center text-gray-500">저장된 빌드가 없습니다.</div>
+        <div className="p-2 text-sm text-center text-gray-500">
+          <p>저장된 빌드가 없습니다.</p>
+          <p className="text-xs mt-1 text-gray-400">
+            대화창에서 PC 빌드 요청을 하면 이곳에 표시됩니다.
+          </p>
+        </div>
       ) : (
         builds.map((build) => (
           <div key={build.id} className="flex items-center gap-2">
@@ -87,7 +128,17 @@ const BuildsList: React.FC<BuildsListProps> = ({
               className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100"
               onClick={() => onViewBuild(build.id)}
             >
-              {build.name}
+              <div className="flex justify-between">
+                <span>{build.name}</span>
+                <span className="text-xs text-gray-500">
+                  {new Date(build.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              {build.total_price > 0 && (
+                <div className="text-xs text-gray-500 mt-1">
+                  예상 가격: ₩{build.total_price.toLocaleString()}원
+                </div>
+              )}
             </button>
             <button
               onClick={(e) => handleDelete(e, build.id)}

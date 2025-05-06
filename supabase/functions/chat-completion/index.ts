@@ -8,58 +8,91 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper function to extract PC build information from AI response
+// Improved function to extract PC build information from AI response
 const extractPcBuild = (content) => {
-  // Basic pattern matching for PC build recommendations
-  const hasBuildRecommendation = content.includes('CPU') && 
+  // Check if the content has a PC build recommendation
+  const hasBuildRecommendation = 
+    (content.includes('CPU') || content.includes('프로세서')) && 
     (content.includes('GPU') || content.includes('그래픽카드')) && 
-    (content.includes('RAM') || content.includes('메모리')) && 
+    (content.includes('RAM') || content.includes('메모리')) &&
     (content.includes('SSD') || content.includes('HDD') || content.includes('스토리지'));
   
+  console.log("Checking for build recommendation...");
   console.log("Has build recommendation:", hasBuildRecommendation);
   console.log("Content excerpt:", content.substring(0, 200)); // Log a preview of content
   
   if (!hasBuildRecommendation) return null;
   
-  // Simple extraction of price
+  // Extract price with improved regex
   let totalPrice = 0;
-  const pricePattern = /총\s*가격[:\s]*₩?([0-9,]+)원?/i;
-  const priceMatch = content.match(pricePattern);
-  if (priceMatch && priceMatch[1]) {
-    // Convert string like "1,500,000" to number 1500000
-    totalPrice = Number(priceMatch[1].replace(/,/g, ''));
-    console.log("Extracted price:", totalPrice);
+  const pricePatterns = [
+    /총\s*가격[:\s]*₩?([0-9,]+)원?/i,
+    /총\s*예산[:\s]*₩?([0-9,]+)원?/i,
+    /총\s*비용[:\s]*₩?([0-9,]+)원?/i,
+    /전체\s*가격[:\s]*₩?([0-9,]+)원?/i,
+    /가격[:\s]*₩?([0-9,]+)원?/i,
+    /예상\s*비용[:\s]*약?\s*₩?([0-9,]+)원?/i,
+    /총액[:\s]*₩?([0-9,]+)원?/i
+  ];
+  
+  for (const pattern of pricePatterns) {
+    const priceMatch = content.match(pattern);
+    if (priceMatch && priceMatch[1]) {
+      // Convert string like "1,500,000" to number 1500000
+      totalPrice = Number(priceMatch[1].replace(/,/g, ''));
+      console.log("Extracted price:", totalPrice);
+      break;
+    }
   }
   
-  // Extract components
-  // This is a simple extraction - in a real application, we'd want more sophisticated parsing
+  // If no price found, try to find any number followed by the won symbol
+  if (totalPrice === 0) {
+    const wonMatch = content.match(/([0-9,]+)원/);
+    if (wonMatch && wonMatch[1]) {
+      totalPrice = Number(wonMatch[1].replace(/,/g, ''));
+      console.log("Extracted price from won symbol:", totalPrice);
+    }
+  }
+  
+  // If still no price, use a default value
+  if (totalPrice === 0) {
+    totalPrice = 1000000; // Default to 1,000,000 won
+    console.log("Using default price");
+  }
+  
+  // Improved component extraction with Korean and English patterns
   const components = [
-    { type: 'CPU', pattern: /CPU[:\s]+(.*?)(?=\n|GPU|그래픽카드|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원공급장치)/is },
-    { type: 'GPU', pattern: /(GPU|그래픽카드)[:\s]+(.*?)(?=\n|CPU|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원공급장치)/is },
-    { type: 'RAM', pattern: /(RAM|메모리)[:\s]+(.*?)(?=\n|CPU|GPU|그래픽카드|저장장치|Storage|SSD|HDD|마더보드|케이스|전원공급장치)/is },
-    { type: 'Storage', pattern: /(저장장치|Storage|SSD|HDD)[:\s]+(.*?)(?=\n|CPU|GPU|그래픽카드|메모리|RAM|마더보드|케이스|전원공급장치)/is },
-    { type: 'Motherboard', pattern: /(Motherboard|마더보드)[:\s]+(.*?)(?=\n|CPU|GPU|그래픽카드|메모리|RAM|저장장치|Storage|SSD|HDD|케이스|전원공급장치)/is },
-    { type: 'Case', pattern: /(Case|케이스)[:\s]+(.*?)(?=\n|CPU|GPU|그래픽카드|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|전원공급장치)/is },
-    { type: 'PSU', pattern: /(PSU|Power Supply|전원공급장치)[:\s]+(.*?)(?=\n|CPU|GPU|그래픽카드|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스)/is }
+    { type: 'CPU', patterns: [/CPU[:\s]+(.*?)(?=\n|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is, /프로세서[:\s]+(.*?)(?=\n|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] },
+    { type: 'GPU', patterns: [/(GPU|그래픽카드|그래픽)[:\s]+(.*?)(?=\n|CPU|프로세서|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] },
+    { type: 'RAM', patterns: [/(RAM|메모리)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] },
+    { type: 'Storage', patterns: [/(저장장치|Storage|SSD|HDD)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|마더보드|케이스|전원)/is] },
+    { type: 'Motherboard', patterns: [/(Motherboard|마더보드)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|케이스|전원)/is] },
+    { type: 'Case', patterns: [/(Case|케이스)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|전원)/is] },
+    { type: 'PSU', patterns: [/(PSU|Power Supply|전원공급장치|전원)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스)/is] }
   ];
   
   const extractedComponents = [];
   
   for (const component of components) {
-    const match = content.match(component.pattern);
-    if (match && match.length > 1) {
-      const componentText = match[match.length - 1].trim();
-      const purchaseLinkMatch = componentText.match(/https?:\/\/[^\s)]+/i);
-      
-      extractedComponents.push({
-        name: componentText.replace(/https?:\/\/[^\s)]+/gi, '').trim(),
-        type: component.type,
-        image: '',  // Would require additional processing
-        specs: componentText,
-        reason: `Selected for optimal performance and value`,
-        purchase_link: purchaseLinkMatch ? purchaseLinkMatch[0] : '',
-        alternatives: [] // Would require additional processing
-      });
+    let matched = false;
+    for (const pattern of component.patterns) {
+      const match = content.match(pattern);
+      if (match && match.length > 1) {
+        const componentText = match[match.length - 1].trim();
+        const purchaseLinkMatch = componentText.match(/https?:\/\/[^\s)]+/i);
+        
+        extractedComponents.push({
+          name: componentText.replace(/https?:\/\/[^\s)]+/gi, '').trim(),
+          type: component.type,
+          image: '',
+          specs: componentText,
+          reason: `선택된 최적의 성능과 가치를 위한 부품`,
+          purchase_link: purchaseLinkMatch ? purchaseLinkMatch[0] : '',
+          alternatives: []
+        });
+        matched = true;
+        break;
+      }
     }
   }
 
@@ -68,69 +101,93 @@ const extractPcBuild = (content) => {
     console.log("First component:", JSON.stringify(extractedComponents[0]));
   }
   
-  // Extract purpose/recommendation
+  // Extract recommendation purpose
   let recommendation = '';
-  const purposePattern = /이\s*빌드는\s*(.*?)(?=\n|CPU|GPU|그래픽카드)/i;
-  const purposeMatch = content.match(purposePattern);
-  if (purposeMatch && purposeMatch[1]) {
-    recommendation = purposeMatch[1].trim();
-  } else {
-    // Fallback to first paragraph
-    const firstParagraphMatch = content.match(/^([^]*?)(?=\n\n|\n[A-Z]|\n[0-9])/);
-    if (firstParagraphMatch) {
-      recommendation = firstParagraphMatch[0].trim();
+  const purposePatterns = [
+    /이\s*빌드는\s*(.*?)(?=\n|CPU|GPU|그래픽)/i,
+    /이\s*PC는\s*(.*?)(?=\n|CPU|GPU|그래픽)/i,
+    /추천\s*이유[:\s]+(.*?)(?=\n|CPU|GPU|그래픽)/i,
+    /용도[:\s]+(.*?)(?=\n|CPU|GPU|그래픽)/i
+  ];
+  
+  for (const pattern of purposePatterns) {
+    const purposeMatch = content.match(pattern);
+    if (purposeMatch && purposeMatch[1]) {
+      recommendation = purposeMatch[1].trim();
+      break;
     }
   }
   
-  // For non-specific PC build recommendations, try to extract components from numbered lists
-  if (extractedComponents.length === 0 && content.includes('1.') && content.includes('2.')) {
-    const componentTypes = ['CPU', 'GPU', 'RAM', 'Storage', 'Motherboard', 'Case', 'PSU'];
-    
-    for (const type of componentTypes) {
-      const regex = new RegExp(`\\*\\*${type}[^*]*\\*\\*:?\\s*([^\\n]+)`, 'i');
-      const match = content.match(regex);
-      if (match && match[1]) {
-        extractedComponents.push({
-          name: match[1].trim(),
-          type: type,
-          image: '',
-          specs: match[1].trim(),
-          reason: 'Recommended component',
-          purchase_link: '',
-          alternatives: []
-        });
-      }
+  // If no recommendation found, use the first paragraph
+  if (!recommendation) {
+    const firstParagraphMatch = content.match(/^([^]*?)(?=\n\n|\n[A-Z]|\n[0-9])/);
+    if (firstParagraphMatch) {
+      recommendation = firstParagraphMatch[0].trim();
+    } else {
+      recommendation = '맞춤형 PC 빌드 추천';
     }
-    
-    console.log("Extracted components from numbered list:", extractedComponents.length);
   }
-
-  // Attempt to extract from any list format
-  if (extractedComponents.length === 0) {
-    // Try matching components in Korean or English from any list format
-    const listItemPattern = /(?:\d+[\.\)]\s*|\*\s+|•\s+|-\s+)(?:\*\*)?([^:]+)(?:\*\*)?:?\s*([^\n]+)/g;
+  
+  // Try to extract from markdown tables if components are still missing
+  if (extractedComponents.length < 3) {
+    const tableRowPattern = /\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/g;
     let match;
     
-    while ((match = listItemPattern.exec(content)) !== null) {
-      const itemName = match[1].trim();
-      const itemValue = match[2].trim();
-      
-      // Check if this is a PC component
-      const componentType = determineComponentType(itemName);
+    while ((match = tableRowPattern.exec(content)) !== null) {
+      const componentType = determineComponentType(match[1].trim());
       if (componentType) {
-        extractedComponents.push({
-          name: itemValue,
-          type: componentType,
-          image: '',
-          specs: itemValue,
-          reason: 'Recommended component',
-          purchase_link: '',
-          alternatives: []
-        });
+        const value = match[2].trim();
+        // Check if this component type already exists
+        const existingComponent = extractedComponents.find(c => c.type === componentType);
+        if (!existingComponent) {
+          extractedComponents.push({
+            name: value,
+            type: componentType,
+            image: '',
+            specs: value,
+            reason: '추천 부품',
+            purchase_link: '',
+            alternatives: []
+          });
+        }
       }
     }
+  }
+  
+  // Try to extract from markdown lists
+  if (extractedComponents.length < 3) {
+    // Try matching components in Korean or English from any list format
+    const listItemPatterns = [
+      /(?:\d+[\.\)]\s*|\*\s+|•\s+|-\s+)(?:\*\*)?([^:]+)(?:\*\*)?:?\s*([^\n]+)/g,
+      /\*\*([^*]+)\*\*:?\s*([^\n]+)/g,
+      /([^:]+):\s*([^\n]+)/g
+    ];
     
-    console.log("Extracted components from general list:", extractedComponents.length);
+    for (const listItemPattern of listItemPatterns) {
+      let match;
+      while ((match = listItemPattern.exec(content)) !== null) {
+        const itemName = match[1].trim();
+        const itemValue = match[2].trim();
+        
+        // Check if this is a PC component
+        const componentType = determineComponentType(itemName);
+        if (componentType) {
+          // Check if this component type already exists
+          const existingComponent = extractedComponents.find(c => c.type === componentType);
+          if (!existingComponent) {
+            extractedComponents.push({
+              name: itemValue,
+              type: componentType,
+              image: '',
+              specs: itemValue,
+              reason: '추천 부품',
+              purchase_link: '',
+              alternatives: []
+            });
+          }
+        }
+      }
+    }
   }
   
   // Helper function to determine component type from text
@@ -147,14 +204,16 @@ const extractPcBuild = (content) => {
   }
 
   // Only return a build if we found at least some components
-  if (extractedComponents.length > 0) {
+  if (extractedComponents.length >= 3) {
+    console.log(`Found ${extractedComponents.length} components - extracting build`);
     return {
       components: extractedComponents,
-      totalPrice: totalPrice || 1000000, // Default to 1,000,000 if price not found
-      recommendation: recommendation || '맞춤형 PC 빌드 추천'
+      totalPrice: totalPrice,
+      recommendation: recommendation
     };
   }
   
+  console.log("Not enough components found, not extracting build");
   return null;
 };
 
@@ -286,7 +345,7 @@ serve(async (req) => {
     const buildInfo = extractPcBuild(assistantResponse);
     
     // If we detected a PC build and have a conversation ID, save it
-    if (buildInfo && conversationId && buildInfo.components.length > 0) {
+    if (buildInfo && conversationId && buildInfo.components.length >= 3) {
       // Extract a title from the user's last message
       const userLastMessage = messages.findLast(msg => msg.role === 'user')?.content;
       
@@ -326,8 +385,8 @@ serve(async (req) => {
     } else {
       if (!buildInfo) {
         console.log("No valid PC build detected.");
-      } else if (buildInfo.components.length === 0) {
-        console.log("No components found in the build.");
+      } else if (buildInfo.components.length < 3) {
+        console.log("Not enough components found in the build.");
       } else if (!conversationId) {
         console.log("No conversation ID provided.");
       }

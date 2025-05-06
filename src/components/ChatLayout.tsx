@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
-import { useBuilds } from '../hooks/useBuilds';
 import ChatMain from './ChatMain';
 import ChatConversationList from './ChatConversationList';
 import BuildsList from './BuildsList';
@@ -23,6 +22,8 @@ export const ChatLayout: React.FC = () => {
     conversations,
     convoLoading,
     dbMessages,
+    builds,
+    buildsLoading,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
@@ -30,27 +31,21 @@ export const ChatLayout: React.FC = () => {
     handleViewBuild,
     sendMessage,
     loadMessages,
-    syncMessagesFromDB
+    syncMessagesFromDB,
+    loadBuilds
   } = useConversationState();
 
-  const {
-    builds,
-    loading: buildsLoading,
-    error: buildsError,
-    loadBuilds
-  } = useBuilds();
-  
   // Sync messages from database
   useEffect(() => {
     if (currentConversation?.id) {
       loadMessages(currentConversation.id);
     }
-  }, [currentConversation]);
+  }, [currentConversation, loadMessages]);
 
   // Convert database messages to UI messages
   useEffect(() => {
     syncMessagesFromDB(dbMessages);
-  }, [dbMessages]);
+  }, [dbMessages, syncMessagesFromDB]);
   
   // Refresh builds list when the active tab changes to builds
   useEffect(() => {
@@ -152,9 +147,10 @@ export const ChatLayout: React.FC = () => {
             <BuildsList
               builds={builds}
               loading={buildsLoading}
-              error={buildsError}
+              error={null}
               onViewBuild={handleViewBuild}
               onDelete={handleDeleteBuild}
+              onRefresh={loadBuilds}
             />
           )}
         </div>
