@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+import { toast } from '../components/ui/use-toast';
 
 interface ChatConversationListProps {
   conversations: Conversation[];
@@ -40,7 +41,20 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
 
   const confirmDelete = () => {
     if (conversationToDelete) {
-      onDelete(conversationToDelete);
+      try {
+        onDelete(conversationToDelete);
+        toast({
+          title: "성공",
+          description: "대화가 삭제되었습니다.",
+        });
+      } catch (err) {
+        console.error('Error deleting conversation:', err);
+        toast({
+          title: "오류",
+          description: "대화 삭제에 실패했습니다.",
+          variant: "destructive",
+        });
+      }
       setConversationToDelete(null);
     }
     setDialogOpen(false);

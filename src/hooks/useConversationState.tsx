@@ -68,7 +68,7 @@ export function useConversationState() {
       // Check if the conversation to delete is the current one
       const isCurrentConversation = currentConversation?.id === id;
       
-      // Delete the conversation
+      // Delete the conversation from database
       await deleteConversation(id);
       
       // If the deleted conversation was the current one, reset the current conversation
@@ -77,6 +77,10 @@ export function useConversationState() {
         setMessages([]);
         setShowExample(true);
       }
+      
+      // Refresh the conversation list after deletion
+      await fetchConversations();
+      
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
     }
