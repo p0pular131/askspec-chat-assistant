@@ -19,9 +19,9 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
   onDelete,
   onNew
 }) => {
-  const handleDelete = (id: string) => {
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Stop event from bubbling up to parent elements
     console.log(`Initiating delete for conversation: ${id}`);
-    // Prevent event from bubbling up to the conversation selection
     onDelete(id);
   };
 
@@ -56,7 +56,7 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
               {convo.title || 'Untitled conversation'}
             </button>
             <button
-              onClick={() => handleDelete(convo.id)}
+              onClick={(e) => handleDelete(e, convo.id)}
               className="p-1 text-red-500 rounded hover:bg-red-50"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
