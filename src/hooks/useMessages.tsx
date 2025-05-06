@@ -96,26 +96,21 @@ export function useMessages(conversationId: string | null) {
     expertiseLevel: string = 'intermediate'
   ) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-completion`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({
+      // Use supabase.functions.invoke instead of making a direct fetch request
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
           messages,
           chatMode,
           conversationId,
           expertiseLevel,
-        }),
+        },
       });
       
-      if (!response.ok) {
-        const error = await response.json();
+      if (error) {
+        console.error('Error invoking chat-completion function:', error);
         throw new Error(error.message || 'Failed to call OpenAI API');
       }
       
-      const data = await response.json();
       return data.response;
     } catch (err) {
       console.error('Error calling OpenAI:', err);

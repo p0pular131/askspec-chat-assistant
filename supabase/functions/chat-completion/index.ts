@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { OpenAI } from "https://esm.sh/openai@4.28.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
@@ -9,7 +8,7 @@ const corsHeaders = {
 };
 
 // Helper function to extract PC build information from AI response
-const extractPcBuild = (content: string) => {
+const extractPcBuild = (content) => {
   // Basic pattern matching for PC build recommendations
   const hasBuildRecommendation = content.includes('CPU') && 
     (content.includes('GPU') || content.includes('그래픽카드')) && 
@@ -81,7 +80,7 @@ const extractPcBuild = (content: string) => {
 };
 
 // Function to get system message with appropriate expertise level
-const getSystemMessage = (chatMode: string, expertiseLevel: string): string => {
+const getSystemMessage = (chatMode, expertiseLevel) => {
   let baseSystemMessage = "You are AskSpec, a helpful assistant that specializes in computer hardware and PC building advice.";
   
   // Add chat mode specific instructions
@@ -152,6 +151,8 @@ serve(async (req) => {
       ...messages
     ];
 
+    console.log("Calling OpenAI with messages:", JSON.stringify(fullMessages));
+
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -160,6 +161,7 @@ serve(async (req) => {
     });
 
     const assistantResponse = completion.choices[0].message.content;
+    console.log("Got response from OpenAI:", assistantResponse.substring(0, 100) + "...");
     
     // Check if the response contains a PC build recommendation
     if (chatMode === '견적 추천' || chatMode === '스펙 업그레이드') {
