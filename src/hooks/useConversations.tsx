@@ -28,7 +28,6 @@ export function useConversations() {
       
       if (error) throw error;
       
-      // Make sure conversations are properly initialized from database
       setConversations(data || []);
       console.log('Fetched conversations:', data);
     } catch (err) {
@@ -58,7 +57,7 @@ export function useConversations() {
 
   const deleteConversation = async (id: string) => {
     try {
-      console.log(`Deleting conversation with ID: ${id}`);
+      console.log(`Starting deletion for conversation ID: ${id}`);
       
       // First, delete all messages associated with this conversation
       const { error: messagesError } = await supabase
@@ -71,6 +70,8 @@ export function useConversations() {
         throw messagesError;
       }
       
+      console.log(`Successfully deleted messages for conversation ID: ${id}`);
+      
       // After deleting messages, delete the conversation itself
       const { error: conversationError } = await supabase
         .from('conversations')
@@ -82,7 +83,7 @@ export function useConversations() {
         throw conversationError;
       }
       
-      console.log(`Successfully deleted conversation and messages for ID: ${id}`);
+      console.log(`Successfully deleted conversation with ID: ${id}`);
       
       // Update the local state to remove the deleted conversation
       setConversations(prev => {

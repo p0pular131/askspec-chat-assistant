@@ -34,15 +34,23 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation(); // Prevent clicking the parent conversation item
+    console.log(`Delete button clicked for conversation ID: ${id}`);
     setConversationToDelete(id);
     setDialogOpen(true);
   };
 
   const confirmDelete = () => {
     if (conversationToDelete) {
+      console.log(`Confirming deletion of conversation ID: ${conversationToDelete}`);
       onDelete(conversationToDelete);
       setConversationToDelete(null);
     }
+    setDialogOpen(false);
+  };
+
+  const cancelDelete = () => {
+    console.log('Deletion cancelled');
+    setConversationToDelete(null);
     setDialogOpen(false);
   };
 
@@ -99,7 +107,7 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDialogOpen(false)}>취소</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelDelete}>취소</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">
               삭제
             </AlertDialogAction>
