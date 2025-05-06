@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
 import { 
@@ -32,10 +32,6 @@ const BuildsList: React.FC<BuildsListProps> = ({
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [buildToDelete, setBuildToDelete] = React.useState<string | null>(null);
 
-  useEffect(() => {
-    console.log('BuildsList rendered with builds:', builds);
-  }, [builds]);
-
   const handleDelete = (e: React.MouseEvent, buildId: string) => {
     e.stopPropagation();
     setBuildToDelete(buildId);
@@ -44,23 +40,14 @@ const BuildsList: React.FC<BuildsListProps> = ({
 
   const confirmDelete = () => {
     if (buildToDelete) {
-      try {
-        onDelete(buildToDelete);
-        toast({
-          title: "빌드 삭제됨",
-          description: "PC 빌드가 성공적으로 삭제되었습니다.",
-        });
-      } catch (error) {
-        console.error('Error deleting build:', error);
-        toast({
-          title: "오류 발생",
-          description: "PC 빌드를 삭제하는 중 오류가 발생했습니다.",
-          variant: "destructive",
-        });
-      }
+      onDelete(buildToDelete);
+      setDialogOpen(false);
       setBuildToDelete(null);
+      toast({
+        title: "빌드 삭제됨",
+        description: "PC 빌드가 성공적으로 삭제되었습니다.",
+      });
     }
-    setDialogOpen(false);
   };
 
   const cancelDelete = () => {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Conversation } from './useConversations';
 import { Message } from '../components/types';
@@ -68,31 +67,32 @@ export function useConversationState() {
       // Check if the conversation to delete is the current one
       const isCurrentConversation = currentConversation?.id === id;
       
-      // Delete the conversation from database
-      await deleteConversation(id);
-      
-      // If the deleted conversation was the current one, reset the current conversation
+      // Optimistically update the UI
       if (isCurrentConversation) {
         setCurrentConversation(null);
         setMessages([]);
         setShowExample(true);
       }
       
-      // Refresh the conversation list after deletion
-      await fetchConversations();
+      // Delete the conversation from database
+      await deleteConversation(id);
       
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
+      toast({
+        title: "오류",
+        description: "대화 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+      
+      // Refresh the conversation list to ensure UI is in sync with DB
+      await fetchConversations();
     }
   };
 
   const handleDeleteBuild = async (buildId: string) => {
     try {
       await deleteBuild(buildId);
-      toast({
-        title: "성공",
-        description: "PC 빌드가 삭제되었습니다.",
-      });
     } catch (error) {
       toast({
         title: "오류",
