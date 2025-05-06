@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Build } from '../hooks/useBuilds';
+import { toast } from '../components/ui/use-toast';
 
 interface BuildsListProps {
   builds: Build[];
@@ -15,6 +16,28 @@ const BuildsList: React.FC<BuildsListProps> = ({
   onViewBuild,
   onDelete
 }) => {
+  useEffect(() => {
+    console.log('BuildsList rendered with builds:', builds);
+  }, [builds]);
+
+  const handleDelete = (e: React.MouseEvent, buildId: string) => {
+    e.stopPropagation();
+    try {
+      onDelete(buildId);
+      toast({
+        title: "빌드 삭제됨",
+        description: "PC 빌드가 성공적으로 삭제되었습니다.",
+      });
+    } catch (error) {
+      console.error('Error deleting build:', error);
+      toast({
+        title: "오류 발생",
+        description: "PC 빌드를 삭제하는 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between pl-2 mb-2 text-xs text-stone-500">
@@ -35,10 +58,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
               {build.name}
             </button>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(build.id);
-              }}
+              onClick={(e) => handleDelete(e, build.id)}
               className="p-1 text-red-500 rounded hover:bg-red-50"
               aria-label="Delete build"
             >

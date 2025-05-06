@@ -17,6 +17,7 @@ const extractPcBuild = (content) => {
     (content.includes('SSD') || content.includes('HDD') || content.includes('스토리지'));
   
   console.log("Has build recommendation:", hasBuildRecommendation);
+  console.log("Content excerpt:", content.substring(0, 200)); // Log a preview of content
   
   if (!hasBuildRecommendation) return null;
   
@@ -63,6 +64,9 @@ const extractPcBuild = (content) => {
   }
 
   console.log("Extracted components:", extractedComponents.length);
+  if (extractedComponents.length > 0) {
+    console.log("First component:", JSON.stringify(extractedComponents[0]));
+  }
   
   // Extract purpose/recommendation
   let recommendation = '';
@@ -99,6 +103,47 @@ const extractPcBuild = (content) => {
     }
     
     console.log("Extracted components from numbered list:", extractedComponents.length);
+  }
+
+  // Attempt to extract from any list format
+  if (extractedComponents.length === 0) {
+    // Try matching components in Korean or English from any list format
+    const listItemPattern = /(?:\d+[\.\)]\s*|\*\s+|•\s+|-\s+)(?:\*\*)?([^:]+)(?:\*\*)?:?\s*([^\n]+)/g;
+    let match;
+    
+    while ((match = listItemPattern.exec(content)) !== null) {
+      const itemName = match[1].trim();
+      const itemValue = match[2].trim();
+      
+      // Check if this is a PC component
+      const componentType = determineComponentType(itemName);
+      if (componentType) {
+        extractedComponents.push({
+          name: itemValue,
+          type: componentType,
+          image: '',
+          specs: itemValue,
+          reason: 'Recommended component',
+          purchase_link: '',
+          alternatives: []
+        });
+      }
+    }
+    
+    console.log("Extracted components from general list:", extractedComponents.length);
+  }
+  
+  // Helper function to determine component type from text
+  function determineComponentType(text) {
+    text = text.toLowerCase();
+    if (text.includes('cpu') || text.includes('프로세서') || text.includes('processor')) return 'CPU';
+    if (text.includes('gpu') || text.includes('그래픽') || text.includes('graphics')) return 'GPU'; 
+    if (text.includes('ram') || text.includes('메모리') || text.includes('memory')) return 'RAM';
+    if (text.includes('ssd') || text.includes('hdd') || text.includes('storage') || text.includes('저장')) return 'Storage';
+    if (text.includes('motherboard') || text.includes('마더보드')) return 'Motherboard';
+    if (text.includes('case') || text.includes('케이스')) return 'Case';
+    if (text.includes('psu') || text.includes('power') || text.includes('전원')) return 'PSU';
+    return null;
   }
 
   // Only return a build if we found at least some components
@@ -243,7 +288,13 @@ serve(async (req) => {
         console.error("Error saving build:", error);
       }
     } else {
-      console.log("No valid PC build detected or not enough components found.");
+      if (!buildInfo) {
+        console.log("No valid PC build detected.");
+      } else if (buildInfo.components.length === 0) {
+        console.log("No components found in the build.");
+      } else if (!conversationId) {
+        console.log("No conversation ID provided.");
+      }
     }
 
     // Return the response

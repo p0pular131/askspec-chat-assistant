@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Json } from '../integrations/supabase/types';
@@ -83,6 +82,7 @@ export function useBuilds() {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching builds from database...');
       const { data: rawData, error } = await supabase
         .from('pc_builds')
         .select('*')
@@ -93,10 +93,12 @@ export function useBuilds() {
         throw error;
       }
       
-      console.log('Loaded builds:', rawData?.length || 0);
+      console.log('Raw builds data:', rawData);
+      console.log('Loaded builds count:', rawData?.length || 0);
       
       // Transform the raw data to match our Build interface
       const transformedBuilds = (rawData || []).map(convertRawBuild);
+      console.log('Transformed builds:', transformedBuilds);
       setBuilds(transformedBuilds);
     } catch (err) {
       console.error('Error loading builds:', err);
