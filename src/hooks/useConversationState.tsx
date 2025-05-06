@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Conversation } from './useConversations';
 import { Message } from '../components/types';
@@ -67,11 +66,14 @@ export function useConversationState() {
     try {
       console.log(`Handling deletion of conversation: ${id}`);
       
-      // Use the deleteConversation function from useConversations
+      // Check if the conversation to delete is the current one
+      const isCurrentConversation = currentConversation?.id === id;
+      
+      // Delete the conversation (this will also update the conversations list in useConversations)
       await deleteConversation(id);
       
       // If the deleted conversation was the current one, reset the current conversation
-      if (currentConversation?.id === id) {
+      if (isCurrentConversation) {
         console.log("Resetting current conversation as it was deleted");
         setCurrentConversation(null);
         setMessages([]);
@@ -81,10 +83,6 @@ export function useConversationState() {
       // Refresh the conversations list to ensure UI is in sync with database
       await fetchConversations();
       
-      toast({
-        title: "성공",
-        description: "대화가 삭제되었습니다.",
-      });
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
       toast({

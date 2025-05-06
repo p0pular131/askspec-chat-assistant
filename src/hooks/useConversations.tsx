@@ -91,9 +91,21 @@ export function useConversations() {
         return filtered;
       });
       
+      toast({
+        title: "성공",
+        description: "대화가 삭제되었습니다.",
+      });
+      
       return true;
     } catch (err) {
       console.error('Error in deleteConversation:', err);
+      
+      toast({
+        title: "오류",
+        description: "대화 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+      
       throw err;
     }
   };
