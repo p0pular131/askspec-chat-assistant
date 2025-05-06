@@ -108,7 +108,7 @@ export function useConversations() {
   const deleteBuild = async (buildId: string) => {
     try {
       const { error } = await supabase
-        .from('pc_builds')  // Changed from 'builds' to 'pc_builds' to match the actual table name
+        .from('pc_builds')
         .delete()
         .eq('id', buildId);
       
@@ -125,6 +125,7 @@ export function useConversations() {
     createConversation, 
     deleteConversation, 
     updateTitleFromFirstMessage,
-    deleteBuild
+    deleteBuild,
+    fetchConversations  // Export the fetchConversations function
   };
 }

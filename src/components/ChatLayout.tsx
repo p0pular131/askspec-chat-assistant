@@ -32,7 +32,8 @@ export const ChatLayout: React.FC = () => {
     createConversation, 
     deleteConversation,
     updateTitleFromFirstMessage,
-    deleteBuild
+    deleteBuild,
+    fetchConversations
   } = useConversations();
   
   const { 
