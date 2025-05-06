@@ -28,6 +28,7 @@ export function useConversations() {
       
       if (error) throw error;
       
+      // Make sure conversations are properly initialized from database
       setConversations(data || []);
     } catch (err) {
       console.error('Error fetching conversations:', err);
@@ -56,13 +57,18 @@ export function useConversations() {
 
   const deleteConversation = async (id: string) => {
     try {
+      console.log(`Deleting conversation with ID: ${id}`);
+      
       // First, delete all messages associated with this conversation
       const { error: messagesError } = await supabase
         .from('messages')
         .delete()
         .eq('conversation_id', id);
       
-      if (messagesError) throw messagesError;
+      if (messagesError) {
+        console.error('Error deleting associated messages:', messagesError);
+        throw messagesError;
+      }
       
       // After deleting messages, delete the conversation itself
       const { error: conversationError } = await supabase
@@ -70,14 +76,19 @@ export function useConversations() {
         .delete()
         .eq('id', id);
       
-      if (conversationError) throw conversationError;
+      if (conversationError) {
+        console.error('Error deleting conversation:', conversationError);
+        throw conversationError;
+      }
+      
+      console.log(`Successfully deleted conversation and messages for ID: ${id}`);
       
       // Update the local state to remove the deleted conversation
       setConversations(prev => prev.filter(convo => convo.id !== id));
       
       return true;
     } catch (err) {
-      console.error('Error deleting conversation:', err);
+      console.error('Error in deleteConversation:', err);
       throw err;
     }
   };
@@ -126,6 +137,6 @@ export function useConversations() {
     deleteConversation, 
     updateTitleFromFirstMessage,
     deleteBuild,
-    fetchConversations  // Export the fetchConversations function
+    fetchConversations
   };
 }

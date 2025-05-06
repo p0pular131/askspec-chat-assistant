@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Conversation } from './useConversations';
 import { Message } from '../components/types';
 import { useConversations } from './useConversations';
@@ -65,14 +65,21 @@ export function useConversationState() {
 
   const handleDeleteConversation = async (id: string) => {
     try {
+      console.log(`Handling deletion of conversation: ${id}`);
+      
+      // Use the deleteConversation function from useConversations
       await deleteConversation(id);
       
       // If the deleted conversation was the current one, reset the current conversation
       if (currentConversation?.id === id) {
+        console.log("Resetting current conversation as it was deleted");
         setCurrentConversation(null);
         setMessages([]);
         setShowExample(true);
       }
+      
+      // Refresh the conversations list to ensure UI is in sync with database
+      await fetchConversations();
       
       toast({
         title: "성공",
@@ -108,7 +115,7 @@ export function useConversationState() {
     navigate(`/build/${buildId}`);
   };
 
-  const sendMessage = async (text: string, expertiseLevel: string, chatMode: string) => {
+  const sendMessage = async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
     setIsLoading(true);

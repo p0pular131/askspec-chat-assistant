@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Conversation } from '../hooks/useConversations';
-import { toast } from './ui/use-toast';
 
 interface ChatConversationListProps {
   conversations: Conversation[];
@@ -20,6 +19,12 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
   onDelete,
   onNew
 }) => {
+  const handleDelete = (id: string) => {
+    console.log(`Initiating delete for conversation: ${id}`);
+    // Prevent event from bubbling up to the conversation selection
+    onDelete(id);
+  };
+
   return (
     <div className="flex flex-col gap-2">
       {/* Conversations Section */}
@@ -51,7 +56,7 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
               {convo.title || 'Untitled conversation'}
             </button>
             <button
-              onClick={() => onDelete(convo.id)}
+              onClick={() => handleDelete(convo.id)}
               className="p-1 text-red-500 rounded hover:bg-red-50"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
