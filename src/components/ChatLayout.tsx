@@ -1,14 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { MessageInput } from './MessageInput';
-import { Message } from './types';
-import { useConversations, Conversation } from '../hooks/useConversations';
-import { useMessages } from '../hooks/useMessages';
+import { useConversationState } from '../hooks/useConversationState';
 import { useBuilds } from '../hooks/useBuilds';
-import { toast } from '../components/ui/use-toast';
-import ChatHeader from './ChatHeader';
-import ChatMessages from './ChatMessages';
+import ChatMain from './ChatMain';
 import ChatConversationList from './ChatConversationList';
 import BuildsList from './BuildsList';
 import ExpertiseSurvey from './ExpertiseSurvey';
@@ -19,30 +14,24 @@ export const ChatLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('chat');
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [chatMode, setChatMode] = useState('범용 검색');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [showExample, setShowExample] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   
-  const navigate = useNavigate();
-  
-  const { 
-    conversations, 
-    loading: convoLoading, 
-    createConversation, 
-    deleteConversation,
-    updateTitleFromFirstMessage,
-    deleteBuild,
-    fetchConversations
-  } = useConversations();
-  
-  const { 
-    messages: dbMessages, 
-    loading: msgLoading, 
-    addMessage, 
-    loadMessages, 
-    callOpenAI 
-  } = useMessages(currentConversation?.id || null);
+  const {
+    currentConversation,
+    messages,
+    showExample,
+    isLoading,
+    conversations,
+    convoLoading,
+    dbMessages,
+    startNewConversation,
+    selectConversation,
+    handleDeleteConversation,
+    handleDeleteBuild,
+    handleViewBuild,
+    sendMessage,
+    loadMessages,
+    syncMessagesFromDB
+  } = useConversationState();
 
   const {
     builds,
@@ -58,78 +47,8 @@ export const ChatLayout: React.FC = () => {
 
   // Convert database messages to UI messages
   useEffect(() => {
-    if (dbMessages) {
-      const uiMessages = dbMessages.map(msg => ({
-        text: msg.content,
-        isUser: msg.role === 'user',
-      }));
-      setMessages(uiMessages);
-    }
+    syncMessagesFromDB(dbMessages);
   }, [dbMessages]);
-
-  const startNewConversation = async () => {
-    try {
-      const conversation = await createConversation('New Conversation');
-      setCurrentConversation(conversation);
-      setMessages([]);
-      setShowExample(true);
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "새 대화를 시작하는데 실패했습니다.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const selectConversation = async (conversation: Conversation) => {
-    setCurrentConversation(conversation);
-  };
-
-  const handleDeleteConversation = async (id: string) => {
-    try {
-      await deleteConversation(id);
-      
-      // If the deleted conversation was the current one, reset the current conversation
-      if (currentConversation?.id === id) {
-        setCurrentConversation(null);
-        setMessages([]);
-        setShowExample(true);
-      }
-      
-      toast({
-        title: "성공",
-        description: "대화가 삭제되었습니다.",
-      });
-    } catch (error) {
-      console.error('Error in handleDeleteConversation:', error);
-      toast({
-        title: "오류",
-        description: "대화 삭제에 실패했습니다.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteBuild = async (buildId: string) => {
-    try {
-      await deleteBuild(buildId);
-      toast({
-        title: "성공",
-        description: "PC 빌드가 삭제되었습니다.",
-      });
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "PC 빌드 삭제에 실패했습니다.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleViewBuild = (buildId: string) => {
-    navigate(`/build/${buildId}`);
-  };
 
   // Map the selected answer to an expertise level
   const getExpertiseLevel = () => {
@@ -145,67 +64,8 @@ export const ChatLayout: React.FC = () => {
     }
   };
 
-  const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
-    
-    setIsLoading(true);
-    
-    try {
-      // Create a new conversation if none exists
-      if (!currentConversation) {
-        const newConversation = await createConversation('New Conversation');
-        setCurrentConversation(newConversation);
-        
-        // Add user message
-        await addMessage(text, 'user', newConversation.id);
-        
-        // Update the title based on the first message
-        await updateTitleFromFirstMessage(newConversation.id, text);
-        
-        // Create OpenAI messages array
-        const apiMessages = [{ role: 'user', content: text }];
-        
-        // Get response from OpenAI, passing expertise level
-        const response = await callOpenAI(apiMessages, chatMode, getExpertiseLevel());
-        
-        // Add assistant response to database
-        await addMessage(response, 'assistant', newConversation.id);
-      } else {
-        // Add user message
-        await addMessage(text, 'user', currentConversation.id);
-        
-        // If this is the first message, update the title
-        if (dbMessages.length === 0) {
-          await updateTitleFromFirstMessage(currentConversation.id, text);
-        }
-        
-        // Create OpenAI messages array from existing messages
-        const apiMessages = dbMessages.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }));
-        
-        // Add the new user message
-        apiMessages.push({ role: 'user', content: text });
-        
-        // Get response from OpenAI, passing expertise level
-        const response = await callOpenAI(apiMessages, chatMode, getExpertiseLevel());
-        
-        // Add assistant response to database
-        await addMessage(response, 'assistant', currentConversation.id);
-      }
-      
-      setShowExample(false);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "오류",
-        description: "메시지 전송에 실패했습니다.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSendMessage = (text: string) => {
+    sendMessage(text, getExpertiseLevel(), chatMode);
   };
 
   const getExamplePrompt = () => {
@@ -289,28 +149,15 @@ export const ChatLayout: React.FC = () => {
         </div>
       </Sidebar>
 
-      <main className="flex-1 p-6">
-        <div className="flex relative flex-col p-6 bg-white rounded-xl border border-gray-200 shadow-sm size-full h-full">
-          <ChatHeader />
-
-          <ChatMessages messages={messages} isLoading={isLoading} />
-
-          {showExample && messages.length === 0 && (
-            <div className="absolute top-2/4 left-2/4 px-5 py-0 text-base italic text-center -translate-x-2/4 -translate-y-2/4 pointer-events-none max-w-[600px] text-neutral-400">
-              {getExamplePrompt()}
-            </div>
-          )}
-
-          <MessageInput
-            onSendMessage={sendMessage}
-            chatMode={chatMode}
-            setChatMode={setChatMode}
-            showExample={showExample}
-            exampleText={getExamplePrompt()}
-            isDisabled={isLoading}
-          />
-        </div>
-      </main>
+      <ChatMain
+        messages={messages}
+        isLoading={isLoading}
+        showExample={showExample}
+        chatMode={chatMode}
+        setChatMode={setChatMode}
+        sendMessage={handleSendMessage}
+        getExamplePrompt={getExamplePrompt}
+      />
 
       <Sidebar
         isOpen={rightOpen}
