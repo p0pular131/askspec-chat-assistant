@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
@@ -102,6 +101,7 @@ export const ChatLayout: React.FC = () => {
         description: "대화가 삭제되었습니다.",
       });
     } catch (error) {
+      console.error('Error in handleDeleteConversation:', error);
       toast({
         title: "오류",
         description: "대화 삭제에 실패했습니다.",

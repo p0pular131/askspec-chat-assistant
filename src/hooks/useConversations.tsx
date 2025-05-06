@@ -56,14 +56,26 @@ export function useConversations() {
 
   const deleteConversation = async (id: string) => {
     try {
-      const { error } = await supabase
+      // First, delete all messages associated with this conversation
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', id);
+      
+      if (messagesError) throw messagesError;
+      
+      // After deleting messages, delete the conversation itself
+      const { error: conversationError } = await supabase
         .from('conversations')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (conversationError) throw conversationError;
       
+      // Update the local state to remove the deleted conversation
       setConversations(prev => prev.filter(convo => convo.id !== id));
+      
+      return true;
     } catch (err) {
       console.error('Error deleting conversation:', err);
       throw err;
