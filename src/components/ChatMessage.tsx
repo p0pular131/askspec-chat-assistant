@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ChatMessageProps } from './types';
+import ReactMarkdown from 'react-markdown';
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   return (
@@ -16,7 +17,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             : 'bg-gray-100 text-zinc-900 rounded-tl-none'
         }`}
       >
-        <p className="text-sm">{message.text}</p>
+        {message.isUser ? (
+          <p className="text-sm">{message.text}</p>
+        ) : (
+          <div className="markdown text-sm">
+            <ReactMarkdown>{message.text}</ReactMarkdown>
+          </div>
+        )}
       </div>
     </div>
   );
