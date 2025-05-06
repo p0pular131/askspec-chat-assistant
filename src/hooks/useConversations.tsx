@@ -30,6 +30,7 @@ export function useConversations() {
       
       // Make sure conversations are properly initialized from database
       setConversations(data || []);
+      console.log('Fetched conversations:', data);
     } catch (err) {
       console.error('Error fetching conversations:', err);
     } finally {
@@ -84,7 +85,11 @@ export function useConversations() {
       console.log(`Successfully deleted conversation and messages for ID: ${id}`);
       
       // Update the local state to remove the deleted conversation
-      setConversations(prev => prev.filter(convo => convo.id !== id));
+      setConversations(prev => {
+        const filtered = prev.filter(convo => convo.id !== id);
+        console.log('Updated conversations after deletion:', filtered);
+        return filtered;
+      });
       
       return true;
     } catch (err) {
