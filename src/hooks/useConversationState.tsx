@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Conversation } from './useConversations';
 import { Message } from '../components/types';
@@ -82,17 +81,12 @@ export function useConversationState() {
         setShowExample(true);
       }
       
-      // No need to manually update the conversations list 
-      // as it's now handled in deleteConversation in useConversations
+      // Ensure conversations list is refreshed after deletion
+      await fetchConversations();
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
-      toast({
-        title: "오류",
-        description: "대화 삭제에 실패했습니다.",
-        variant: "destructive",
-      });
     }
-  }, [currentConversation, deleteConversation]);
+  }, [currentConversation, deleteConversation, fetchConversations]);
 
   const handleDeleteBuild = useCallback(async (buildId: string) => {
     try {

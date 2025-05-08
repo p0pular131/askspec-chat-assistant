@@ -44,6 +44,10 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
       onDelete(conversationToDelete);
       setDialogOpen(false);
       setConversationToDelete(null);
+      toast({
+        title: "성공",
+        description: "대화가 삭제되었습니다.",
+      });
     }
   }, [conversationToDelete, onDelete]);
 
