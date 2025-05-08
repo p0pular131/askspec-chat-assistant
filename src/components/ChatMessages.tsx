@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, memo } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { Message } from './types';
 
@@ -21,7 +21,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
   return (
     <div className="flex overflow-y-auto flex-col flex-1 gap-4 mb-20">
       {messages.map((message, index) => (
-        <ChatMessage key={`message-${index}`} message={message} />
+        <ChatMessage key={`message-${index}-${message.text.substring(0, 10)}`} message={message} />
       ))}
       
       {isLoading && (
@@ -34,4 +34,4 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
   );
 };
 
-export default ChatMessages;
+export default memo(ChatMessages);

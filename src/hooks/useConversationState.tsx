@@ -72,6 +72,7 @@ export function useConversationState() {
 
   const handleDeleteConversation = useCallback(async (id: string) => {
     try {
+      // Delete the conversation from the database
       await deleteConversation(id);
       
       // If the deleted conversation was the current one, reset the current conversation
@@ -80,8 +81,16 @@ export function useConversationState() {
         setMessages([]);
         setShowExample(true);
       }
+      
+      // No need to manually update the conversations list 
+      // as it's now handled in deleteConversation in useConversations
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
+      toast({
+        title: "오류",
+        description: "대화 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
     }
   }, [currentConversation, deleteConversation]);
 

@@ -41,6 +41,22 @@ export const ChatLayout: React.FC = () => {
     }
   }, [currentConversation, loadMessages]);
   
+  // Refresh conversations list when the active tab changes to chat
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      // This will ensure we always have the latest conversations when switching to the chat tab
+      const fetchConversations = async () => {
+        try {
+          await loadMessages(currentConversation?.id || '');
+        } catch (error) {
+          console.error('Error loading messages:', error);
+        }
+      };
+      
+      fetchConversations();
+    }
+  }, [activeTab, currentConversation, loadMessages]);
+  
   // Refresh builds list when the active tab changes to builds
   useEffect(() => {
     if (activeTab === 'builds') {

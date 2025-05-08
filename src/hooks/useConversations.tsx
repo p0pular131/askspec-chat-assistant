@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from '../components/ui/use-toast';
@@ -81,11 +80,6 @@ export function useConversations() {
       
       // Update the local state to remove the deleted conversation
       setConversations(prev => prev.filter(convo => convo.id !== id));
-      
-      toast({
-        title: "성공",
-        description: "대화가 삭제되었습니다.",
-      });
       
       return true;
     } catch (err) {
