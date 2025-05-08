@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { Message } from './types';
 
@@ -9,10 +9,19 @@ interface ChatMessagesProps {
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when new messages are added
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
   return (
     <div className="flex overflow-y-auto flex-col flex-1 gap-4 mb-20">
       {messages.map((message, index) => (
-        <ChatMessage key={index} message={message} />
+        <ChatMessage key={`message-${index}`} message={message} />
       ))}
       
       {isLoading && (
@@ -20,6 +29,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
           <p className="text-sm">생각 중...</p>
         </div>
       )}
+      <div ref={messagesEndRef} />
     </div>
   );
 };

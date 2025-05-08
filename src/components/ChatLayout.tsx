@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
 import ChatMain from './ChatMain';
@@ -31,32 +31,25 @@ export const ChatLayout: React.FC = () => {
     handleViewBuild,
     sendMessage,
     loadMessages,
-    syncMessagesFromDB,
     loadBuilds
   } = useConversationState();
 
-  // Sync messages from database
+  // Load messages when conversation changes
   useEffect(() => {
     if (currentConversation?.id) {
       loadMessages(currentConversation.id);
     }
   }, [currentConversation, loadMessages]);
-
-  // Convert database messages to UI messages
-  useEffect(() => {
-    syncMessagesFromDB(dbMessages);
-  }, [dbMessages, syncMessagesFromDB]);
   
   // Refresh builds list when the active tab changes to builds
   useEffect(() => {
     if (activeTab === 'builds') {
-      console.log("Refreshing builds list");
       loadBuilds();
     }
   }, [activeTab, loadBuilds]);
 
   // Map the selected answer to an expertise level
-  const getExpertiseLevel = () => {
+  const getExpertiseLevel = useCallback(() => {
     switch(selectedAnswer) {
       case 1:
         return 'expert';
@@ -67,13 +60,13 @@ export const ChatLayout: React.FC = () => {
       default:
         return 'intermediate'; // Default to intermediate if no selection
     }
-  };
+  }, [selectedAnswer]);
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = useCallback((text: string) => {
     sendMessage(text, getExpertiseLevel(), chatMode);
-  };
+  }, [sendMessage, getExpertiseLevel, chatMode]);
 
-  const getExamplePrompt = () => {
+  const getExamplePrompt = useCallback(() => {
     const examples = {
       '범용 검색': "게이밍용 컴퓨터 견적 추천해주세요. 예산은 150만원 정도입니다.",
       '부품 추천': "게이밍에 적합한 그래픽카드 추천해주세요.",
@@ -83,7 +76,7 @@ export const ChatLayout: React.FC = () => {
       '견적 평가': "RTX 4060, i5-13400F, 16GB RAM, 1TB SSD로 구성된 견적 어떤가요?",
     };
     return examples[chatMode as keyof typeof examples] || examples["범용 검색"];
-  };
+  }, [chatMode]);
 
   return (
     <div className="flex w-screen h-screen bg-neutral-100">

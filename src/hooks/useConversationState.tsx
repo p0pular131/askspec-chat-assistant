@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Conversation } from './useConversations';
 import { Message } from '../components/types';
 import { useConversations } from './useConversations';
@@ -41,7 +41,7 @@ export function useConversationState() {
   } = useMessages(currentConversation?.id || null);
 
   // Convert database messages to UI messages
-  const syncMessagesFromDB = (dbMsgs: any[]) => {
+  const syncMessagesFromDB = useCallback((dbMsgs: any[]) => {
     if (dbMsgs) {
       const uiMessages = dbMsgs.map(msg => ({
         text: msg.content,
@@ -49,9 +49,9 @@ export function useConversationState() {
       }));
       setMessages(uiMessages);
     }
-  };
+  }, []);
 
-  const startNewConversation = async () => {
+  const startNewConversation = useCallback(async () => {
     try {
       const conversation = await createConversation('New Conversation');
       setCurrentConversation(conversation);
@@ -64,13 +64,13 @@ export function useConversationState() {
         variant: "destructive",
       });
     }
-  };
+  }, [createConversation]);
 
-  const selectConversation = async (conversation: Conversation) => {
+  const selectConversation = useCallback(async (conversation: Conversation) => {
     setCurrentConversation(conversation);
-  };
+  }, []);
 
-  const handleDeleteConversation = async (id: string) => {
+  const handleDeleteConversation = useCallback(async (id: string) => {
     try {
       await deleteConversation(id);
       
@@ -83,9 +83,9 @@ export function useConversationState() {
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
     }
-  };
+  }, [currentConversation, deleteConversation]);
 
-  const handleDeleteBuild = async (buildId: string) => {
+  const handleDeleteBuild = useCallback(async (buildId: string) => {
     try {
       const result = await deleteBuild(buildId);
       if (result) {
@@ -99,13 +99,13 @@ export function useConversationState() {
         variant: "destructive",
       });
     }
-  };
+  }, [deleteBuild, loadBuilds]);
 
-  const handleViewBuild = (buildId: string) => {
+  const handleViewBuild = useCallback((buildId: string) => {
     navigate(`/build/${buildId}`);
-  };
+  }, [navigate]);
 
-  const sendMessage = async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
+  const sendMessage = useCallback(async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
     setIsLoading(true);
@@ -172,7 +172,20 @@ export function useConversationState() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [
+    currentConversation, 
+    createConversation, 
+    addMessage, 
+    updateTitleFromFirstMessage, 
+    callOpenAI, 
+    loadBuilds, 
+    dbMessages
+  ]);
+
+  // Sync messages from database when dbMessages change
+  useEffect(() => {
+    syncMessagesFromDB(dbMessages);
+  }, [dbMessages, syncMessagesFromDB]);
 
   return {
     currentConversation,
