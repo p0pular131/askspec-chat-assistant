@@ -25,18 +25,10 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
     return acc;
   }, {} as Record<string, Component[]>);
 
-  // Extract rating scores if they exist
-  const hasRatings = build.rating && typeof build.rating === 'object' && Object.keys(build.rating).length > 0;
-  
-  // Debug ratings data
-  console.log("Build rating data:", build.rating);
-  console.log("hasRatings:", hasRatings);
-  
-  const valueForMoney = hasRatings && build.rating.valueForMoney ? build.rating.valueForMoney : null;
-  const noise = hasRatings && build.rating.noise ? build.rating.noise : null;
-  
-  console.log("valueForMoney:", valueForMoney);
-  console.log("noise:", noise);
+  // Extract rating scores if they exist, otherwise use placeholders
+  const hasRatings = build.rating && typeof build.rating === 'object';
+  const valueForMoney = hasRatings && build.rating.valueForMoney !== undefined ? build.rating.valueForMoney : null;
+  const noise = hasRatings && build.rating.noise !== undefined ? build.rating.noise : null;
 
   return (
     <div className="space-y-6">
@@ -50,20 +42,14 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
               <CardTitle>추천</CardTitle>
               <CardDescription>해당 견적이 추천된 이유</CardDescription>
             </div>
-            {hasRatings && (
-              <div className="flex flex-col gap-2">
-                {valueForMoney !== null && (
-                  <Badge variant="outline" className="ml-auto">
-                    Value for Money: {valueForMoney}/10
-                  </Badge>
-                )}
-                {noise !== null && (
-                  <Badge variant="outline" className="ml-auto">
-                    Noise: {noise}/10
-                  </Badge>
-                )}
-              </div>
-            )}
+            <div className="flex flex-col gap-2">
+              <Badge variant="outline" className="ml-auto">
+                Value for Money: {valueForMoney !== null ? `${valueForMoney}/10` : "Not Rated"}
+              </Badge>
+              <Badge variant="outline" className="ml-auto">
+                Noise: {noise !== null ? `${noise}/10` : "Not Rated"}
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             <p>{build.recommendation}</p>
