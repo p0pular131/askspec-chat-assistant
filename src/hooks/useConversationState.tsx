@@ -139,6 +139,10 @@ export function useConversationState() {
         const newConversation = await createConversation('New Conversation');
         setCurrentConversation(newConversation);
         
+        if (!newConversation || !newConversation.id) {
+          throw new Error('Failed to create conversation');
+        }
+        
         // Add user message
         await addMessage(text, 'user', newConversation.id);
         
@@ -148,14 +152,31 @@ export function useConversationState() {
         // Create OpenAI messages array
         const apiMessages = [{ role: 'user', content: text }];
         
-        // Get response from OpenAI, passing expertise level
-        const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
-        
-        // Add assistant response to database
-        await addMessage(response, 'assistant', newConversation.id);
-        
-        // Reload builds list to catch any new builds created from this conversation
-        await loadBuilds();
+        try {
+          // Get response from OpenAI, passing expertise level
+          const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
+          
+          // Add assistant response to database
+          if (response) {
+            await addMessage(response, 'assistant', newConversation.id);
+          } else {
+            toast({
+              title: "오류",
+              description: "AI 응답을 받지 못했습니다.",
+              variant: "destructive",
+            });
+          }
+          
+          // Reload builds list to catch any new builds created from this conversation
+          await loadBuilds();
+        } catch (apiError) {
+          console.error("API error:", apiError);
+          toast({
+            title: "오류",
+            description: "AI 응답을 받는 데 문제가 발생했습니다.",
+            variant: "destructive",
+          });
+        }
       } else {
         // Add user message
         await addMessage(text, 'user', currentConversation.id);
@@ -174,14 +195,31 @@ export function useConversationState() {
         // Add the new user message
         apiMessages.push({ role: 'user', content: text });
         
-        // Get response from OpenAI, passing expertise level
-        const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
-        
-        // Add assistant response to database
-        await addMessage(response, 'assistant', currentConversation.id);
-        
-        // Reload builds list to catch any new builds created from this conversation
-        await loadBuilds();
+        try {
+          // Get response from OpenAI, passing expertise level
+          const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
+          
+          // Add assistant response to database
+          if (response) {
+            await addMessage(response, 'assistant', currentConversation.id);
+          } else {
+            toast({
+              title: "오류",
+              description: "AI 응답을 받지 못했습니다.",
+              variant: "destructive",
+            });
+          }
+          
+          // Reload builds list to catch any new builds created from this conversation
+          await loadBuilds();
+        } catch (apiError) {
+          console.error("API error:", apiError);
+          toast({
+            title: "오류",
+            description: "AI 응답을 받는 데 문제가 발생했습니다.",
+            variant: "destructive",
+          });
+        }
       }
       
       setShowExample(false);

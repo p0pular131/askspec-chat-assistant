@@ -81,6 +81,11 @@ export function useMessages(conversationId: string | null) {
 
   const addMessage = async (content: string, role: 'user' | 'assistant', convoId: string) => {
     try {
+      // Validate conversation ID first
+      if (!isUUID(convoId)) {
+        throw new Error('Invalid conversation ID');
+      }
+
       const newMessage = {
         conversation_id: convoId,
         content,
@@ -113,6 +118,11 @@ export function useMessages(conversationId: string | null) {
     try {
       console.log("Calling OpenAI with messages:", messages);
       
+      // Add retry and timeout handling
+      const timeoutMs = 30000; // 30 seconds timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      
       // Use supabase.functions.invoke instead of making a direct fetch request
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
@@ -121,11 +131,18 @@ export function useMessages(conversationId: string | null) {
           conversationId,
           expertiseLevel,
         },
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       
       if (error) {
         console.error('Error invoking chat-completion function:', error);
         throw new Error(error.message || 'Failed to call OpenAI API');
+      }
+      
+      if (!data || !data.response) {
+        throw new Error('No response received from the API');
       }
       
       console.log("Got response from OpenAI:", data?.response?.substring(0, 100) + "...");
