@@ -59,12 +59,6 @@ export function useConversations() {
     try {
       console.log('Deleting conversation and all associated messages for ID:', id);
       
-      // Debug
-      toast({
-        title: id,
-        description: "대화가 삭제되었습니다.",
-      });
-      
       // First, delete all messages associated with this conversation
       const { error: messagesError } = await supabase
         .from('messages')
@@ -90,10 +84,10 @@ export function useConversations() {
       // Update the local state to remove the deleted conversation
       setConversations(prev => prev.filter(convo => convo.id !== id));
       
-      //toast({
-      //  title: "성공",
-      //  description: "대화가 삭제되었습니다.",
-      //});
+      toast({
+        title: "성공",
+        description: "대화가 삭제되었습니다.",
+      });
       
       return true;
     } catch (err) {
