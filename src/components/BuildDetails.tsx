@@ -43,8 +43,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
         {/* Recommendation Card */}
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>추천</CardTitle>
-            <CardDescription>해당 견적이 추천된 이유</CardDescription>
+            <CardTitle>견적 추천 설명</CardTitle>
           </CardHeader>
           <CardContent>
             <p>{build.recommendation}</p>
@@ -54,8 +53,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
         {/* Separate Evaluation Card with Circular Indicators */}
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>평가</CardTitle>
-            <CardDescription>사용자 평가 결과</CardDescription>
+            <CardTitle>견적 평가</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-6">
@@ -83,13 +81,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
                   color="#F97316" 
                 />
               </div>
-              
               {/* Description text */}
-              <div className="flex items-center justify-center p-4 border rounded-lg bg-muted/30 mt-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  {hasRatings ? "이 제품은 사용자들의 실제 사용 경험을 바탕으로 평가되었습니다." : "아직 충분한 평가 데이터가 수집되지 않았습니다."}
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>
