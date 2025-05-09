@@ -7,9 +7,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Link } from 'lucide-react';
+import { Link, DollarSign, VolumeX, Zap } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { RatingIndicator } from "@/components/RatingIndicator";
 
 interface BuildDetailsProps {
   build: Build;
@@ -30,6 +32,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
   const hasRatings = build.rating && typeof build.rating === 'object';
   const valueForMoney = hasRatings && build.rating.valueForMoney !== undefined ? build.rating.valueForMoney : null;
   const noise = hasRatings && build.rating.noise !== undefined ? build.rating.noise : null;
+  const performance = hasRatings && build.rating.performance !== undefined ? build.rating.performance : null;
 
   return (
     <div className="space-y-6">
@@ -48,30 +51,41 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
           </CardContent>
         </Card>
         
-        {/* Separate Evaluation Card */}
+        {/* Separate Evaluation Card with Circular Indicators */}
         <Card className="mt-4">
           <CardHeader>
             <CardTitle>평가</CardTitle>
             <CardDescription>사용자 평가 결과</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col space-y-3 p-4 border rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-sm">가성비:</span>
-                  <Badge variant={valueForMoney !== null ? "default" : "outline"}>
-                    {valueForMoney !== null ? `${valueForMoney}/10` : "평가 없음"}
-                  </Badge>
-                </div>
-                <Separator />
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-sm">소음:</span>
-                  <Badge variant={noise !== null ? "default" : "outline"}>
-                    {noise !== null ? `${noise}/10` : "평가 없음"}
-                  </Badge>
-                </div>
+            <div className="grid grid-cols-1 gap-6">
+              {/* Circular rating indicators in horizontal layout */}
+              <div className="flex flex-row flex-wrap justify-around gap-4">
+                <RatingIndicator 
+                  label="가성비" 
+                  value={valueForMoney} 
+                  maxValue={10} 
+                  icon={<DollarSign className="h-4 w-4" />} 
+                  color="#9b87f5"
+                />
+                <RatingIndicator 
+                  label="소음" 
+                  value={noise} 
+                  maxValue={10} 
+                  icon={<VolumeX className="h-4 w-4" />}
+                  color="#0EA5E9" 
+                />
+                <RatingIndicator 
+                  label="성능" 
+                  value={performance} 
+                  maxValue={10} 
+                  icon={<Zap className="h-4 w-4" />}
+                  color="#F97316" 
+                />
               </div>
-              <div className="flex items-center justify-center p-4 border rounded-lg bg-muted/30">
+              
+              {/* Description text */}
+              <div className="flex items-center justify-center p-4 border rounded-lg bg-muted/30 mt-4">
                 <p className="text-sm text-muted-foreground text-center">
                   {hasRatings ? "이 제품은 사용자들의 실제 사용 경험을 바탕으로 평가되었습니다." : "아직 충분한 평가 데이터가 수집되지 않았습니다."}
                 </p>

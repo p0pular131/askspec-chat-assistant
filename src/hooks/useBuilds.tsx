@@ -29,6 +29,7 @@ export interface Build {
   rating: {
     valueForMoney?: number;
     noise?: number;
+    performance?: number;
     [key: string]: number | undefined;
   };
 }
