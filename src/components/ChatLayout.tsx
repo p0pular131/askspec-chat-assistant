@@ -7,6 +7,13 @@ import ChatConversationList from './ChatConversationList';
 import BuildsList from './BuildsList';
 import ExpertiseSurvey from './ExpertiseSurvey';
 
+// Helper function to validate if a string is a valid UUID
+const isUUID = (str: string | null): boolean => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 export const ChatLayout: React.FC = () => {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
@@ -36,7 +43,7 @@ export const ChatLayout: React.FC = () => {
 
   // Load messages when conversation changes
   useEffect(() => {
-    if (currentConversation?.id) {
+    if (currentConversation?.id && isUUID(currentConversation.id)) {
       loadMessages(currentConversation.id);
     }
   }, [currentConversation, loadMessages]);
@@ -47,7 +54,9 @@ export const ChatLayout: React.FC = () => {
       // This will ensure we always have the latest conversations when switching to the chat tab
       const fetchConversations = async () => {
         try {
-          await loadMessages(currentConversation?.id || '');
+          if (currentConversation?.id && isUUID(currentConversation.id)) {
+            await loadMessages(currentConversation.id);
+          }
         } catch (error) {
           console.error('Error loading messages:', error);
         }

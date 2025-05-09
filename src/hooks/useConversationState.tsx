@@ -8,6 +8,13 @@ import { useBuilds } from './useBuilds';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../components/ui/use-toast';
 
+// Helper function to validate if a string is a valid UUID
+const isUUID = (str: string | null): boolean => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 export function useConversationState() {
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -72,6 +79,17 @@ export function useConversationState() {
 
   const handleDeleteConversation = useCallback(async (id: string) => {
     try {
+      // Validate ID is a valid UUID before attempting to delete
+      if (!isUUID(id)) {
+        console.error('Invalid conversation ID format:', id);
+        toast({
+          title: "오류",
+          description: "유효하지 않은 대화 ID입니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Delete the conversation from the database
       await deleteConversation(id);
       
@@ -84,6 +102,7 @@ export function useConversationState() {
       
       // Ensure conversations list is refreshed after deletion
       await fetchConversations();
+      
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
     }

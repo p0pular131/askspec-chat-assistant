@@ -19,6 +19,13 @@ interface RawDatabaseMessage {
   created_at: string;
 }
 
+// Helper function to validate if a string is a valid UUID
+const isUUID = (str: string | null): boolean => {
+  if (!str) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 export function useMessages(conversationId: string | null) {
   const [messages, setMessages] = useState<DatabaseMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +49,14 @@ export function useMessages(conversationId: string | null) {
 
   const loadMessages = async (convoId: string) => {
     try {
+      // Check if convoId is a valid UUID before making the request
+      if (!isUUID(convoId)) {
+        console.log('Invalid or empty conversation ID, not loading messages');
+        setMessages([]);
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
       setError(null);
       
