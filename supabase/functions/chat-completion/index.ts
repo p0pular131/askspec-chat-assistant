@@ -32,7 +32,9 @@ const extractPcBuild = (content) => {
     /전체\s*가격[:\s]*₩?([0-9,]+)원?/i,
     /가격[:\s]*₩?([0-9,]+)원?/i,
     /예상\s*비용[:\s]*약?\s*₩?([0-9,]+)원?/i,
-    /총액[:\s]*₩?([0-9,]+)원?/i
+    /총액[:\s]*₩?([0-9,]+)원?/i,
+    /합계[:\s]*₩?([0-9,]+)원?/i,
+    /전체\s*비용[:\s]*₩?([0-9,]+)원?/i
   ];
   
   for (const pattern of pricePatterns) {
@@ -62,13 +64,14 @@ const extractPcBuild = (content) => {
   
   // Improved component extraction with Korean and English patterns
   const components = [
-    { type: 'CPU', patterns: [/CPU[:\s]+(.*?)(?=\n|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is, /프로세서[:\s]+(.*?)(?=\n|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] },
-    { type: 'GPU', patterns: [/(GPU|그래픽카드|그래픽)[:\s]+(.*?)(?=\n|CPU|프로세서|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] },
-    { type: 'RAM', patterns: [/(RAM|메모리)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] },
-    { type: 'Storage', patterns: [/(저장장치|Storage|SSD|HDD)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|마더보드|케이스|전원)/is] },
-    { type: 'Motherboard', patterns: [/(Motherboard|마더보드)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|케이스|전원)/is] },
-    { type: 'Case', patterns: [/(Case|케이스)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|전원)/is] },
-    { type: 'PSU', patterns: [/(PSU|Power Supply|전원공급장치|전원)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스)/is] }
+    { type: 'CPU', patterns: [/CPU[:\s]+(.*?)(?=\n|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원|쿨러|냉각)/is, /프로세서[:\s]+(.*?)(?=\n|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원|쿨러|냉각)/is] },
+    { type: 'GPU', patterns: [/(GPU|그래픽카드|그래픽)[:\s]+(.*?)(?=\n|CPU|프로세서|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원|쿨러|냉각)/is] },
+    { type: 'RAM', patterns: [/(RAM|메모리)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|저장장치|Storage|SSD|HDD|마더보드|케이스|전원|쿨러|냉각)/is] },
+    { type: 'Storage', patterns: [/(저장장치|Storage|SSD|HDD)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|마더보드|케이스|전원|쿨러|냉각)/is] },
+    { type: 'Motherboard', patterns: [/(Motherboard|마더보드)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|케이스|전원|쿨러|냉각)/is] },
+    { type: 'Case', patterns: [/(Case|케이스)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|전원|쿨러|냉각)/is] },
+    { type: 'PSU', patterns: [/(PSU|Power Supply|전원공급장치|전원)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|쿨러|냉각)/is] },
+    { type: 'Cooling', patterns: [/(Cooling|쿨러|냉각장치|냉각)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] }
   ];
   
   const extractedComponents = [];
@@ -107,7 +110,8 @@ const extractPcBuild = (content) => {
     /이\s*견적은\s*(.*?)(?=\n|CPU|GPU|그래픽)/i,
     /이\s*PC는\s*(.*?)(?=\n|CPU|GPU|그래픽)/i,
     /추천\s*이유[:\s]+(.*?)(?=\n|CPU|GPU|그래픽)/i,
-    /용도[:\s]+(.*?)(?=\n|CPU|GPU|그래픽)/i
+    /용도[:\s]+(.*?)(?=\n|CPU|GPU|그래픽)/i,
+    /목적[:\s]+(.*?)(?=\n|CPU|GPU|그래픽)/i
   ];
   
   for (const pattern of purposePatterns) {
@@ -197,9 +201,10 @@ const extractPcBuild = (content) => {
     if (text.includes('gpu') || text.includes('그래픽') || text.includes('graphics')) return 'GPU'; 
     if (text.includes('ram') || text.includes('메모리') || text.includes('memory')) return 'RAM';
     if (text.includes('ssd') || text.includes('hdd') || text.includes('storage') || text.includes('저장')) return 'Storage';
-    if (text.includes('motherboard') || text.includes('마더보드')) return 'Motherboard';
+    if (text.includes('motherboard') || text.includes('마더보드') || text.includes('메인보드')) return 'Motherboard';
     if (text.includes('case') || text.includes('케이스')) return 'Case';
     if (text.includes('psu') || text.includes('power') || text.includes('전원')) return 'PSU';
+    if (text.includes('cooler') || text.includes('cooling') || text.includes('쿨러') || text.includes('냉각')) return 'Cooling';
     return null;
   }
 
@@ -347,12 +352,15 @@ serve(async (req) => {
         console.error("Error saving build:", error);
       }
     } else {
+      console.log("Debug build extraction:");
       if (!buildInfo) {
         console.log("No valid PC build detected.");
-      } else if (buildInfo.components.length < 3) {
-        console.log("Not enough components found in the build.");
+      } else if (!buildInfo.components || buildInfo.components.length < 3) {
+        console.log("Not enough components found in the build:", buildInfo.components?.length || 0);
       } else if (!conversationId) {
         console.log("No conversation ID provided.");
+      } else {
+        console.log("Unknown reason for not saving build.");
       }
     }
 
@@ -411,6 +419,11 @@ const getSystemMessage = (chatMode, expertiseLevel) => {
       break;
     default:
       baseSystemMessage += " Use a balanced approach with some technical terms, but explain them.";
+  }
+
+  // For build recommendation, add more specifics about components
+  if (chatMode === '견적 추천') {
+    baseSystemMessage += " Please include CPU, GPU, RAM, Storage, Motherboard, Power Supply, Case, and if applicable a CPU Cooler or other cooling solutions in your recommendations. Format your build list clearly with numbered or bullet points.";
   }
   
   return baseSystemMessage;

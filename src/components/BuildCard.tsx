@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PcCase, HardDrive, Cpu, MemoryStick } from 'lucide-react';
+import { PcCase, HardDrive, Cpu, MemoryStick, Layers, Power, Fan, ServerCog } from 'lucide-react';
 import { Build } from '@/hooks/useBuilds';
 import { formatCurrency } from '@/lib/utils';
 
@@ -19,6 +19,30 @@ export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
     return acc;
   }, {} as Record<string, number>);
 
+  // Get icon for component type
+  const getComponentIcon = (type: string) => {
+    switch(type.toLowerCase()) {
+      case 'cpu':
+        return <Cpu className="h-3 w-3" />;
+      case 'gpu':
+        return <ServerCog className="h-3 w-3" />;
+      case 'ram':
+        return <MemoryStick className="h-3 w-3" />;
+      case 'storage':
+        return <HardDrive className="h-3 w-3" />;
+      case 'motherboard':
+        return <Layers className="h-3 w-3" />;
+      case 'case':
+        return <PcCase className="h-3 w-3" />;
+      case 'psu':
+        return <Power className="h-3 w-3" />;
+      case 'cooling':
+        return <Fan className="h-3 w-3" />;
+      default:
+        return <PcCase className="h-3 w-3" />;
+    }
+  };
+
   return (
     <Card 
       className="hover:bg-accent hover:cursor-pointer transition-colors"
@@ -34,33 +58,12 @@ export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
         </div>
         
         <div className="flex flex-wrap gap-2 mt-3">
-          {componentCount['cpu'] && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Cpu className="h-3 w-3" />
-              <span>{componentCount['cpu']} CPU</span>
+          {Object.entries(componentCount).map(([type, count]) => (
+            <Badge key={type} variant="outline" className="flex items-center gap-1">
+              {getComponentIcon(type)}
+              <span>{count} {type.charAt(0).toUpperCase() + type.slice(1)}</span>
             </Badge>
-          )}
-          
-          {componentCount['gpu'] && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <PcCase className="h-3 w-3" />
-              <span>{componentCount['gpu']} GPU</span>
-            </Badge>
-          )}
-          
-          {componentCount['storage'] && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <HardDrive className="h-3 w-3" />
-              <span>{componentCount['storage']} Storage</span>
-            </Badge>
-          )}
-          
-          {componentCount['ram'] && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <MemoryStick className="h-3 w-3" />
-              <span>{componentCount['ram']} RAM</span>
-            </Badge>
-          )}
+          ))}
         </div>
       </CardContent>
     </Card>

@@ -21,6 +21,7 @@ export const ChatLayout: React.FC = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [chatMode, setChatMode] = useState('범용 검색');
   const [lastBuildCount, setLastBuildCount] = useState(0);
+  const [autoSwitchDisabled, setAutoSwitchDisabled] = useState(false);
   
   const {
     currentConversation,
@@ -71,20 +72,32 @@ export const ChatLayout: React.FC = () => {
   useEffect(() => {
     if (activeTab === 'builds') {
       loadBuilds();
+      // Reset auto-switch flag when user manually goes to builds tab
+      setAutoSwitchDisabled(true);
+      setTimeout(() => setAutoSwitchDisabled(false), 10000); // Re-enable after 10 seconds
     }
   }, [activeTab, loadBuilds]);
 
   // Track build count and automatically switch to builds tab when new builds are created
   useEffect(() => {
+    // If this is the first load, just save the count
+    if (lastBuildCount === 0 && builds.length > 0) {
+      setLastBuildCount(builds.length);
+      return;
+    }
+    
     // Detect new builds by comparing the current count with the previous count
-    if (builds.length > lastBuildCount && lastBuildCount > 0) {
+    if (builds.length > lastBuildCount) {
       // Automatically switch to the builds tab when a new build is created
-      setActiveTab('builds');
+      // But only if the user hasn't disabled auto-switching
+      if (!autoSwitchDisabled) {
+        setActiveTab('builds');
+      }
     }
     
     // Update the last build count
     setLastBuildCount(builds.length);
-  }, [builds.length, lastBuildCount]);
+  }, [builds.length, lastBuildCount, autoSwitchDisabled]);
 
   // Map the selected answer to an expertise level
   const getExpertiseLevel = useCallback(() => {
@@ -101,6 +114,8 @@ export const ChatLayout: React.FC = () => {
   }, [selectedAnswer]);
 
   const handleSendMessage = useCallback((text: string) => {
+    // Reset auto-switch disabled flag when sending a new message
+    setAutoSwitchDisabled(false);
     sendMessage(text, getExpertiseLevel(), chatMode);
   }, [sendMessage, getExpertiseLevel, chatMode]);
 
@@ -147,7 +162,12 @@ export const ChatLayout: React.FC = () => {
             className={`flex gap-2 items-center p-3 w-full text-sm text-left rounded-lg text-zinc-900 ${
               activeTab === 'builds' ? 'bg-neutral-100' : ''
             }`}
-            onClick={() => setActiveTab('builds')}
+            onClick={() => {
+              setActiveTab('builds');
+              // Reset auto-switch flag when user manually goes to builds tab
+              setAutoSwitchDisabled(true);
+              setTimeout(() => setAutoSwitchDisabled(false), 10000); // Re-enable after 10 seconds
+            }}
           >
             <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
               <path

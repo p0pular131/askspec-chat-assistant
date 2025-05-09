@@ -47,6 +47,7 @@ export function useBuilds() {
   const [selectedBuild, setSelectedBuild] = useState<Build | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [lastBuildId, setLastBuildId] = useState<string | null>(null);
+  const [lastCheckTime, setLastCheckTime] = useState(Date.now());
 
   // Function to convert raw build data to our Build interface
   const convertRawBuild = (rawBuild: RawBuild): Build => {
@@ -80,9 +81,11 @@ export function useBuilds() {
     };
   };
 
-  const loadBuilds = useCallback(async () => {
+  const loadBuilds = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       setError(null);
       
       console.log('Fetching builds from database...');
@@ -105,21 +108,26 @@ export function useBuilds() {
       console.log('Transformed builds:', transformedBuilds);
       
       // Check if we have a new build (compare with lastBuildId)
-      if (transformedBuilds.length > 0 && transformedBuilds[0].id !== lastBuildId) {
-        // If this isn't the first load and we have a new build at the top
-        if (builds.length > 0 && lastBuildId !== null) {
+      if (transformedBuilds.length > 0) {
+        // If this is our first load, just set the last build ID
+        if (lastBuildId === null) {
+          setLastBuildId(transformedBuilds[0].id);
+        }
+        // If we have a new build at the top
+        else if (transformedBuilds[0].id !== lastBuildId) {
+          // Show a toast notification
           toast({
             title: "새 견적 생성됨",
             description: `"${transformedBuilds[0].name}" 견적이 생성되었습니다.`,
           });
-        }
-        
-        // Update the lastBuildId to the newest build's id
-        if (transformedBuilds.length > 0) {
+          
+          // Update the lastBuildId to the newest build's id
           setLastBuildId(transformedBuilds[0].id);
         }
       }
       
+      // Update the last check time
+      setLastCheckTime(Date.now());
       setBuilds(transformedBuilds);
       return transformedBuilds;
     } catch (err) {
@@ -127,8 +135,8 @@ export function useBuilds() {
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
       setError(errorMessage);
       
-      // Show an error toast only on the first attempt
-      if (retryCount === 0) {
+      // Show an error toast only on the first attempt and if not silent
+      if (retryCount === 0 && !silent) {
         toast({
           title: "견적 로딩 실패",
           description: "견적 목록을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
@@ -138,9 +146,20 @@ export function useBuilds() {
       
       return [];
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
-  }, [retryCount, builds.length, lastBuildId]);
+  }, [retryCount, lastBuildId]);
+
+  // Silent background check for new builds
+  const checkForNewBuilds = useCallback(async () => {
+    try {
+      await loadBuilds(true); // true = silent mode
+    } catch (error) {
+      console.error("Background build check failed:", error);
+    }
+  }, [loadBuilds]);
 
   const getBuild = async (id: string) => {
     try {
@@ -254,19 +273,21 @@ export function useBuilds() {
     }
   };
 
-  // Effect to load builds when the component mounts
+  // Effect to load builds when the component mounts and 
+  // set up polling to check for new builds frequently
   useEffect(() => {
     // Initial load
     loadBuilds();
     
-    // Set up polling to check for new builds every 5 seconds
+    // Set up polling to check for new builds
+    // Check every 5 seconds in normal operation
     const intervalId = setInterval(() => {
-      loadBuilds();
-    }, 5000); // Check every 5 seconds
+      checkForNewBuilds();
+    }, 5000);
     
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [loadBuilds]);
+  }, [loadBuilds, checkForNewBuilds]);
 
   // Provide a manual retry function
   const retryLoadBuilds = () => {
