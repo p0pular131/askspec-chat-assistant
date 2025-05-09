@@ -27,8 +27,16 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
 
   // Extract rating scores if they exist
   const hasRatings = build.rating && typeof build.rating === 'object' && Object.keys(build.rating).length > 0;
+  
+  // Debug ratings data
+  console.log("Build rating data:", build.rating);
+  console.log("hasRatings:", hasRatings);
+  
   const valueForMoney = hasRatings && build.rating.valueForMoney ? build.rating.valueForMoney : null;
   const noise = hasRatings && build.rating.noise ? build.rating.noise : null;
+  
+  console.log("valueForMoney:", valueForMoney);
+  console.log("noise:", noise);
 
   return (
     <div className="space-y-6">

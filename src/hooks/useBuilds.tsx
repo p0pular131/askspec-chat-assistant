@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Json } from '../integrations/supabase/types';
@@ -92,6 +93,11 @@ export function useBuilds() {
             : []
         }))
       : [];
+
+    console.log("Raw build rating data:", rawBuild.rating);
+    
+    const ratingData = rawBuild.rating as Build['rating'] || {};
+    console.log("Converted rating data:", ratingData);
     
     return {
       id: rawBuild.id,
@@ -101,7 +107,7 @@ export function useBuilds() {
       total_price: rawBuild.total_price,
       recommendation: rawBuild.recommendation,
       created_at: rawBuild.created_at,
-      rating: rawBuild.rating as Build['rating'] || {}
+      rating: ratingData
     };
   };
 
@@ -207,6 +213,7 @@ export function useBuilds() {
       // Check if the build is already in our local state
       const cachedBuild = builds.find(build => build.id === id);
       if (cachedBuild) {
+        console.log("Using cached build with rating:", cachedBuild.rating);
         setSelectedBuild(cachedBuild);
         setLoading(false);
         return cachedBuild;
@@ -231,7 +238,12 @@ export function useBuilds() {
         throw fetchError;
       }
       
+      console.log("Raw build from database:", rawBuild);
+      console.log("Raw build rating from database:", rawBuild.rating);
+      
       const transformedBuild = convertRawBuild(rawBuild);
+      console.log("Transformed build with rating:", transformedBuild.rating);
+      
       setSelectedBuild(transformedBuild);
       return transformedBuild;
     } catch (err) {

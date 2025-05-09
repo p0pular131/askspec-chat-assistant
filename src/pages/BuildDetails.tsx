@@ -22,7 +22,9 @@ const BuildDetailsPage: React.FC = () => {
       try {
         setLoading(true);
         setLoadError(null);
-        await getBuild(id);
+        const build = await getBuild(id);
+        console.log("Loaded build details:", build);
+        console.log("Rating data:", build.rating);
         setLoadAttempted(true);
       } catch (error) {
         console.error('Error getting build:', error);
