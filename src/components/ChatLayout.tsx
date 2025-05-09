@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
@@ -198,11 +197,6 @@ export const ChatLayout: React.FC = () => {
               />
             </svg>
             PC 견적
-            {builds.length > 0 && (
-              <span className="ml-auto bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
-                {builds.length}
-              </span>
-            )}
           </button>
         </div>
 

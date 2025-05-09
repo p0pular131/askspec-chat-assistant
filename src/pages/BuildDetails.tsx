@@ -85,10 +85,7 @@ const BuildDetailsPage: React.FC = () => {
           <ArrowLeft className="h-4 w-4" />
           <span>Back</span>
         </Button>
-      </div>
-      
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{selectedBuild.name}</h1>
+        
         <Button 
           variant="destructive" 
           onClick={handleDelete} 

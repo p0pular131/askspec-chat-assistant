@@ -12,7 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface BuildsListProps {
@@ -54,16 +54,6 @@ const BuildsList: React.FC<BuildsListProps> = ({
     setDialogOpen(false);
   }, []);
 
-  const handleRefresh = useCallback(() => {
-    if (onRefresh) {
-      onRefresh();
-      toast({
-        title: "새로고침",
-        description: "견적 목록을 새로고침 합니다.",
-      });
-    }
-  }, [onRefresh]);
-
   // Memorize the content based on loading and error states
   const renderContent = useCallback(() => {
     if (error) {
@@ -83,9 +73,8 @@ const BuildsList: React.FC<BuildsListProps> = ({
                     variant="outline" 
                     size="sm" 
                     className="mt-2" 
-                    onClick={handleRefresh}
+                    onClick={onRefresh}
                   >
-                    <RefreshCw className="h-3.5 w-3.5 mr-1" />
                     다시 시도
                   </Button>
                 )}
@@ -140,24 +129,12 @@ const BuildsList: React.FC<BuildsListProps> = ({
         </button>
       </div>
     ));
-  }, [builds, error, loading, onRefresh, handleRefresh, handleDelete, onViewBuild]);
+  }, [builds, error, loading, onRefresh, handleDelete, onViewBuild]);
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between pl-2 mb-2">
+      <div className="pl-2 mb-2">
         <span className="text-xs text-stone-500">견적 목록</span>
-        {onRefresh && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-6 w-6 p-0" 
-            onClick={handleRefresh}
-            disabled={loading}
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            <span className="sr-only">새로고침</span>
-          </Button>
-        )}
       </div>
       
       {renderContent()}
