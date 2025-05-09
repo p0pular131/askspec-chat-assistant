@@ -1,6 +1,7 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { toast } from '../components/ui/use-toast';
 
 export interface DatabaseMessage {
   id: string;
@@ -26,6 +27,22 @@ const isUUID = (str: string | null): boolean => {
   return uuidRegex.test(str);
 };
 
+// Retry function with exponential backoff
+const fetchWithRetry = async <T,>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delay = 1000
+): Promise<T> => {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries <= 0) throw err;
+    
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return fetchWithRetry(fn, retries - 1, delay * 1.5);
+  }
+};
+
 export function useMessages(conversationId: string | null) {
   const [messages, setMessages] = useState<DatabaseMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +64,7 @@ export function useMessages(conversationId: string | null) {
     };
   };
 
-  const loadMessages = async (convoId: string) => {
+  const loadMessages = useCallback(async (convoId: string) => {
     try {
       // Check if convoId is a valid UUID before making the request
       if (!isUUID(convoId)) {
@@ -60,13 +77,19 @@ export function useMessages(conversationId: string | null) {
       setLoading(true);
       setError(null);
       
-      const { data: rawData, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', convoId)
-        .order('created_at');
+      const fetchMessages = async () => {
+        const { data: rawData, error } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('conversation_id', convoId)
+          .order('created_at');
+        
+        if (error) throw error;
+        return rawData;
+      };
       
-      if (error) throw error;
+      // Use retry logic for fetching messages
+      const rawData = await fetchWithRetry(fetchMessages, 3, 1000);
       
       // Transform the raw data to match our DatabaseMessage interface
       const transformedMessages = (rawData || []).map(convertRawMessage);
@@ -74,10 +97,15 @@ export function useMessages(conversationId: string | null) {
     } catch (err) {
       console.error('Error loading messages:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      toast({
+        title: "메시지 로딩 실패",
+        description: "메시지를 불러오는 데 문제가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const addMessage = async (content: string, role: 'user' | 'assistant', convoId: string) => {
     try {
@@ -92,12 +120,18 @@ export function useMessages(conversationId: string | null) {
         role,
       };
       
-      const { data: rawMessage, error } = await supabase
-        .from('messages')
-        .insert(newMessage)
-        .select();
+      const addMessageToDb = async () => {
+        const { data: rawMessage, error } = await supabase
+          .from('messages')
+          .insert(newMessage)
+          .select();
+          
+        if (error) throw error;
+        return rawMessage;
+      };
       
-      if (error) throw error;
+      // Use retry logic for adding messages
+      const rawMessage = await fetchWithRetry(addMessageToDb, 2, 800);
       
       // Update local state with the newly added message
       if (rawMessage && rawMessage[0]) {
@@ -106,6 +140,11 @@ export function useMessages(conversationId: string | null) {
       }
     } catch (err) {
       console.error('Error adding message:', err);
+      toast({
+        title: "메시지 추가 실패",
+        description: "메시지를 추가하는 데 문제가 발생했습니다.",
+        variant: "destructive",
+      });
       throw err;
     }
   };
@@ -118,30 +157,36 @@ export function useMessages(conversationId: string | null) {
     try {
       console.log("Calling OpenAI with messages:", messages);
       
-      // Create a Promise with timeout instead of using AbortController
-      const timeoutMs = 60000; // Increase timeout to 60 seconds
+      // Increase timeout to 90 seconds
+      const timeoutMs = 90000; 
       
       const apiCallWithTimeout = async () => {
         try {
-          const { data, error } = await supabase.functions.invoke('chat-completion', {
-            body: {
-              messages,
-              chatMode,
-              conversationId,
-              expertiseLevel,
+          const callApi = async () => {
+            const { data, error } = await supabase.functions.invoke('chat-completion', {
+              body: {
+                messages,
+                chatMode,
+                conversationId,
+                expertiseLevel,
+                max_tokens: 2000, // Explicitly set max tokens
+              }
+            });
+            
+            if (error) {
+              console.error('Error invoking chat-completion function:', error);
+              throw new Error(error.message || 'Failed to call OpenAI API');
             }
-          });
+            
+            if (!data || !data.response) {
+              throw new Error('No response received from the API');
+            }
+            
+            return data.response;
+          };
           
-          if (error) {
-            console.error('Error invoking chat-completion function:', error);
-            throw new Error(error.message || 'Failed to call OpenAI API');
-          }
-          
-          if (!data || !data.response) {
-            throw new Error('No response received from the API');
-          }
-          
-          return data.response;
+          // Use retry logic for API calls
+          return await fetchWithRetry(callApi, 2, 1000);
         } catch (err) {
           console.error('Error in API call:', err);
           throw err;
@@ -150,7 +195,7 @@ export function useMessages(conversationId: string | null) {
       
       // Create a promise that rejects after timeoutMs
       const timeoutPromise = new Promise<string>((_, reject) => {
-        setTimeout(() => reject(new Error('API request timed out after 60 seconds')), timeoutMs);
+        setTimeout(() => reject(new Error('API request timed out after 90 seconds')), timeoutMs);
       });
       
       // Race the API call against the timeout
@@ -163,6 +208,11 @@ export function useMessages(conversationId: string | null) {
       return response;
     } catch (err) {
       console.error('Error calling OpenAI:', err);
+      toast({
+        title: "AI 응답 오류",
+        description: "AI 응답을 생성하는 데 문제가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
       throw err;
     }
   };
@@ -174,7 +224,7 @@ export function useMessages(conversationId: string | null) {
       setMessages([]);
       setLoading(false);
     }
-  }, [conversationId]);
+  }, [conversationId, loadMessages]);
 
   return {
     messages,
