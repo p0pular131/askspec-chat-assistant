@@ -6,6 +6,9 @@ import ChatMain from './ChatMain';
 import ChatConversationList from './ChatConversationList';
 import BuildsList from './BuildsList';
 import ExpertiseSurvey from './ExpertiseSurvey';
+import { Button } from './ui/button';
+import { Loader2, RefreshCw } from 'lucide-react';
+import { generateBuildsFromMessages } from '../utils/buildExtractor';
 
 // Helper function to validate if a string is a valid UUID
 const isUUID = (str: string | null): boolean => {
@@ -22,6 +25,7 @@ export const ChatLayout: React.FC = () => {
   const [chatMode, setChatMode] = useState('범용 검색');
   const [lastBuildCount, setLastBuildCount] = useState(0);
   const [autoSwitchDisabled, setAutoSwitchDisabled] = useState(false);
+  const [isGeneratingBuilds, setIsGeneratingBuilds] = useState(false);
   
   const {
     currentConversation,
@@ -131,6 +135,21 @@ export const ChatLayout: React.FC = () => {
     return examples[chatMode as keyof typeof examples] || examples["범용 검색"];
   }, [chatMode]);
 
+  const handleGenerateBuilds = async () => {
+    setIsGeneratingBuilds(true);
+    try {
+      await generateBuildsFromMessages();
+      // Refresh builds list after generation
+      await loadBuilds();
+      // Switch to builds tab to show the results
+      setActiveTab('builds');
+    } catch (error) {
+      console.error('Error generating builds:', error);
+    } finally {
+      setIsGeneratingBuilds(false);
+    }
+  };
+
   return (
     <div className="flex w-screen h-screen bg-neutral-100">
       <Sidebar
@@ -200,14 +219,38 @@ export const ChatLayout: React.FC = () => {
           )}
           
           {activeTab === 'builds' && (
-            <BuildsList
-              builds={builds}
-              loading={buildsLoading}
-              error={null}
-              onViewBuild={handleViewBuild}
-              onDelete={handleDeleteBuild}
-              onRefresh={loadBuilds}
-            />
+            <>
+              <BuildsList
+                builds={builds}
+                loading={buildsLoading}
+                error={null}
+                onViewBuild={handleViewBuild}
+                onDelete={handleDeleteBuild}
+                onRefresh={loadBuilds}
+              />
+              
+              {/* Button to generate builds from existing conversations */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  className="w-full text-sm"
+                  onClick={handleGenerateBuilds}
+                  disabled={isGeneratingBuilds}
+                >
+                  {isGeneratingBuilds ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                      견적 생성 중...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 mr-2" />
+                      기존 대화에서 견적 생성
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </Sidebar>

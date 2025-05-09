@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PcCase, HardDrive, Cpu, MemoryStick, Layers, Power, Fan, ServerCog } from 'lucide-react';
+import { PcCase, HardDrive, Cpu, MemoryStick, Layers, Power, Fan, ServerCog, MonitorSmartphone } from 'lucide-react';
 import { Build } from '@/hooks/useBuilds';
 import { formatCurrency } from '@/lib/utils';
 
@@ -42,7 +43,7 @@ export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
       case 'cooling':
         return <Fan className="h-3 w-3" />;
       default:
-        return <PcCase className="h-3 w-3" />;
+        return <MonitorSmartphone className="h-3 w-3" />;
     }
   };
 
@@ -58,13 +59,25 @@ export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
     return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
+  // Function to truncate build name if it's too long
+  const formatBuildName = (name: string) => {
+    return name.length > 30 ? `${name.substring(0, 30)}...` : name;
+  };
+
   return (
     <Card 
       className="hover:bg-accent hover:cursor-pointer transition-colors"
       onClick={onClick}
     >
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">{build.name}</CardTitle>
+        <CardTitle className="text-lg font-medium">{formatBuildName(build.name)}</CardTitle>
+        {build.recommendation && build.recommendation.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {build.recommendation.length > 60
+              ? `${build.recommendation.substring(0, 60)}...`
+              : build.recommendation}
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         <div className="flex justify-between mb-2">
