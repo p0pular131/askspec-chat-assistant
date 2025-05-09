@@ -2,6 +2,7 @@
 import { supabase } from '../integrations/supabase/client';
 import { Build, Component } from '@/hooks/useBuilds';
 import { toast } from '@/components/ui/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 /**
  * Extracts build information from a message content
@@ -258,16 +259,19 @@ export const generateBuildsFromMessages = async (): Promise<void> => {
             buildInfo.recommendation
           );
           
+          // Convert Component[] to Json before inserting into the database
+          const componentsJson = buildInfo.components as unknown as Json;
+          
           // Save the build to the database
           const { error: saveError } = await supabase
             .from('pc_builds')
             .insert({
               name: buildName,
               conversation_id: conversation.id,
-              components: buildInfo.components,
+              components: componentsJson,
               total_price: buildInfo.totalPrice,
               recommendation: buildInfo.recommendation,
-              rating: {}  // Empty JSON object for future ratings
+              rating: {} as Json  // Empty JSON object for future ratings
             });
             
           if (saveError) {
