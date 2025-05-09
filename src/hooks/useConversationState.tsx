@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Conversation } from './useConversations';
 import { Message } from '../components/types';
@@ -19,6 +20,7 @@ export function useConversationState() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [showExample, setShowExample] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [autoRefreshTriggered, setAutoRefreshTriggered] = useState(false);
   
   const navigate = useNavigate();
   
@@ -152,12 +154,24 @@ export function useConversationState() {
         const apiMessages = [{ role: 'user', content: text }];
         
         try {
+          // Reset the auto-refresh flag
+          setAutoRefreshTriggered(false);
+          
           // Get response from OpenAI, passing expertise level
           const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
           
           // Add assistant response to database
           if (response) {
             await addMessage(response, 'assistant', newConversation.id);
+            
+            // Schedule multiple build refreshes after receiving a response
+            // This ensures we catch builds that might be created with slight delay
+            setTimeout(() => loadBuilds(), 1000);
+            setTimeout(() => loadBuilds(), 3000);
+            setTimeout(() => {
+              loadBuilds();
+              setAutoRefreshTriggered(true);
+            }, 6000);
           } else {
             console.error("Empty response received from OpenAI");
             toast({
@@ -166,9 +180,6 @@ export function useConversationState() {
               variant: "destructive",
             });
           }
-          
-          // Reload builds list to catch any new builds created from this conversation
-          await loadBuilds();
         } catch (apiError) {
           console.error("API error:", apiError);
           toast({
@@ -196,12 +207,23 @@ export function useConversationState() {
         apiMessages.push({ role: 'user', content: text });
         
         try {
+          // Reset the auto-refresh flag
+          setAutoRefreshTriggered(false);
+          
           // Get response from OpenAI, passing expertise level
           const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
           
           // Add assistant response to database
           if (response) {
             await addMessage(response, 'assistant', currentConversation.id);
+            
+            // Schedule multiple build refreshes after receiving a response
+            setTimeout(() => loadBuilds(), 1000);
+            setTimeout(() => loadBuilds(), 3000);
+            setTimeout(() => {
+              loadBuilds();
+              setAutoRefreshTriggered(true);
+            }, 6000);
           } else {
             console.error("Empty response received from OpenAI");
             toast({
@@ -210,9 +232,6 @@ export function useConversationState() {
               variant: "destructive",
             });
           }
-          
-          // Reload builds list to catch any new builds created from this conversation
-          await loadBuilds();
         } catch (apiError) {
           console.error("API error:", apiError);
           toast({

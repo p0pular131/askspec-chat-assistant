@@ -20,6 +20,7 @@ export const ChatLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('chat');
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [chatMode, setChatMode] = useState('범용 검색');
+  const [lastBuildCount, setLastBuildCount] = useState(0);
   
   const {
     currentConversation,
@@ -72,6 +73,18 @@ export const ChatLayout: React.FC = () => {
       loadBuilds();
     }
   }, [activeTab, loadBuilds]);
+
+  // Track build count and automatically switch to builds tab when new builds are created
+  useEffect(() => {
+    // Detect new builds by comparing the current count with the previous count
+    if (builds.length > lastBuildCount && lastBuildCount > 0) {
+      // Automatically switch to the builds tab when a new build is created
+      setActiveTab('builds');
+    }
+    
+    // Update the last build count
+    setLastBuildCount(builds.length);
+  }, [builds.length, lastBuildCount]);
 
   // Map the selected answer to an expertise level
   const getExpertiseLevel = useCallback(() => {
@@ -146,6 +159,11 @@ export const ChatLayout: React.FC = () => {
               />
             </svg>
             PC 견적
+            {builds.length > 0 && (
+              <span className="ml-auto bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+                {builds.length}
+              </span>
+            )}
           </button>
         </div>
 

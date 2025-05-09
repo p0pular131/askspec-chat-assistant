@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { OpenAI } from "https://esm.sh/openai@4.28.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
@@ -216,50 +217,6 @@ const extractPcBuild = (content) => {
   return null;
 };
 
-// Function to get system message with appropriate expertise level
-const getSystemMessage = (chatMode, expertiseLevel) => {
-  let baseSystemMessage = "You are AskSpec, a helpful assistant that specializes in computer hardware and PC building advice.";
-  
-  // Add chat mode specific instructions
-  switch(chatMode) {
-    case '범용 검색':
-      baseSystemMessage += " Answer general questions about computer hardware and PC building.";
-      break;
-    case '부품 추천':
-      baseSystemMessage += " Provide specific component recommendations based on user needs.";
-      break;
-    case '견적 추천':
-      baseSystemMessage += " Create complete PC build recommendations within user's budget and requirements. Include links to purchase components.";
-      break;
-    case '호환성 검사':
-      baseSystemMessage += " Verify compatibility between different PC components.";
-      break;
-    case '스펙 업그레이드':
-      baseSystemMessage += " Suggest upgrade paths for existing PC builds to improve performance.";
-      break;
-    case '견적 평가':
-      baseSystemMessage += " Evaluate PC builds and provide feedback on their performance, value, and balance.";
-      break;
-  }
-  
-  // Add expertise level specific instructions
-  switch(expertiseLevel) {
-    case 'expert':
-      baseSystemMessage += " Use technical terminology and detailed specifications. Include model numbers, architecture details, and in-depth technical explanations. Your responses should be suitable for computer hardware enthusiasts and professionals.";
-      break;
-    case 'intermediate':
-      baseSystemMessage += " Use a balanced approach with some technical terms, but explain them. Focus on practical information and provide enough context for users with some hardware knowledge. Strike a balance between technical accuracy and accessibility.";
-      break;
-    case 'beginner':
-      baseSystemMessage += " Use simple, non-technical language. Avoid jargon and explain concepts in everyday terms. Use analogies where helpful. Focus on practical advice and basic information suitable for complete beginners in computer hardware.";
-      break;
-    default:
-      baseSystemMessage += " Use a balanced approach with some technical terms, but explain them.";
-  }
-  
-  return baseSystemMessage;
-};
-
 // Function to generate a concise name based on request content
 const generateConciseName = async (openai, content, isConversation = true) => {
   try {
@@ -414,3 +371,47 @@ serve(async (req) => {
     });
   }
 });
+
+// Function to get system message with appropriate expertise level
+const getSystemMessage = (chatMode, expertiseLevel) => {
+  let baseSystemMessage = "You are AskSpec, a helpful assistant that specializes in computer hardware and PC building advice.";
+  
+  // Add chat mode specific instructions
+  switch(chatMode) {
+    case '범용 검색':
+      baseSystemMessage += " Answer general questions about computer hardware and PC building.";
+      break;
+    case '부품 추천':
+      baseSystemMessage += " Provide specific component recommendations based on user needs.";
+      break;
+    case '견적 추천':
+      baseSystemMessage += " Create complete PC build recommendations within user's budget and requirements. Include links to purchase components.";
+      break;
+    case '호환성 검사':
+      baseSystemMessage += " Verify compatibility between different PC components.";
+      break;
+    case '스펙 업그레이드':
+      baseSystemMessage += " Suggest upgrade paths for existing PC builds to improve performance.";
+      break;
+    case '견적 평가':
+      baseSystemMessage += " Evaluate PC builds and provide feedback on their performance, value, and balance.";
+      break;
+  }
+  
+  // Add expertise level specific instructions
+  switch(expertiseLevel) {
+    case 'expert':
+      baseSystemMessage += " Use technical terminology and detailed specifications. Include model numbers, architecture details, and in-depth technical explanations. Your responses should be suitable for computer hardware enthusiasts and professionals.";
+      break;
+    case 'intermediate':
+      baseSystemMessage += " Use a balanced approach with some technical terms, but explain them. Focus on practical information and provide enough context for users with some hardware knowledge. Strike a balance between technical accuracy and accessibility.";
+      break;
+    case 'beginner':
+      baseSystemMessage += " Use simple, non-technical language. Avoid jargon and explain concepts in everyday terms. Use analogies where helpful. Focus on practical advice and basic information suitable for complete beginners in computer hardware.";
+      break;
+    default:
+      baseSystemMessage += " Use a balanced approach with some technical terms, but explain them.";
+  }
+  
+  return baseSystemMessage;
+};

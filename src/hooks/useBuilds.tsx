@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Json } from '../integrations/supabase/types';
@@ -47,6 +46,7 @@ export function useBuilds() {
   const [error, setError] = useState<string | null>(null);
   const [selectedBuild, setSelectedBuild] = useState<Build | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [lastBuildId, setLastBuildId] = useState<string | null>(null);
 
   // Function to convert raw build data to our Build interface
   const convertRawBuild = (rawBuild: RawBuild): Build => {
@@ -103,6 +103,23 @@ export function useBuilds() {
       // Transform the raw data to match our Build interface
       const transformedBuilds = (rawData || []).map(convertRawBuild);
       console.log('Transformed builds:', transformedBuilds);
+      
+      // Check if we have a new build (compare with lastBuildId)
+      if (transformedBuilds.length > 0 && transformedBuilds[0].id !== lastBuildId) {
+        // If this isn't the first load and we have a new build at the top
+        if (builds.length > 0 && lastBuildId !== null) {
+          toast({
+            title: "새 견적 생성됨",
+            description: `"${transformedBuilds[0].name}" 견적이 생성되었습니다.`,
+          });
+        }
+        
+        // Update the lastBuildId to the newest build's id
+        if (transformedBuilds.length > 0) {
+          setLastBuildId(transformedBuilds[0].id);
+        }
+      }
+      
       setBuilds(transformedBuilds);
       return transformedBuilds;
     } catch (err) {
@@ -123,7 +140,7 @@ export function useBuilds() {
     } finally {
       setLoading(false);
     }
-  }, [retryCount]);
+  }, [retryCount, builds.length, lastBuildId]);
 
   const getBuild = async (id: string) => {
     try {
@@ -239,7 +256,16 @@ export function useBuilds() {
 
   // Effect to load builds when the component mounts
   useEffect(() => {
+    // Initial load
     loadBuilds();
+    
+    // Set up polling to check for new builds every 5 seconds
+    const intervalId = setInterval(() => {
+      loadBuilds();
+    }, 5000); // Check every 5 seconds
+    
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(intervalId);
   }, [loadBuilds]);
 
   // Provide a manual retry function
