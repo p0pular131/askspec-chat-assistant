@@ -145,7 +145,7 @@ export const ChatLayout: React.FC = () => {
                 strokeLinejoin="round"
               />
             </svg>
-            PC 빌드
+            PC 견적
           </button>
         </div>
 

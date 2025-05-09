@@ -113,8 +113,8 @@ export function useBuilds() {
       // Show an error toast only on the first attempt
       if (retryCount === 0) {
         toast({
-          title: "빌드 로딩 실패",
-          description: "PC 빌드 목록을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          title: "견적 로딩 실패",
+          description: "견적 목록을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
           variant: "destructive",
         });
       }
@@ -146,7 +146,7 @@ export function useBuilds() {
         .single();
       
       if (fetchError) {
-        setError(`빌드를 불러오는 중 오류가 발생했습니다: ${fetchError.message}`);
+        setError(`견적을 불러오는 중 오류가 발생했습니다: ${fetchError.message}`);
         throw fetchError;
       }
       
@@ -158,8 +158,8 @@ export function useBuilds() {
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
       setError(errorMessage);
       toast({
-        title: "빌드 로딩 실패",
-        description: "PC 빌드 정보를 불러오는 중 문제가 발생했습니다.",
+        title: "견적 로딩 실패",
+        description: "견적 정보를 불러오는 중 문제가 발생했습니다.",
         variant: "destructive",
       });
       throw err;
@@ -201,8 +201,8 @@ export function useBuilds() {
     } catch (err) {
       console.error('Error saving build:', err);
       toast({
-        title: "빌드 저장 실패",
-        description: "PC 빌드를 저장하는 중 문제가 발생했습니다.",
+        title: "견적 저장 실패",
+        description: "견적을 저장하는 중 문제가 발생했습니다.",
         variant: "destructive",
       });
       throw err;
@@ -229,8 +229,8 @@ export function useBuilds() {
     } catch (err) {
       console.error('Error deleting build:', err);
       toast({
-        title: "빌드 삭제 실패",
-        description: "PC 빌드를 삭제하는 중 문제가 발생했습니다.",
+        title: "견적 삭제 실패",
+        description: "견적을 삭제하는 중 문제가 발생했습니다.",
         variant: "destructive",
       });
       throw err;

@@ -190,7 +190,7 @@ export function useConversations() {
 
       toast({
         title: "성공",
-        description: "PC 빌드가 삭제되었습니다.",
+        description: "견적이 삭제되었습니다.",
       });
     } catch (err) {
       console.error('Error deleting build:', err);

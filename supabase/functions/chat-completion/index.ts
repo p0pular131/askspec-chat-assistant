@@ -104,7 +104,7 @@ const extractPcBuild = (content) => {
   // Extract recommendation purpose
   let recommendation = '';
   const purposePatterns = [
-    /이\s*빌드는\s*(.*?)(?=\n|CPU|GPU|그래픽)/i,
+    /이\s*견적은\s*(.*?)(?=\n|CPU|GPU|그래픽)/i,
     /이\s*PC는\s*(.*?)(?=\n|CPU|GPU|그래픽)/i,
     /추천\s*이유[:\s]+(.*?)(?=\n|CPU|GPU|그래픽)/i,
     /용도[:\s]+(.*?)(?=\n|CPU|GPU|그래픽)/i
@@ -124,7 +124,7 @@ const extractPcBuild = (content) => {
     if (firstParagraphMatch) {
       recommendation = firstParagraphMatch[0].trim();
     } else {
-      recommendation = '맞춤형 PC 빌드 추천';
+      recommendation = '맞춤형 견적 추천';
     }
   }
   
@@ -369,7 +369,7 @@ serve(async (req) => {
             conversation_id: conversationId,
             components: buildInfo.components,
             total_price: buildInfo.totalPrice || 0,
-            recommendation: buildInfo.recommendation || '맞춤형 PC 빌드 추천',
+            recommendation: buildInfo.recommendation || '맞춤형 견적 추천',
             rating: {}  // Empty JSON object for future ratings
           })
           .select();

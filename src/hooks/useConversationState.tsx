@@ -118,7 +118,7 @@ export function useConversationState() {
     } catch (error) {
       toast({
         title: "오류",
-        description: "PC 빌드 삭제에 실패했습니다.",
+        description: "견적 삭제에 실패했습니다.",
         variant: "destructive",
       });
     }

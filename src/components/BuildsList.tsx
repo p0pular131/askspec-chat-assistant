@@ -59,7 +59,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       onRefresh();
       toast({
         title: "새로고침",
-        description: "PC 빌드 목록을 새로고침 합니다.",
+        description: "견적 목록을 새로고침 합니다.",
       });
     }
   }, [onRefresh]);
@@ -76,7 +76,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">데이터 로딩 실패</h3>
               <div className="mt-2 text-sm text-red-700">
-                <p>PC 빌드 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
+                <p>견적 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
                 <p className="mt-1 text-xs text-red-600">{error}</p>
                 {onRefresh && (
                   <Button 
@@ -103,9 +103,9 @@ const BuildsList: React.FC<BuildsListProps> = ({
     if (builds.length === 0) {
       return (
         <div className="p-2 text-sm text-center text-gray-500">
-          <p>저장된 빌드가 없습니다.</p>
+          <p>저장된 견적이 없습니다.</p>
           <p className="text-xs mt-1 text-gray-400">
-            대화창에서 PC 빌드 요청을 하면 이곳에 표시됩니다.
+            대화창에서 견적 요청을 하면 이곳에 표시됩니다.
           </p>
         </div>
       );
@@ -145,7 +145,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between pl-2 mb-2">
-        <span className="text-xs text-stone-500">PC 빌드 목록</span>
+        <span className="text-xs text-stone-500">견적 목록</span>
         {onRefresh && (
           <Button 
             variant="ghost" 
@@ -166,9 +166,9 @@ const BuildsList: React.FC<BuildsListProps> = ({
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>정말로 이 빌드를 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogTitle>정말로 이 견적을 삭제하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
-              이 작업은 되돌릴 수 없으며 빌드와 관련된 모든 데이터가 영구적으로 삭제됩니다.
+              이 작업은 되돌릴 수 없으며 견적과 관련된 모든 데이터가 영구적으로 삭제됩니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
