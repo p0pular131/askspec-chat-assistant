@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { OpenAI } from "https://esm.sh/openai@4.28.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
@@ -320,6 +319,13 @@ serve(async (req) => {
 
     const { messages, chatMode, conversationId, expertiseLevel = 'intermediate' } = await req.json();
 
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return new Response(JSON.stringify({ error: 'Invalid messages format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Get system message with appropriate expertise level
     const systemMessage = getSystemMessage(chatMode, expertiseLevel);
 
@@ -333,9 +339,10 @@ serve(async (req) => {
 
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o",  // Using the latest available model
       messages: fullMessages,
       temperature: 0.7,
+      max_tokens: 2048,  // Ensure we have enough tokens for a complete response
     });
 
     const assistantResponse = completion.choices[0].message.content;

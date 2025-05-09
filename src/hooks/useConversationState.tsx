@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Conversation } from './useConversations';
 import { Message } from '../components/types';
@@ -160,6 +159,7 @@ export function useConversationState() {
           if (response) {
             await addMessage(response, 'assistant', newConversation.id);
           } else {
+            console.error("Empty response received from OpenAI");
             toast({
               title: "오류",
               description: "AI 응답을 받지 못했습니다.",
@@ -173,7 +173,7 @@ export function useConversationState() {
           console.error("API error:", apiError);
           toast({
             title: "오류",
-            description: "AI 응답을 받는 데 문제가 발생했습니다.",
+            description: `AI 응답 오류: ${apiError instanceof Error ? apiError.message : '알 수 없는 오류'}`,
             variant: "destructive",
           });
         }
@@ -203,6 +203,7 @@ export function useConversationState() {
           if (response) {
             await addMessage(response, 'assistant', currentConversation.id);
           } else {
+            console.error("Empty response received from OpenAI");
             toast({
               title: "오류",
               description: "AI 응답을 받지 못했습니다.",
@@ -216,7 +217,7 @@ export function useConversationState() {
           console.error("API error:", apiError);
           toast({
             title: "오류",
-            description: "AI 응답을 받는 데 문제가 발생했습니다.",
+            description: `AI 응답 오류: ${apiError instanceof Error ? apiError.message : '알 수 없는 오류'}`,
             variant: "destructive",
           });
         }
@@ -227,7 +228,7 @@ export function useConversationState() {
       console.error('Error sending message:', error);
       toast({
         title: "오류",
-        description: "메시지 전송에 실패했습니다.",
+        description: `메시지 전송 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
         variant: "destructive",
       });
     } finally {

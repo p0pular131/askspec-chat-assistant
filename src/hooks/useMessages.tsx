@@ -119,34 +119,38 @@ export function useMessages(conversationId: string | null) {
       console.log("Calling OpenAI with messages:", messages);
       
       // Create a Promise with timeout instead of using AbortController
-      const timeoutMs = 30000; // 30 seconds timeout
+      const timeoutMs = 60000; // Increase timeout to 60 seconds
       
       const apiCallWithTimeout = async () => {
-        // Use supabase.functions.invoke without the signal property
-        const { data, error } = await supabase.functions.invoke('chat-completion', {
-          body: {
-            messages,
-            chatMode,
-            conversationId,
-            expertiseLevel,
+        try {
+          const { data, error } = await supabase.functions.invoke('chat-completion', {
+            body: {
+              messages,
+              chatMode,
+              conversationId,
+              expertiseLevel,
+            }
+          });
+          
+          if (error) {
+            console.error('Error invoking chat-completion function:', error);
+            throw new Error(error.message || 'Failed to call OpenAI API');
           }
-        });
-        
-        if (error) {
-          console.error('Error invoking chat-completion function:', error);
-          throw new Error(error.message || 'Failed to call OpenAI API');
+          
+          if (!data || !data.response) {
+            throw new Error('No response received from the API');
+          }
+          
+          return data.response;
+        } catch (err) {
+          console.error('Error in API call:', err);
+          throw err;
         }
-        
-        if (!data || !data.response) {
-          throw new Error('No response received from the API');
-        }
-        
-        return data.response;
       };
       
       // Create a promise that rejects after timeoutMs
       const timeoutPromise = new Promise<string>((_, reject) => {
-        setTimeout(() => reject(new Error('API request timed out')), timeoutMs);
+        setTimeout(() => reject(new Error('API request timed out after 60 seconds')), timeoutMs);
       });
       
       // Race the API call against the timeout
