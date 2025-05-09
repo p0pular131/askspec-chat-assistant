@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Link } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface BuildDetailsProps {
   build: Build;
@@ -36,23 +37,46 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
         <h1 className="text-2xl font-bold">{build.name}</h1>
         <p className="text-muted-foreground mt-1">총 가격: {formatCurrency(build.total_price)}</p>
         
+        {/* Recommendation Card */}
         <Card className="mt-4">
-          <CardHeader className="flex flex-row items-start justify-between">
-            <div>
-              <CardTitle>추천</CardTitle>
-              <CardDescription>해당 견적이 추천된 이유</CardDescription>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Badge variant="outline" className="ml-auto">
-                Value for Money: {valueForMoney !== null ? `${valueForMoney}/10` : "Not Rated"}
-              </Badge>
-              <Badge variant="outline" className="ml-auto">
-                Noise: {noise !== null ? `${noise}/10` : "Not Rated"}
-              </Badge>
-            </div>
+          <CardHeader>
+            <CardTitle>추천</CardTitle>
+            <CardDescription>해당 견적이 추천된 이유</CardDescription>
           </CardHeader>
           <CardContent>
             <p>{build.recommendation}</p>
+          </CardContent>
+        </Card>
+        
+        {/* Separate Evaluation Card */}
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>평가</CardTitle>
+            <CardDescription>사용자 평가 결과</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col space-y-3 p-4 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-sm">가성비:</span>
+                  <Badge variant={valueForMoney !== null ? "default" : "outline"}>
+                    {valueForMoney !== null ? `${valueForMoney}/10` : "평가 없음"}
+                  </Badge>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-sm">소음:</span>
+                  <Badge variant={noise !== null ? "default" : "outline"}>
+                    {noise !== null ? `${noise}/10` : "평가 없음"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex items-center justify-center p-4 border rounded-lg bg-muted/30">
+                <p className="text-sm text-muted-foreground text-center">
+                  {hasRatings ? "이 제품은 사용자들의 실제 사용 경험을 바탕으로 평가되었습니다." : "아직 충분한 평가 데이터가 수집되지 않았습니다."}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -105,6 +129,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
           </Table>
         </TabsContent>
 
+        {/* Content for component type tabs */}
         {Object.entries(groupedComponents).map(([type, components]) => (
           <TabsContent key={type} value={type} className="space-y-4 mt-4">
             {components.map((component, idx) => (
