@@ -118,35 +118,45 @@ export function useMessages(conversationId: string | null) {
     try {
       console.log("Calling OpenAI with messages:", messages);
       
-      // Add retry and timeout handling
+      // Create a Promise with timeout instead of using AbortController
       const timeoutMs = 30000; // 30 seconds timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
-      // Use supabase.functions.invoke instead of making a direct fetch request
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages,
-          chatMode,
-          conversationId,
-          expertiseLevel,
-        },
-        signal: controller.signal,
+      const apiCallWithTimeout = async () => {
+        // Use supabase.functions.invoke without the signal property
+        const { data, error } = await supabase.functions.invoke('chat-completion', {
+          body: {
+            messages,
+            chatMode,
+            conversationId,
+            expertiseLevel,
+          }
+        });
+        
+        if (error) {
+          console.error('Error invoking chat-completion function:', error);
+          throw new Error(error.message || 'Failed to call OpenAI API');
+        }
+        
+        if (!data || !data.response) {
+          throw new Error('No response received from the API');
+        }
+        
+        return data.response;
+      };
+      
+      // Create a promise that rejects after timeoutMs
+      const timeoutPromise = new Promise<string>((_, reject) => {
+        setTimeout(() => reject(new Error('API request timed out')), timeoutMs);
       });
       
-      clearTimeout(timeoutId);
+      // Race the API call against the timeout
+      const response = await Promise.race([
+        apiCallWithTimeout(),
+        timeoutPromise
+      ]);
       
-      if (error) {
-        console.error('Error invoking chat-completion function:', error);
-        throw new Error(error.message || 'Failed to call OpenAI API');
-      }
-      
-      if (!data || !data.response) {
-        throw new Error('No response received from the API');
-      }
-      
-      console.log("Got response from OpenAI:", data?.response?.substring(0, 100) + "...");
-      return data.response;
+      console.log("Got response from OpenAI:", response?.substring(0, 100) + "...");
+      return response;
     } catch (err) {
       console.error('Error calling OpenAI:', err);
       throw err;
