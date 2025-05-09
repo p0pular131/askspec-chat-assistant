@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Json } from '../integrations/supabase/types';
@@ -40,6 +41,23 @@ interface RawBuild {
   user_id: string | null;
 }
 
+// Retry function with exponential backoff
+const fetchWithRetry = async <T,>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delay = 1000,
+  backoffFactor = 1.5
+): Promise<T> => {
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries <= 0) throw err;
+    console.log(`Retrying after ${delay}ms...`);
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return fetchWithRetry(fn, retries - 1, Math.floor(delay * backoffFactor), backoffFactor);
+  }
+};
+
 export function useBuilds() {
   const [builds, setBuilds] = useState<Build[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +66,7 @@ export function useBuilds() {
   const [retryCount, setRetryCount] = useState(0);
   const [lastBuildId, setLastBuildId] = useState<string | null>(null);
   const [lastCheckTime, setLastCheckTime] = useState(Date.now());
+  const [consecutiveErrors, setConsecutiveErrors] = useState(0);
 
   // Function to convert raw build data to our Build interface
   const convertRawBuild = (rawBuild: RawBuild): Build => {
@@ -89,16 +108,29 @@ export function useBuilds() {
       setError(null);
       
       console.log('Fetching builds from database...');
-      const { data: rawData, error: fetchError } = await supabase
-        .from('pc_builds')
-        .select('*')
-        .order('created_at', { ascending: false });
+      
+      // Use the fetchWithRetry function with our Supabase query
+      const fetchBuilds = async () => {
+        const { data, error } = await supabase
+          .from('pc_builds')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        return { data, error };
+      };
+      
+      const { data: rawData, error: fetchError } = await fetchWithRetry(fetchBuilds, 3, 1000);
       
       if (fetchError) {
         console.error('Error loading builds:', fetchError);
         setError(`오류가 발생했습니다: ${fetchError.message}`);
+        setConsecutiveErrors(prev => prev + 1);
         throw fetchError;
       }
+      
+      // Reset consecutive errors counter on success
+      setConsecutiveErrors(0);
       
       console.log('Raw builds data:', rawData);
       console.log('Loaded builds count:', rawData?.length || 0);
@@ -136,10 +168,10 @@ export function useBuilds() {
       setError(errorMessage);
       
       // Show an error toast only on the first attempt and if not silent
-      if (retryCount === 0 && !silent) {
+      if (retryCount === 0 && !silent && consecutiveErrors < 3) {
         toast({
           title: "견적 로딩 실패",
-          description: "견적 목록을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          description: "견적 목록을 불러오는 중 문제가 발생했습니다. 자동으로 다시 시도합니다.",
           variant: "destructive",
         });
       }
@@ -150,14 +182,15 @@ export function useBuilds() {
         setLoading(false);
       }
     }
-  }, [retryCount, lastBuildId]);
+  }, [retryCount, lastBuildId, consecutiveErrors]);
 
-  // Silent background check for new builds
+  // Silent background check for new builds with smart backoff
   const checkForNewBuilds = useCallback(async () => {
     try {
       await loadBuilds(true); // true = silent mode
     } catch (error) {
       console.error("Background build check failed:", error);
+      // Don't need to do anything else as loadBuilds already handles error state
     }
   }, [loadBuilds]);
 
@@ -174,12 +207,19 @@ export function useBuilds() {
         return cachedBuild;
       }
       
-      // If not in cache, fetch from database
-      const { data: rawBuild, error: fetchError } = await supabase
-        .from('pc_builds')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // If not in cache, fetch from database with retry mechanism
+      const fetchBuild = async () => {
+        const { data, error } = await supabase
+          .from('pc_builds')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error) throw error;
+        return { data, error };
+      };
+      
+      const { data: rawBuild, error: fetchError } = await fetchWithRetry(fetchBuild, 3, 1000);
       
       if (fetchError) {
         setError(`견적을 불러오는 중 오류가 발생했습니다: ${fetchError.message}`);
@@ -195,7 +235,7 @@ export function useBuilds() {
       setError(errorMessage);
       toast({
         title: "견적 로딩 실패",
-        description: "견적 정보를 불러오는 중 문제가 발생했습니다.",
+        description: "견적 정보를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
         variant: "destructive",
       });
       throw err;
@@ -215,18 +255,25 @@ export function useBuilds() {
       // Prepare components for saving to database
       const componentsJson = components as unknown as Json;
       
-      const { data: rawBuild, error } = await supabase
-        .from('pc_builds')
-        .insert({
-          name,
-          conversation_id: conversationId,
-          components: componentsJson,
-          total_price: totalPrice,
-          recommendation,
-          rating: {}
-        })
-        .select()
-        .single();
+      const saveBuildWithRetry = async () => {
+        const { data, error } = await supabase
+          .from('pc_builds')
+          .insert({
+            name,
+            conversation_id: conversationId,
+            components: componentsJson,
+            total_price: totalPrice,
+            recommendation,
+            rating: {}
+          })
+          .select()
+          .single();
+          
+        if (error) throw error;
+        return { data, error };
+      };
+      
+      const { data: rawBuild, error } = await fetchWithRetry(saveBuildWithRetry, 3, 1000);
       
       if (error) throw error;
       
@@ -238,7 +285,7 @@ export function useBuilds() {
       console.error('Error saving build:', err);
       toast({
         title: "견적 저장 실패",
-        description: "견적을 저장하는 중 문제가 발생했습니다.",
+        description: "견적을 저장하는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
         variant: "destructive",
       });
       throw err;
@@ -247,10 +294,17 @@ export function useBuilds() {
 
   const deleteBuild = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('pc_builds')
-        .delete()
-        .eq('id', id);
+      const deleteBuildWithRetry = async () => {
+        const { error } = await supabase
+          .from('pc_builds')
+          .delete()
+          .eq('id', id);
+          
+        if (error) throw error;
+        return { error };
+      };
+      
+      const { error } = await fetchWithRetry(deleteBuildWithRetry, 3, 1000);
       
       if (error) throw error;
       
@@ -266,7 +320,7 @@ export function useBuilds() {
       console.error('Error deleting build:', err);
       toast({
         title: "견적 삭제 실패",
-        description: "견적을 삭제하는 중 문제가 발생했습니다.",
+        description: "견적을 삭제하는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
         variant: "destructive",
       });
       throw err;
@@ -279,19 +333,22 @@ export function useBuilds() {
     // Initial load
     loadBuilds();
     
-    // Set up polling to check for new builds
-    // Check every 5 seconds in normal operation
+    // Set up polling to check for new builds with adaptive interval based on consecutive errors
+    const pollingInterval = consecutiveErrors > 3 ? 10000 : 5000; // Back off if we're getting consistent errors
+    
     const intervalId = setInterval(() => {
       checkForNewBuilds();
-    }, 5000);
+    }, pollingInterval);
     
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [loadBuilds, checkForNewBuilds]);
+  }, [loadBuilds, checkForNewBuilds, consecutiveErrors]);
 
   // Provide a manual retry function
   const retryLoadBuilds = () => {
     setRetryCount(prev => prev + 1);
+    setConsecutiveErrors(0); // Reset consecutive errors on manual retry
+    loadBuilds();
   };
 
   return {

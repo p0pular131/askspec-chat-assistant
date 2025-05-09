@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +11,12 @@ interface BuildCardProps {
 }
 
 export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
+  // Ensure components is an array, even if data is incomplete
+  const safeComponents = Array.isArray(build.components) ? build.components : [];
+  
   // Count the number of components by type
-  const componentCount = build.components.reduce((acc, component) => {
+  const componentCount = safeComponents.reduce((acc, component) => {
+    if (!component || !component.type) return acc;
     const type = component.type.toLowerCase();
     acc[type] = (acc[type] || 0) + 1;
     return acc;
@@ -43,6 +46,18 @@ export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
     }
   };
 
+  // Format component type name for display
+  const formatTypeName = (type: string): string => {
+    // Handle common abbreviations
+    if (type.toLowerCase() === 'psu') return 'PSU';
+    if (type.toLowerCase() === 'cpu') return 'CPU';
+    if (type.toLowerCase() === 'gpu') return 'GPU';
+    if (type.toLowerCase() === 'ram') return 'RAM';
+    
+    // Otherwise capitalize first letter
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
   return (
     <Card 
       className="hover:bg-accent hover:cursor-pointer transition-colors"
@@ -58,12 +73,19 @@ export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
         </div>
         
         <div className="flex flex-wrap gap-2 mt-3">
-          {Object.entries(componentCount).map(([type, count]) => (
-            <Badge key={type} variant="outline" className="flex items-center gap-1">
-              {getComponentIcon(type)}
-              <span>{count} {type.charAt(0).toUpperCase() + type.slice(1)}</span>
+          {Object.keys(componentCount).length > 0 ? (
+            Object.entries(componentCount).map(([type, count]) => (
+              <Badge key={type} variant="outline" className="flex items-center gap-1">
+                {getComponentIcon(type)}
+                <span>{count} {formatTypeName(type)}</span>
+              </Badge>
+            ))
+          ) : (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <PcCase className="h-3 w-3" />
+              <span>PC Build</span>
             </Badge>
-          ))}
+          )}
         </div>
       </CardContent>
     </Card>
