@@ -7,7 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Link, DollarSign, VolumeX, Zap, FileExport } from 'lucide-react';
+import { Link, DollarSign, VolumeX, Zap, FileText } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
@@ -135,7 +135,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
           <p className="text-muted-foreground mt-1">총 가격: {formatCurrency(build.total_price)}</p>
         </div>
         <Button onClick={exportAsPDF} className="flex items-center gap-2">
-          <FileExport className="h-4 w-4" />
+          <FileText className="h-4 w-4" />
           <span>내보내기</span>
         </Button>
       </div>
