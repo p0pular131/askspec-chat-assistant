@@ -72,11 +72,6 @@ export function useConversationState() {
   const handleDeleteConversation = useCallback(async (id: string) => {
     try {
 
-      if (!isUUID(id)) {
-        console.error('Invalid UUID format:', id);
-        return;
-      }
-
       // Delete the conversation from the database
       await deleteConversation(id);
       
