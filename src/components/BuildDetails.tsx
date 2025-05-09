@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Link } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 interface BuildDetailsProps {
   build: Build;
@@ -24,6 +25,11 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
     return acc;
   }, {} as Record<string, Component[]>);
 
+  // Extract rating scores if they exist
+  const hasRatings = build.rating && typeof build.rating === 'object' && Object.keys(build.rating).length > 0;
+  const valueForMoney = hasRatings && build.rating.valueForMoney ? build.rating.valueForMoney : null;
+  const noise = hasRatings && build.rating.noise ? build.rating.noise : null;
+
   return (
     <div className="space-y-6">
       <div>
@@ -31,9 +37,25 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
         <p className="text-muted-foreground mt-1">Total Price: {formatCurrency(build.total_price)}</p>
         
         <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>Recommendation</CardTitle>
-            <CardDescription>Why this build was recommended</CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle>Recommendation</CardTitle>
+              <CardDescription>Why this build was recommended</CardDescription>
+            </div>
+            {hasRatings && (
+              <div className="flex flex-col gap-2">
+                {valueForMoney !== null && (
+                  <Badge variant="outline" className="ml-auto">
+                    Value for Money: {valueForMoney}/10
+                  </Badge>
+                )}
+                {noise !== null && (
+                  <Badge variant="outline" className="ml-auto">
+                    Noise: {noise}/10
+                  </Badge>
+                )}
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <p>{build.recommendation}</p>
@@ -55,6 +77,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
               <TableRow>
                 <TableHead>Component</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Specs</TableHead>
                 <TableHead className="text-right">Price</TableHead>
               </TableRow>
@@ -64,6 +87,15 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
                 <TableRow key={idx}>
                   <TableCell className="font-medium">{component.name}</TableCell>
                   <TableCell>{component.type}</TableCell>
+                  <TableCell>
+                    {component.image && (
+                      <img 
+                        src={component.image} 
+                        alt={component.name} 
+                        className="rounded-md object-cover h-12 w-20"
+                      />
+                    )}
+                  </TableCell>
                   <TableCell className="max-w-xs truncate">{component.specs}</TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" variant="outline" asChild>

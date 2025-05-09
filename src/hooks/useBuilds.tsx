@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Json } from '../integrations/supabase/types';
@@ -26,6 +25,11 @@ export interface Build {
   total_price: number;
   recommendation: string;
   created_at: string;
+  rating: {
+    valueForMoney?: number;
+    noise?: number;
+    [key: string]: number | undefined;
+  };
 }
 
 // A type for the raw build data from the database
@@ -96,7 +100,8 @@ export function useBuilds() {
       components: componentsArray,
       total_price: rawBuild.total_price,
       recommendation: rawBuild.recommendation,
-      created_at: rawBuild.created_at
+      created_at: rawBuild.created_at,
+      rating: rawBuild.rating as Build['rating'] || {}
     };
   };
 
