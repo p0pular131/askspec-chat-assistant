@@ -7,11 +7,15 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Link, DollarSign, VolumeX, Zap } from 'lucide-react';
+import { Link, DollarSign, VolumeX, Zap, FileExport } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { RatingIndicator } from "@/components/RatingIndicator";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { toast } from '@/hooks/use-toast';
+import html2canvas from 'html2canvas';
 
 interface BuildDetailsProps {
   build: Build;
@@ -34,58 +38,153 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
   const noise = hasRatings && build.rating.noise !== undefined ? build.rating.noise : null;
   const performance = hasRatings && build.rating.performance !== undefined ? build.rating.performance : null;
 
+  // Function to export the build details as PDF
+  const exportAsPDF = async () => {
+    try {
+      toast({
+        title: "PDF 생성 중",
+        description: "PDF를 생성 중입니다. 잠시만 기다려주세요.",
+      });
+
+      // Create a new PDF document
+      const pdf = new jsPDF();
+      let yPos = 20;
+
+      // Add title
+      pdf.setFontSize(20);
+      pdf.text(build.name, 20, yPos);
+      yPos += 10;
+      
+      // Add price
+      pdf.setFontSize(12);
+      pdf.text(`총 가격: ${formatCurrency(build.total_price)}`, 20, yPos);
+      yPos += 15;
+      
+      // Add recommendation section
+      pdf.setFontSize(16);
+      pdf.text('견적 추천 설명', 20, yPos);
+      yPos += 10;
+      
+      pdf.setFontSize(12);
+      const recommendationLines = pdf.splitTextToSize(build.recommendation, 170);
+      pdf.text(recommendationLines, 20, yPos);
+      yPos += recommendationLines.length * 7 + 10;
+      
+      // Add evaluation section
+      pdf.setFontSize(16);
+      pdf.text('견적 평가', 20, yPos);
+      yPos += 10;
+
+      pdf.setFontSize(12);
+      pdf.text(`가성비: ${valueForMoney !== null ? `${valueForMoney}/10` : "평가 없음"}`, 20, yPos);
+      yPos += 7;
+      pdf.text(`소음: ${noise !== null ? `${noise}/10` : "평가 없음"}`, 20, yPos);
+      yPos += 7;
+      pdf.text(`성능: ${performance !== null ? `${performance}/10` : "평가 없음"}`, 20, yPos);
+      yPos += 15;
+      
+      // Add components table
+      pdf.setFontSize(16);
+      pdf.text('구성 요소', 20, yPos);
+      yPos += 10;
+
+      // Create a table for components
+      const componentRows = build.components.map(component => [
+        component.name,
+        component.type,
+        component.specs,
+        formatCurrency(component.price || 0)
+      ]);
+      
+      autoTable(pdf, {
+        startY: yPos,
+        head: [['Component', 'Type', 'Specs', 'Price']],
+        body: componentRows,
+        margin: { top: 20, left: 20, right: 20, bottom: 20 },
+        styles: { overflow: 'linebreak', cellWidth: 'wrap' },
+        columnStyles: {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 80 },
+          3: { cellWidth: 20 }
+        }
+      });
+      
+      // Save the PDF
+      pdf.save(`${build.name} - PC Build.pdf`);
+
+      toast({
+        title: "PDF 내보내기 완료",
+        description: "PC 견적 PDF가 다운로드되었습니다.",
+      });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({
+        title: "PDF 내보내기 실패",
+        description: "PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{build.name}</h1>
-        <p className="text-muted-foreground mt-1">총 가격: {formatCurrency(build.total_price)}</p>
-        
-        {/* Recommendation Card */}
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>견적 추천 설명</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{build.recommendation}</p>
-          </CardContent>
-        </Card>
-        
-        {/* Separate Evaluation Card with Circular Indicators */}
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>견적 평가</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-6">
-              {/* Circular rating indicators in horizontal layout */}
-              <div className="flex flex-row flex-wrap justify-around gap-4">
-                <RatingIndicator 
-                  label="가성비" 
-                  value={valueForMoney} 
-                  maxValue={10} 
-                  icon={<DollarSign className="h-4 w-4" />} 
-                  color="#9b87f5"
-                />
-                <RatingIndicator 
-                  label="소음" 
-                  value={noise} 
-                  maxValue={10} 
-                  icon={<VolumeX className="h-4 w-4" />}
-                  color="#0EA5E9" 
-                />
-                <RatingIndicator 
-                  label="성능" 
-                  value={performance} 
-                  maxValue={10} 
-                  icon={<Zap className="h-4 w-4" />}
-                  color="#F97316" 
-                />
-              </div>
-              {/* Description text */}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">{build.name}</h1>
+          <p className="text-muted-foreground mt-1">총 가격: {formatCurrency(build.total_price)}</p>
+        </div>
+        <Button onClick={exportAsPDF} className="flex items-center gap-2">
+          <FileExport className="h-4 w-4" />
+          <span>내보내기</span>
+        </Button>
       </div>
+      
+      {/* Recommendation Card */}
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>견적 추천 설명</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>{build.recommendation}</p>
+        </CardContent>
+      </Card>
+      
+      {/* Separate Evaluation Card with Circular Indicators */}
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>견적 평가</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-6">
+            {/* Circular rating indicators in horizontal layout */}
+            <div className="flex flex-row flex-wrap justify-around gap-4">
+              <RatingIndicator 
+                label="가성비" 
+                value={valueForMoney} 
+                maxValue={10} 
+                icon={<DollarSign className="h-4 w-4" />} 
+                color="#9b87f5"
+              />
+              <RatingIndicator 
+                label="소음" 
+                value={noise} 
+                maxValue={10} 
+                icon={<VolumeX className="h-4 w-4" />}
+                color="#0EA5E9" 
+              />
+              <RatingIndicator 
+                label="성능" 
+                value={performance} 
+                maxValue={10} 
+                icon={<Zap className="h-4 w-4" />}
+                color="#F97316" 
+              />
+            </div>
+            {/* Description text */}
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList>

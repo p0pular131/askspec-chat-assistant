@@ -11,6 +11,7 @@ export interface Component {
   specs: string;
   reason: string;
   purchase_link: string;
+  price?: number;
   alternatives: {
     name: string;
     specs: string;
