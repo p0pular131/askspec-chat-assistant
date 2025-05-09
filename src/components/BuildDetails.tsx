@@ -42,13 +42,13 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">{build.name}</h1>
-        <p className="text-muted-foreground mt-1">Total Price: {formatCurrency(build.total_price)}</p>
+        <p className="text-muted-foreground mt-1">총 가격: {formatCurrency(build.total_price)}</p>
         
         <Card className="mt-4">
           <CardHeader className="flex flex-row items-start justify-between">
             <div>
-              <CardTitle>Recommendation</CardTitle>
-              <CardDescription>Why this build was recommended</CardDescription>
+              <CardTitle>추천</CardTitle>
+              <CardDescription>해당 견적이 추천된 이유</CardDescription>
             </div>
             {hasRatings && (
               <div className="flex flex-col gap-2">
