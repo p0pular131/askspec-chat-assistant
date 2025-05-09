@@ -9,6 +9,12 @@ export interface Conversation {
   created_at: string;
 }
 
+// Helper function to validate if a string is a valid UUID
+const isUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +63,17 @@ export function useConversations() {
 
   const deleteConversation = async (id: string) => {
     try {
+      // Validate that the ID is a proper UUID before proceeding
+      if (!isUUID(id)) {
+        console.error('Invalid conversation ID format:', id);
+        toast({
+          title: "오류",
+          description: "유효하지 않은 대화 ID입니다.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
       console.log('Deleting conversation and all associated messages for ID:', id);
       
       // First, delete all messages associated with this conversation

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Conversation } from './useConversations';
 import { Message } from '../components/types';
@@ -71,7 +72,6 @@ export function useConversationState() {
 
   const handleDeleteConversation = useCallback(async (id: string) => {
     try {
-
       // Delete the conversation from the database
       await deleteConversation(id);
       
