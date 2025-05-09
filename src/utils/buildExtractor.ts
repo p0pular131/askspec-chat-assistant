@@ -68,7 +68,7 @@ export const extractBuildFromContent = (content: string): {
     { type: 'Motherboard', patterns: [/(Motherboard|마더보드|메인보드)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|케이스|전원|쿨러|냉각)/is] },
     { type: 'Case', patterns: [/(Case|케이스)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|전원|쿨러|냉각)/is] },
     { type: 'PSU', patterns: [/(PSU|Power Supply|전원공급장치|전원|파워 서플라이|파워)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|쿨러|냉각)/is] },
-    { type: 'Cooling', patterns: [/(Cooling|쿨러|냉각장치|냉각)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] }
+    { type: 'Cooler', patterns: [/(Cooling|쿨러|냉각장치|냉각|CPU 쿨러|Cooler)[:\s]+(.*?)(?=\n|CPU|프로세서|GPU|그래픽|메모리|RAM|저장장치|Storage|SSD|HDD|마더보드|케이스|전원)/is] }
   ];
   
   // Extract components
@@ -181,7 +181,7 @@ function determineComponentType(text: string): string | null {
   if (text.includes('motherboard') || text.includes('마더보드') || text.includes('메인보드')) return 'Motherboard';
   if (text.includes('case') || text.includes('케이스')) return 'Case';
   if (text.includes('psu') || text.includes('power') || text.includes('전원')) return 'PSU';
-  if (text.includes('cooler') || text.includes('cooling') || text.includes('쿨러') || text.includes('냉각')) return 'Cooling';
+  if (text.includes('cooler') || text.includes('cooling') || text.includes('쿨러') || text.includes('냉각')) return 'Cooler';
   return null;
 }
 

@@ -42,6 +42,8 @@ export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
         return <Power className="h-3 w-3" />;
       case 'cooling':
         return <Fan className="h-3 w-3" />;
+      case 'cooler':
+        return <Fan className="h-3 w-3" />;
       default:
         return <MonitorSmartphone className="h-3 w-3" />;
     }
@@ -54,6 +56,10 @@ export const BuildCard: React.FC<BuildCardProps> = ({ build, onClick }) => {
     if (type.toLowerCase() === 'cpu') return 'CPU';
     if (type.toLowerCase() === 'gpu') return 'GPU';
     if (type.toLowerCase() === 'ram') return 'RAM';
+    // Add support for cooling/cooler 
+    if (type.toLowerCase() === 'cooling' || type.toLowerCase() === 'cooler') return 'Cooling';
+    // Add support for motherboard
+    if (type.toLowerCase() === 'motherboard') return 'Motherboard';
     
     // Otherwise capitalize first letter
     return type.charAt(0).toUpperCase() + type.slice(1);
