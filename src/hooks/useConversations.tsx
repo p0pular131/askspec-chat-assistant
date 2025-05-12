@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
@@ -9,14 +10,15 @@ export interface Session {
   session_name: string | null;
 }
 
-interface Message {
+interface DatabaseMessage {
   id: number;
   created_at: string;
   session_id: number;
-  content: string;
+  input_text: string;
+  response_json: any;
   role: 'user' | 'assistant';
-  expertise_level: string | null;
-  chat_mode: string | null;
+  expertise_level?: string | null;
+  chat_mode?: string | null;
 }
 
 export interface Build {
@@ -31,7 +33,7 @@ export interface Build {
 export const useConversationState = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Session | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<DatabaseMessage[]>([]);
   const [builds, setBuilds] = useState<Build[]>([]);
   const [showExample, setShowExample] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +41,7 @@ export const useConversationState = () => {
   const [buildsLoading, setBuildsLoading] = useState(false);
   const [loadingUpdateSession, setLoadingUpdateSession] = useState(false);
   const [loadingDeleteSession, setLoadingDeleteSession] = useState(false);
-  const [dbMessages, setDbMessages] = useState<Message[]>([]);
+  const [dbMessages, setDbMessages] = useState<DatabaseMessage[]>([]);
   const { toast } = useToast();
 
   // Load initial data
@@ -75,7 +77,7 @@ export const useConversationState = () => {
         title: "대화 목록 로딩 실패",
         description: error.message,
         variant: "destructive",
-      })
+      });
     } finally {
       setConvoLoading(false);
     }
@@ -97,16 +99,17 @@ export const useConversationState = () => {
       }
 
       if (data) {
-        // Ensure the role is properly cast to 'user' | 'assistant'
-        const typedMessages: Message[] = data.map(message => ({
+        // Ensure proper typing for database messages
+        const typedMessages: DatabaseMessage[] = data.map(message => ({
           ...message,
-          content: message.input_text || '',
+          input_text: message.input_text || '',
           role: (message.role === 'user' || message.role === 'assistant') 
-            ? message.role as 'user' | 'assistant'
+            ? message.role 
             : 'user', // Default to 'user' if it's not valid
           expertise_level: message.expertise_level || null,
           chat_mode: message.chat_mode || null
         }));
+        
         setMessages(typedMessages);
         setDbMessages(typedMessages);
         setShowExample(typedMessages.length === 0);
@@ -117,7 +120,7 @@ export const useConversationState = () => {
         title: "메시지 로딩 실패",
         description: error.message,
         variant: "destructive",
-      })
+      });
     } finally {
       setIsLoading(false);
     }
@@ -153,7 +156,7 @@ export const useConversationState = () => {
         title: "견적 목록 로딩 실패",
         description: error.message,
         variant: "destructive",
-      })
+      });
     } finally {
       setBuildsLoading(false);
     }
@@ -165,10 +168,8 @@ export const useConversationState = () => {
     try {
       const { data, error } = await supabase
         .from('sessions')
-        .insert([
-          { user_id: 'user-123' }, // Use a string value for user_id
-        ])
-        .select('*')
+        .insert([{ user_id: 'user-123' }])
+        .select()
         .single();
 
       if (error) {
@@ -195,7 +196,7 @@ export const useConversationState = () => {
         title: "새 대화 시작 실패",
         description: error.message,
         variant: "destructive",
-      })
+      });
       return null;
     } finally {
       setConvoLoading(false);
@@ -214,19 +215,20 @@ export const useConversationState = () => {
         title: "대화 선택 필요",
         description: "메시지를 보내기 전에 대화를 선택해주세요.",
         variant: "destructive",
-      })
+      });
       return;
     }
 
     setIsLoading(true);
     
     // Store this variable to reference in catch block if needed
-    const tempMessage = {
+    const tempMessage: DatabaseMessage = {
       id: Date.now(), // Temporary ID
       created_at: new Date().toISOString(),
       session_id: currentConversation.id,
-      content: text,
-      role: 'user' as const, // Use const assertion to ensure proper type
+      input_text: text,
+      response_json: null,
+      role: 'user', // Properly typed as 'user'
       expertise_level: expertiseLevel,
       chat_mode: chatMode,
     };
@@ -239,52 +241,51 @@ export const useConversationState = () => {
       // Send the message to Supabase
       const { data, error } = await supabase
         .from('messages')
-        .insert([
-          {
-            session_id: currentConversation.id,
-            content: text,
-            role: 'user',
-            expertise_level: expertiseLevel,
-            chat_mode: chatMode,
-          },
-        ])
-        .select('*')
+        .insert({
+          session_id: currentConversation.id,
+          input_text: text,
+          role: 'user',
+          expertise_level: expertiseLevel,
+          chat_mode: chatMode,
+        })
+        .select()
         .single();
 
       if (error) {
         throw error;
       }
 
-     // Fetch response from the server
+      // Fetch response from the server
       const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-              message: text,
-              messages: dbMessages,
-              session_id: currentConversation.id,
-              expertise_level: expertiseLevel,
-              chat_mode: chatMode
-          }),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: text,
+          messages: dbMessages,
+          session_id: currentConversation.id,
+          expertise_level: expertiseLevel,
+          chat_mode: chatMode
+        }),
       });
 
       if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const responseData = await response.json();
 
       // Add the assistant's response to the local state with proper typing
-      const assistantMessage = {
-          id: Date.now() + 1, // Temporary ID
-          created_at: new Date().toISOString(),
-          session_id: currentConversation.id,
-          content: responseData.content,
-          role: 'assistant' as const, // Use const assertion for proper typing
-          expertise_level: expertiseLevel,
-          chat_mode: chatMode,
+      const assistantMessage: DatabaseMessage = {
+        id: Date.now() + 1, // Temporary ID
+        created_at: new Date().toISOString(),
+        session_id: currentConversation.id,
+        input_text: responseData.content,
+        response_json: null,
+        role: 'assistant', // Properly typed as 'assistant'
+        expertise_level: expertiseLevel,
+        chat_mode: chatMode,
       };
       
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
@@ -292,16 +293,14 @@ export const useConversationState = () => {
       // Send the assistant's message to Supabase
       const { error: assistantError } = await supabase
         .from('messages')
-        .insert([
-          {
-            session_id: currentConversation.id,
-            content: responseData.content,
-            role: 'assistant',
-            expertise_level: expertiseLevel,
-            chat_mode: chatMode,
-          },
-        ])
-        .select('*')
+        .insert({
+          session_id: currentConversation.id,
+          input_text: responseData.content,
+          role: 'assistant',
+          expertise_level: expertiseLevel,
+          chat_mode: chatMode,
+        })
+        .select()
         .single();
 
       if (assistantError) {
@@ -316,13 +315,13 @@ export const useConversationState = () => {
         title: "메시지 전송 실패",
         description: error.message,
         variant: "destructive",
-      })
+      });
       // Revert the optimistic update on error
       setMessages(prevMessages => prevMessages.filter(msg => msg.id !== tempMessage.id));
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, currentConversation, toast, dbMessages, loadMessages]);
+  }, [currentConversation, toast, dbMessages, loadMessages]);
 
   // Update session name
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
@@ -472,10 +471,11 @@ export const useConversationState = () => {
     handleDeleteConversation,
     handleDeleteBuild: deleteBuild,
     handleViewBuild: viewBuild,
-    sendMessage: () => {}, // This function is handled elsewhere
+    sendMessage,
     loadMessages,
     loadBuilds,
     loadingUpdateSession,
     updateSession,
+    loadConversations,
   };
 };

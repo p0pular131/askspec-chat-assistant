@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
@@ -226,7 +227,7 @@ export function useConversationState() {
             console.error("Empty response received from OpenAI");
             toast({
               title: "오류",
-              description: "AI 응답을 받지 못했��니다.",
+              description: "AI 응답을 받지 못했습니다.",
               variant: "destructive",
             });
           }
@@ -267,12 +268,12 @@ export function useConversationState() {
   }, [dbMessages, syncMessagesFromDB]);
 
   return {
-    currentConversation: currentSession, // Keep the same interface
+    currentConversation: currentSession,
     messages,
     showExample,
     isLoading,
-    conversations: sessions, // Keep the same interface
-    convoLoading: sessionsLoading, // Keep the same interface
+    conversations: sessions,
+    convoLoading: sessionsLoading,
     msgLoading,
     dbMessages,
     builds,

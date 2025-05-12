@@ -1,112 +1,91 @@
 
 import React, { useState } from 'react';
-import { Check, X, Cpu, HardDrive, VideoIcon, CircuitBoard, MemoryStick, Power, Fan } from 'lucide-react';
-import { CompatibilityGraph } from './CompatibilityGraph';
-import { Button } from './ui/button';
+import CompatibilityGraph from './CompatibilityGraph';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Cpu, HardDrive, VideoIcon, CircuitBoard, MemoryStick, Power, Fan, CheckCircle, XCircle } from 'lucide-react';
 
-interface CompatibilityLink {
+interface CompatLink {
   source: string;
   target: string;
   status: 'success' | 'failure';
 }
 
-interface CompatibilityDiagramProps {
-  compatData: any | null;
+interface CompatData {
+  components: string[];
+  links: CompatLink[];
 }
 
-const componentIcons: Record<string, React.ReactNode> = {
-  CPU: <Cpu size={24} />,
-  GPU: <VideoIcon size={24} />,
-  RAM: <MemoryStick size={24} />,
-  Motherboard: <CircuitBoard size={24} />,
-  Storage: <HardDrive size={24} />,
-  PSU: <Power size={24} />,
-  Cooling: <Fan size={24} />
-};
+interface CompatibilityDiagramProps {
+  data: CompatData;
+}
 
-export const CompatibilityDiagram: React.FC<CompatibilityDiagramProps> = ({ compatData }) => {
-  const [viewMode, setViewMode] = useState<'list' | 'graph'>('graph');
-
-  if (!compatData) {
-    return <div className="text-center p-4 text-gray-400">No compatibility data available</div>;
-  }
-
-  const components = Array.isArray(compatData.components) 
-    ? compatData.components 
-    : Object.keys(compatData).filter(key => key !== 'links');
-    
-  const links: CompatibilityLink[] = Array.isArray(compatData.links) 
-    ? compatData.links 
-    : Object.keys(compatData)
-        .filter(source => typeof compatData[source] === 'object')
-        .flatMap(source => 
-          Object.keys(compatData[source])
-            .map(target => ({
-              source,
-              target,
-              status: compatData[source][target] === true ? 'success' : 'failure'
-            }))
-        );
-
+const CompatibilityDiagram: React.FC<CompatibilityDiagramProps> = ({ data }) => {
+  const [view, setView] = useState<'graph' | 'list'>('graph');
+  
+  // Map component types to icons
+  const getIconForComponent = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'cpu':
+        return <Cpu className="h-5 w-5" />;
+      case 'storage':
+        return <HardDrive className="h-5 w-5" />;
+      case 'gpu':
+        return <VideoIcon className="h-5 w-5" />;
+      case 'motherboard':
+        return <CircuitBoard className="h-5 w-5" />;
+      case 'ram':
+        return <MemoryStick className="h-5 w-5" />;
+      case 'psu':
+        return <Power className="h-5 w-5" />;
+      case 'cooling':
+        return <Fan className="h-5 w-5" />;
+      default:
+        return <HardDrive className="h-5 w-5" />;
+    }
+  };
+  
+  const getStatusIcon = (status: string) => {
+    return status === 'success' ? 
+      <CheckCircle className="h-5 w-5 text-green-500" /> : 
+      <XCircle className="h-5 w-5 text-red-500" />;
+  };
+  
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Hardware Compatibility Analysis</h3>
-        <div className="flex gap-2">
-          <Button 
-            variant={viewMode === 'graph' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('graph')}
-          >
-            Graph View
-          </Button>
-          <Button 
-            variant={viewMode === 'list' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-          >
-            List View
-          </Button>
-        </div>
-      </div>
+    <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 border border-gray-200">
+      <h3 className="text-lg font-medium mb-4">부품 호환성 검사</h3>
       
-      {viewMode === 'graph' ? (
-        <CompatibilityGraph compatData={compatData} width={500} height={400} />
-      ) : (
-        <div className="flex flex-col items-center">
-          {/* Component nodes */}
-          <div className="flex flex-wrap justify-center gap-6 mb-6">
-            {components.map((component: string) => (
-              <div 
-                key={component}
-                className="flex flex-col items-center justify-center p-3 bg-gray-100 rounded-lg w-24 h-24 text-center"
-              >
-                <div className="mb-2">
-                  {componentIcons[component] || component.charAt(0)}
+      <Tabs defaultValue="graph" onValueChange={(value) => setView(value as 'graph' | 'list')}>
+        <TabsList className="grid grid-cols-2 mb-4">
+          <TabsTrigger value="graph">그래프 보기</TabsTrigger>
+          <TabsTrigger value="list">목록 보기</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="graph" className="mt-0">
+          <CompatibilityGraph data={data} />
+        </TabsContent>
+        
+        <TabsContent value="list" className="mt-0">
+          <div className="space-y-4">
+            {data.links.map((link, index) => (
+              <div key={index} className="flex items-center justify-between border-b pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600">{link.source}</span>
+                  <span className="text-gray-400 px-2">→</span>
+                  <span className="text-gray-600">{link.target}</span>
                 </div>
-                <span className="text-sm font-medium">{component}</span>
+                <div className="flex items-center gap-1">
+                  {getStatusIcon(link.status)}
+                  <span className={link.status === 'success' ? 'text-green-600' : 'text-red-600'}>
+                    {link.status === 'success' ? '호환 가능' : '호환 불가'}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
-
-          {/* Compatibility links */}
-          <div className="w-full mt-4">
-            <h4 className="text-sm font-medium mb-2">Component Compatibility:</h4>
-            <ul className="space-y-2">
-              {links.map((link, index) => (
-                <li key={index} className="flex items-center p-2 bg-gray-50 rounded">
-                  <span className="font-medium text-sm flex-1">{link.source}</span>
-                  <span className="mx-2">→</span>
-                  <span className="font-medium text-sm flex-1">{link.target}</span>
-                  <span className={`ml-3 p-1 rounded-full ${link.status === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                    {link.status === 'success' ? <Check size={16} /> : <X size={16} />}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
+
+export default CompatibilityDiagram;
