@@ -94,6 +94,24 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_compatibility: {
+        Row: {
+          compat: Json | null
+          created_at: string
+          id: number
+        }
+        Insert: {
+          compat?: Json | null
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          compat?: Json | null
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       estimate_items: {
         Row: {
           component_score_json: Json | null

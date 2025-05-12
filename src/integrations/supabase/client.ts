@@ -10,3 +10,24 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+// Fetches compatibility data from demo_compatibility table
+export async function fetchCompatibilityData() {
+  try {
+    const { data, error } = await supabase
+      .from('demo_compatibility')
+      .select('*')
+      .limit(1);
+      
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      return data[0].compat;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching compatibility data:', error);
+    return null;
+  }
+}
