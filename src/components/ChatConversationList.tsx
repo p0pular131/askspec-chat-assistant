@@ -1,5 +1,16 @@
+
 import React, { useState, useCallback, memo } from 'react';
 import { Session } from '../hooks/useConversations';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 interface ChatConversationListProps {
   conversations: Session[];
