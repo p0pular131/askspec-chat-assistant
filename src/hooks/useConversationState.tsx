@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
@@ -25,11 +24,11 @@ export function useConversationState() {
   
   const { 
     conversations: sessions, 
-    loading: sessionsLoading, 
-    createConversation: createSession, 
-    deleteConversation: deleteSession,
-    updateSessionName,
-    fetchConversations: fetchSessions
+    convoLoading: sessionsLoading, 
+    startNewConversation: createSession, 
+    handleDeleteConversation: deleteSession,
+    updateSession,
+    loadConversations: fetchSessions
   } = useConversations();
   
   const {
@@ -60,7 +59,7 @@ export function useConversationState() {
 
   const startNewConversation = useCallback(async () => {
     try {
-      const session = await createSession('New Session');
+      const session = await createSession();
       setCurrentSession(session);
       setMessages([]);
       setShowExample(true);
@@ -136,7 +135,7 @@ export function useConversationState() {
     try {
       // Create a new conversation if none exists
       if (!currentSession) {
-        const newSession = await createSession('New Session');
+        const newSession = await createSession();
         setCurrentSession(newSession);
         
         if (!newSession || !newSession.id) {
@@ -147,7 +146,7 @@ export function useConversationState() {
         await addMessage(text, 'user', newSession.id.toString());
         
         // Update the title based on the first message
-        await updateSessionName(newSession.id, text.substring(0, 50));
+        await updateSession(newSession.id, text.substring(0, 50));
         
         // Create OpenAI messages array
         const apiMessages = [{ role: 'user', content: text }];
@@ -193,7 +192,7 @@ export function useConversationState() {
         
         // If this is the first message, update the title
         if (dbMessages.length === 0) {
-          await updateSessionName(currentSession.id, text.substring(0, 50));
+          await updateSession(currentSession.id, text.substring(0, 50));
         }
         
         // Create OpenAI messages array from existing messages
@@ -227,7 +226,7 @@ export function useConversationState() {
             console.error("Empty response received from OpenAI");
             toast({
               title: "오류",
-              description: "AI 응답을 받지 못했습니다.",
+              description: "AI 응답을 받지 못했��니다.",
               variant: "destructive",
             });
           }
@@ -256,7 +255,7 @@ export function useConversationState() {
     currentSession, 
     createSession, 
     addMessage, 
-    updateSessionName, 
+    updateSession, 
     callOpenAI, 
     loadBuilds, 
     dbMessages

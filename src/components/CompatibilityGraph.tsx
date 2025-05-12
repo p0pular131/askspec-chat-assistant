@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Cpu, HardDrive, VideoIcon, Motherboard, MemoryStick, Power, Fan, CheckCircle, XCircle } from 'lucide-react';
+import { Cpu, HardDrive, VideoIcon, CircuitBoard, MemoryStick, Power, Fan, CheckCircle, XCircle } from 'lucide-react';
 
 interface CompatNode {
   id: string;
@@ -23,7 +23,7 @@ const componentIcons: Record<string, React.ReactNode> = {
   CPU: <Cpu size={24} />,
   GPU: <VideoIcon size={24} />,
   RAM: <MemoryStick size={24} />,
-  Motherboard: <Motherboard size={24} />,
+  Motherboard: <CircuitBoard size={24} />,
   Storage: <HardDrive size={24} />,
   PSU: <Power size={24} />,
   Cooling: <Fan size={24} />

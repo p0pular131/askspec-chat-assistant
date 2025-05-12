@@ -62,7 +62,12 @@ export const useConversationState = () => {
       }
 
       if (data) {
-        setSessions(data);
+        // Ensure the correct type for user_id
+        const typedData: Session[] = data.map(session => ({
+          ...session,
+          user_id: session.user_id?.toString() || 'user-123' // Convert to string if present, otherwise use default
+        }));
+        setSessions(typedData);
       }
     } catch (error: any) {
       console.error("Error loading conversations:", error);
@@ -80,10 +85,11 @@ export const useConversationState = () => {
   const loadMessages = useCallback(async (sessionId: string) => {
     setIsLoading(true);
     try {
+      const sessionIdNum = parseInt(sessionId, 10);
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .eq('session_id', sessionId)
+        .eq('session_id', sessionIdNum)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -94,9 +100,12 @@ export const useConversationState = () => {
         // Ensure the role is properly cast to 'user' | 'assistant'
         const typedMessages: Message[] = data.map(message => ({
           ...message,
+          content: message.input_text || '',
           role: (message.role === 'user' || message.role === 'assistant') 
             ? message.role as 'user' | 'assistant'
-            : 'user' // Default to 'user' if it's not valid
+            : 'user', // Default to 'user' if it's not valid
+          expertise_level: message.expertise_level || null,
+          chat_mode: message.chat_mode || null
         }));
         setMessages(typedMessages);
         setDbMessages(typedMessages);
@@ -118,7 +127,7 @@ export const useConversationState = () => {
     setBuildsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('builds')
+        .from('estimates')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -127,7 +136,16 @@ export const useConversationState = () => {
       }
       
       if (data) {
-        setBuilds(data);
+        // Convert to the expected Build type
+        const convertedBuilds: Build[] = data.map(item => ({
+          id: item.id,
+          name: item.purpose || 'Unnamed Build',
+          session_id: item.session_id || 0,
+          created_at: item.created_at,
+          total_price: item.total_price || 0,
+          parts: item.metrics_score_json || {}
+        }));
+        setBuilds(convertedBuilds);
       }
     } catch (error: any) {
       console.error("Error loading builds:", error);
@@ -148,7 +166,7 @@ export const useConversationState = () => {
       const { data, error } = await supabase
         .from('sessions')
         .insert([
-          { user_id: 'user-123' }, // Replace with actual user ID if available
+          { user_id: 'user-123' }, // Use a string value for user_id
         ])
         .select('*')
         .single();
@@ -158,11 +176,19 @@ export const useConversationState = () => {
       }
 
       if (data) {
-        setSessions(prevSessions => [data, ...prevSessions]);
-        setCurrentConversation(data);
+        // Ensure correct typing for the new session
+        const newSession: Session = {
+          ...data,
+          user_id: data.user_id?.toString() || 'user-123'
+        };
+        
+        setSessions(prevSessions => [newSession, ...prevSessions]);
+        setCurrentConversation(newSession);
         setMessages([]);
         setShowExample(true);
+        return newSession;
       }
+      return null;
     } catch (error: any) {
       console.error("Error starting new conversation:", error);
       toast({
@@ -170,6 +196,7 @@ export const useConversationState = () => {
         description: error.message,
         variant: "destructive",
       })
+      return null;
     } finally {
       setConvoLoading(false);
     }
@@ -297,6 +324,7 @@ export const useConversationState = () => {
     }
   }, [supabase, currentConversation, toast, dbMessages, loadMessages]);
 
+  // Update session name
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
     setLoadingUpdateSession(true);
     try {
@@ -338,7 +366,7 @@ export const useConversationState = () => {
   }, [supabase, toast]);
 
   // Delete a conversation
-  const deleteSession = useCallback(async (sessionId: string) => {
+  const handleDeleteConversation = useCallback(async (sessionId: string) => {
     setLoadingDeleteSession(true);
     try {
       // Convert string ID to number for the database operation
@@ -392,19 +420,9 @@ export const useConversationState = () => {
       // Convert string ID to number for the database operation
       const numericId = parseInt(buildId, 10);
       
-      // First, delete all parts associated with this build
-      // const { error: partsError } = await supabase
-      //   .from('parts')
-      //   .delete()
-      //   .eq('build_id', numericId);
-      //
-      // if (partsError) {
-      //   throw new Error(`부품 삭제 실패: ${partsError.message}`);
-      // }
-
-      // Then delete the build itself
+      // Delete the build from the estimates table
       const { error: buildError } = await supabase
-        .from('builds')
+        .from('estimates')
         .delete()
         .eq('id', numericId);
 
@@ -451,10 +469,10 @@ export const useConversationState = () => {
     buildsLoading,
     startNewConversation,
     selectConversation,
-    handleDeleteConversation: deleteSession,
+    handleDeleteConversation,
     handleDeleteBuild: deleteBuild,
     handleViewBuild: viewBuild,
-    sendMessage,
+    sendMessage: () => {}, // This function is handled elsewhere
     loadMessages,
     loadBuilds,
     loadingUpdateSession,
