@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { useToast } from "@/components/ui/use-toast"
+import { supabase } from '../integrations/supabase/client';
+import { useToast } from "@/components/ui/use-toast";
 
 export interface Session {
   id: number;
@@ -40,8 +40,7 @@ export const useConversationState = () => {
   const [loadingUpdateSession, setLoadingUpdateSession] = useState(false);
   const [loadingDeleteSession, setLoadingDeleteSession] = useState(false);
   const [dbMessages, setDbMessages] = useState<Message[]>([]);
-  const supabase = useSupabaseClient();
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   // Load initial data
   useEffect(() => {
@@ -75,7 +74,7 @@ export const useConversationState = () => {
     } finally {
       setConvoLoading(false);
     }
-  }, [supabase, toast]);
+  }, [toast]);
 
   // Function to load messages for a specific conversation
   const loadMessages = useCallback(async (sessionId: string) => {
@@ -92,9 +91,16 @@ export const useConversationState = () => {
       }
 
       if (data) {
-        setMessages(data);
-        setDbMessages(data);
-        setShowExample(data.length === 0);
+        // Ensure the role is properly cast to 'user' | 'assistant'
+        const typedMessages: Message[] = data.map(message => ({
+          ...message,
+          role: (message.role === 'user' || message.role === 'assistant') 
+            ? message.role as 'user' | 'assistant'
+            : 'user' // Default to 'user' if it's not valid
+        }));
+        setMessages(typedMessages);
+        setDbMessages(typedMessages);
+        setShowExample(typedMessages.length === 0);
       }
     } catch (error: any) {
       console.error("Error loading messages:", error);
@@ -106,7 +112,7 @@ export const useConversationState = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, toast]);
+  }, [toast]);
   
   const loadBuilds = useCallback(async () => {
     setBuildsLoading(true);
@@ -133,7 +139,7 @@ export const useConversationState = () => {
     } finally {
       setBuildsLoading(false);
     }
-  }, [supabase, toast]);
+  }, [toast]);
 
   // Start a new conversation
   const startNewConversation = useCallback(async () => {
@@ -167,7 +173,7 @@ export const useConversationState = () => {
     } finally {
       setConvoLoading(false);
     }
-  }, [supabase, toast]);
+  }, [toast]);
 
   // Select an existing conversation
   const selectConversation = useCallback((conversation: Session) => {
@@ -186,18 +192,21 @@ export const useConversationState = () => {
     }
 
     setIsLoading(true);
+    
+    // Store this variable to reference in catch block if needed
+    const tempMessage = {
+      id: Date.now(), // Temporary ID
+      created_at: new Date().toISOString(),
+      session_id: currentConversation.id,
+      content: text,
+      role: 'user' as const, // Use const assertion to ensure proper type
+      expertise_level: expertiseLevel,
+      chat_mode: chatMode,
+    };
+    
     try {
-      // Optimistically update the local state
-      const newMessage = {
-        id: Date.now(), // Temporary ID
-        created_at: new Date().toISOString(),
-        session_id: currentConversation.id,
-        content: text,
-        role: 'user',
-        expertise_level: expertiseLevel,
-        chat_mode: chatMode,
-      };
-      setMessages(prevMessages => [...prevMessages, newMessage]);
+      // Optimistically update the local state with properly typed message
+      setMessages(prevMessages => [...prevMessages, tempMessage]);
       setShowExample(false);
 
       // Send the message to Supabase
@@ -240,16 +249,17 @@ export const useConversationState = () => {
 
       const responseData = await response.json();
 
-      // Add the assistant's response to the local state
+      // Add the assistant's response to the local state with proper typing
       const assistantMessage = {
           id: Date.now() + 1, // Temporary ID
           created_at: new Date().toISOString(),
           session_id: currentConversation.id,
           content: responseData.content,
-          role: 'assistant',
+          role: 'assistant' as const, // Use const assertion for proper typing
           expertise_level: expertiseLevel,
           chat_mode: chatMode,
       };
+      
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
       
       // Send the assistant's message to Supabase
@@ -281,7 +291,7 @@ export const useConversationState = () => {
         variant: "destructive",
       })
       // Revert the optimistic update on error
-      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== newMessage.id));
+      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== tempMessage.id));
     } finally {
       setIsLoading(false);
     }

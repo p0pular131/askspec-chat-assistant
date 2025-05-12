@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
-import { useConversations } from './useConversations';
+import { useConversationState as useConversations } from './useConversations';
 import { useMessages } from './useMessages';
 import { useBuilds } from './useBuilds';
 import { useNavigate } from 'react-router-dom';

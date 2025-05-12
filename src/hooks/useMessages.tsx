@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from '../components/ui/use-toast';
@@ -116,7 +115,7 @@ export function useMessages(sessionId: string | null) {
       const newMessage: Omit<DatabaseMessage, 'created_at'> & { created_at?: string } = {
         id: nextId,
         session_id: sesId,
-        role,
+        role: role,
         input_text: content,
         response_json: role === 'assistant' ? { text: content } : null
       };
@@ -134,11 +133,13 @@ export function useMessages(sessionId: string | null) {
       // Use retry logic for adding messages
       const data = await fetchWithRetry(addMessageToDb, 2, 800);
       
-      // Update local state with the newly added message
+      // Update local state with the newly added message with proper typing
       if (data && data[0]) {
         const typedData: DatabaseMessage = {
           ...data[0],
-          role: (data[0].role as 'user' | 'assistant') || 'user'
+          role: (data[0].role === 'user' || data[0].role === 'assistant') 
+            ? data[0].role as 'user' | 'assistant' 
+            : 'user' // Default to 'user' if invalid
         };
         setMessages(prevMessages => [...prevMessages, typedData]);
       }

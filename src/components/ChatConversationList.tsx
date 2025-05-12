@@ -10,6 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger
 } from "./ui/alert-dialog";
 
 interface ChatConversationListProps {
