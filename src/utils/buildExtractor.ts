@@ -98,15 +98,17 @@ export const extractBuildFromContent = (content: string): {
   // If not enough components found from patterns, try numbered list
   if (components.length < 3) {
     // Try to extract from markdown lists
-    const listItemPatterns = [
+    const listItemRegexps = [
       /(?:\d+[\.\)]\s*|\*\s+|•\s+|-\s+)(?:\*\*)?([^:]+)(?:\*\*)?:?\s*([^\n]+)/g,
       /\*\*([^*]+)\*\*:?\s*([^\n]+)/g,
       /([^:]+):\s*([^\n]+)/g
     ];
     
-    for (const listItemPattern of listItemPatterns) {
+    for (const regexp of listItemRegexps) {
       let match;
-      while ((match = listItemPattern.exec(content)) !== null) {
+      // Create a copy of the regex for each iteration to reset the lastIndex
+      const regex = new RegExp(regexp);
+      while ((match = regex.exec(content)) !== null) {
         const itemName = match[1].trim();
         const itemValue = match[2].trim();
         

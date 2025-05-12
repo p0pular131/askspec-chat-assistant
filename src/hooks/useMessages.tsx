@@ -67,7 +67,13 @@ export function useMessages(sessionId: string | null) {
       // Use retry logic for fetching messages
       const data = await fetchWithRetry(fetchMessages, 3, 1000);
       
-      setMessages(data || []);
+      // Ensure that the role is cast to the expected type
+      const typedData = (data || []).map(msg => ({
+        ...msg,
+        role: (msg.role as 'user' | 'assistant') || 'user'
+      }));
+      
+      setMessages(typedData);
     } catch (err) {
       console.error('Error loading messages:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -107,7 +113,7 @@ export function useMessages(sessionId: string | null) {
       const sesId = parseInt(sessionIdStr);
       const nextId = await getNextMessageId();
       
-      const newMessage = {
+      const newMessage: Omit<DatabaseMessage, 'created_at'> & { created_at?: string } = {
         id: nextId,
         session_id: sesId,
         role,
@@ -130,7 +136,11 @@ export function useMessages(sessionId: string | null) {
       
       // Update local state with the newly added message
       if (data && data[0]) {
-        setMessages(prevMessages => [...prevMessages, data[0]]);
+        const typedData: DatabaseMessage = {
+          ...data[0],
+          role: (data[0].role as 'user' | 'assistant') || 'user'
+        };
+        setMessages(prevMessages => [...prevMessages, typedData]);
       }
     } catch (err) {
       console.error('Error adding message:', err);

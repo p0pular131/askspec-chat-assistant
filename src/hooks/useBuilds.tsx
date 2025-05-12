@@ -38,8 +38,8 @@ export interface Build {
 // A type for the raw build data from the database
 interface RawBuild {
   id: number;
-  name: string;
-  session_id: number;
+  name?: string;
+  session_id?: number;
   metrics_score_json: Json;
   total_price: number;
   purpose: string;
@@ -114,7 +114,7 @@ export function useBuilds() {
     
     return {
       id: rawBuild.id,
-      name: rawBuild.name || rawBuild.purpose || 'Unnamed Build',
+      name: rawBuild.purpose || 'Unnamed Build',
       session_id: rawBuild.session_id || 0,
       components: componentsArray,
       total_price: rawBuild.total_price || 0,
@@ -258,7 +258,14 @@ export function useBuilds() {
       
       console.log("Raw build from database:", rawBuild);
       
-      const transformedBuild = convertRawBuild(rawBuild);
+      // Add the missing fields to the raw build
+      const completeRawBuild: RawBuild = {
+        ...rawBuild,
+        name: rawBuild.purpose || 'Unnamed Build',
+        session_id: 0 // Default value since it's missing
+      };
+      
+      const transformedBuild = convertRawBuild(completeRawBuild);
       console.log("Transformed build with rating:", transformedBuild.rating);
       
       setSelectedBuild(transformedBuild);
@@ -313,8 +320,6 @@ export function useBuilds() {
           .from('estimates')
           .insert({
             id: nextId,
-            name,
-            session_id: sessionId,
             metrics_score_json: metricsScoreJson,
             total_price: totalPrice,
             purpose: name,
@@ -333,8 +338,15 @@ export function useBuilds() {
       
       if (error) throw error;
       
+      // Add the missing fields to the raw build
+      const completeRawBuild: RawBuild = {
+        ...rawBuild,
+        name: name,
+        session_id: sessionId
+      };
+      
       // Convert and add to local state
-      const transformedBuild = convertRawBuild(rawBuild);
+      const transformedBuild = convertRawBuild(completeRawBuild);
       setBuilds([transformedBuild, ...builds]);
       return transformedBuild;
     } catch (err) {

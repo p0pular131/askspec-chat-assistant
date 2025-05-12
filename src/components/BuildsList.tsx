@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
 import { 
@@ -35,9 +34,9 @@ const BuildsList: React.FC<BuildsListProps> = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [buildToDelete, setBuildToDelete] = useState<string | null>(null);
 
-  const handleDelete = useCallback((e: React.MouseEvent, buildId: string) => {
+  const handleDelete = useCallback((e: React.MouseEvent, buildId: number | string) => {
     e.stopPropagation();
-    setBuildToDelete(buildId);
+    setBuildToDelete(String(buildId));
     setDialogOpen(true);
   }, []);
 
@@ -54,7 +53,6 @@ const BuildsList: React.FC<BuildsListProps> = ({
     setDialogOpen(false);
   }, []);
 
-  // Memorize the content based on loading and error states
   const renderContent = useCallback(() => {
     if (error) {
       return (
@@ -104,7 +102,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       <div key={build.id} className="flex items-center gap-2">
         <button
           className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100"
-          onClick={() => onViewBuild(build.id)}
+          onClick={() => onViewBuild(String(build.id))}
         >
           <div className="flex justify-between">
             <span>{build.name}</span>
@@ -119,7 +117,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
           )}
         </button>
         <button
-          onClick={(e) => handleDelete(e, build.id)}
+          onClick={(e) => handleDelete(e, String(build.id))}
           className="p-1 text-red-500 rounded hover:bg-red-50"
           aria-label="Delete build"
         >

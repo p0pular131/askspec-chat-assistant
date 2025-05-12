@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
@@ -48,8 +49,8 @@ export const ChatLayout: React.FC = () => {
 
   // Load messages when conversation changes
   useEffect(() => {
-    if (currentConversation?.id && isUUID(currentConversation.id)) {
-      loadMessages(currentConversation.id);
+    if (currentConversation?.id) {
+      loadMessages(String(currentConversation.id));
     }
   }, [currentConversation, loadMessages]);
   
@@ -59,8 +60,8 @@ export const ChatLayout: React.FC = () => {
       // This will ensure we always have the latest conversations when switching to the chat tab
       const fetchConversations = async () => {
         try {
-          if (currentConversation?.id && isUUID(currentConversation.id)) {
-            await loadMessages(currentConversation.id);
+          if (currentConversation?.id) {
+            await loadMessages(String(currentConversation.id));
           }
         } catch (error) {
           console.error('Error loading messages:', error);

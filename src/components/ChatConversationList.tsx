@@ -1,21 +1,11 @@
-import React, { useState, useCallback, memo, useEffect } from 'react';
-import { Conversation } from '../hooks/useConversations';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
+import React, { useState, useCallback, memo } from 'react';
+import { Session } from '../hooks/useConversations';
 
 interface ChatConversationListProps {
-  conversations: Conversation[];
-  currentConversation: Conversation | null;
+  conversations: Session[];
+  currentConversation: Session | null;
   loading: boolean;
-  onSelect: (conversation: Conversation) => void;
+  onSelect: (conversation: Session) => void;
   onDelete: (id: string) => void;
   onNew: () => void;
 }
@@ -50,7 +40,6 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
     setDialogOpen(false);
   }, []);
 
-  // Memorize the conversations list rendering
   const renderConversationsList = useCallback(() => {
     if (loading) {
       return <div className="p-2 text-sm text-center">Loading...</div>;
@@ -68,10 +57,10 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
           }`}
           onClick={() => onSelect(convo)}
         >
-          {convo.title || 'Untitled conversation'}
+          {convo.session_name || 'Untitled conversation'}
         </button>
         <button
-          onClick={(e) => handleDelete(e, convo.id)}
+          onClick={(e) => handleDelete(e, String(convo.id))}
           className="p-1 text-red-500 rounded hover:bg-red-50"
           aria-label="Delete conversation"
         >
