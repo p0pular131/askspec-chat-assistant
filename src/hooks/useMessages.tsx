@@ -4,27 +4,18 @@ import { supabase } from '../integrations/supabase/client';
 import { toast } from '../components/ui/use-toast';
 
 export interface DatabaseMessage {
-  id: string;
-  conversation_id: string;
-  content: string;
+  id: number;
+  session_id: number;
+  input_text: string;
+  response_json: any;
   role: 'user' | 'assistant';
   created_at: string;
 }
 
-// Interface for raw message data from the database
-interface RawDatabaseMessage {
-  id: string;
-  conversation_id: string;
-  content: string;
-  role: string;
-  created_at: string;
-}
-
-// Helper function to validate if a string is a valid UUID
-const isUUID = (str: string | null): boolean => {
+// Helper function to validate if a string is a valid number
+const isValidId = (str: string | null): boolean => {
   if (!str) return false;
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(str);
+  return !isNaN(parseInt(str));
 };
 
 // Retry function with exponential backoff
@@ -43,57 +34,40 @@ const fetchWithRetry = async <T,>(
   }
 };
 
-export function useMessages(conversationId: string | null) {
+export function useMessages(sessionId: string | null) {
   const [messages, setMessages] = useState<DatabaseMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to convert raw message data to our DatabaseMessage interface
-  const convertRawMessage = (rawMessage: RawDatabaseMessage): DatabaseMessage => {
-    // Validate that role is either 'user' or 'assistant'
-    const validRole = (rawMessage.role === 'user' || rawMessage.role === 'assistant') 
-      ? rawMessage.role 
-      : 'user'; // Default to user if for some reason we get an invalid role
-      
-    return {
-      id: rawMessage.id,
-      conversation_id: rawMessage.conversation_id,
-      content: rawMessage.content,
-      role: validRole,
-      created_at: rawMessage.created_at
-    };
-  };
-
-  const loadMessages = useCallback(async (convoId: string) => {
+  const loadMessages = useCallback(async (sessionIdStr: string) => {
     try {
-      // Check if convoId is a valid UUID before making the request
-      if (!isUUID(convoId)) {
-        console.log('Invalid or empty conversation ID, not loading messages');
+      // Check if sessionId is a valid number before making the request
+      if (!isValidId(sessionIdStr)) {
+        console.log('Invalid or empty session ID, not loading messages');
         setMessages([]);
         setLoading(false);
         return;
       }
       
+      const sesId = parseInt(sessionIdStr);
       setLoading(true);
       setError(null);
       
       const fetchMessages = async () => {
-        const { data: rawData, error } = await supabase
+        const { data, error } = await supabase
           .from('messages')
           .select('*')
-          .eq('conversation_id', convoId)
+          .eq('session_id', sesId)
           .order('created_at');
         
         if (error) throw error;
-        return rawData;
+        return data;
       };
       
       // Use retry logic for fetching messages
-      const rawData = await fetchWithRetry(fetchMessages, 3, 1000);
+      const data = await fetchWithRetry(fetchMessages, 3, 1000);
       
-      // Transform the raw data to match our DatabaseMessage interface
-      const transformedMessages = (rawData || []).map(convertRawMessage);
-      setMessages(transformedMessages);
+      setMessages(data || []);
     } catch (err) {
       console.error('Error loading messages:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -107,36 +81,56 @@ export function useMessages(conversationId: string | null) {
     }
   }, []);
 
-  const addMessage = async (content: string, role: 'user' | 'assistant', convoId: string) => {
+  // Get the next available ID for a new message
+  const getNextMessageId = async () => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+      
+    if (error) {
+      console.error('Error getting next message ID:', error);
+      return 1; // Default to 1 if there's an error
+    }
+    
+    return (data && data.length > 0) ? data[0].id + 1 : 1;
+  };
+
+  const addMessage = async (content: string, role: 'user' | 'assistant', sessionIdStr: string) => {
     try {
-      // Validate conversation ID first
-      if (!isUUID(convoId)) {
-        throw new Error('Invalid conversation ID');
+      // Validate session ID first
+      if (!isValidId(sessionIdStr)) {
+        throw new Error('Invalid session ID');
       }
 
+      const sesId = parseInt(sessionIdStr);
+      const nextId = await getNextMessageId();
+      
       const newMessage = {
-        conversation_id: convoId,
-        content,
+        id: nextId,
+        session_id: sesId,
         role,
+        input_text: content,
+        response_json: role === 'assistant' ? { text: content } : null
       };
       
       const addMessageToDb = async () => {
-        const { data: rawMessage, error } = await supabase
+        const { data, error } = await supabase
           .from('messages')
           .insert(newMessage)
           .select();
           
         if (error) throw error;
-        return rawMessage;
+        return data;
       };
       
       // Use retry logic for adding messages
-      const rawMessage = await fetchWithRetry(addMessageToDb, 2, 800);
+      const data = await fetchWithRetry(addMessageToDb, 2, 800);
       
       // Update local state with the newly added message
-      if (rawMessage && rawMessage[0]) {
-        const transformedMessage = convertRawMessage(rawMessage[0]);
-        setMessages(prevMessages => [...prevMessages, transformedMessage]);
+      if (data && data[0]) {
+        setMessages(prevMessages => [...prevMessages, data[0]]);
       }
     } catch (err) {
       console.error('Error adding message:', err);
@@ -167,7 +161,7 @@ export function useMessages(conversationId: string | null) {
               body: {
                 messages,
                 chatMode,
-                conversationId,
+                sessionId,
                 expertiseLevel,
                 max_tokens: 2000, // Explicitly set max tokens
               }
@@ -218,13 +212,13 @@ export function useMessages(conversationId: string | null) {
   };
 
   useEffect(() => {
-    if (conversationId) {
-      loadMessages(conversationId);
+    if (sessionId) {
+      loadMessages(sessionId);
     } else {
       setMessages([]);
       setLoading(false);
     }
-  }, [conversationId, loadMessages]);
+  }, [sessionId, loadMessages]);
 
   return {
     messages,

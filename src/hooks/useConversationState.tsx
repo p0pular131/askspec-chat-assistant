@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Conversation } from './useConversations';
+import { Session } from './useConversations';
 import { Message } from '../components/types';
 import { useConversations } from './useConversations';
 import { useMessages } from './useMessages';
@@ -8,15 +8,14 @@ import { useBuilds } from './useBuilds';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../components/ui/use-toast';
 
-// Helper function to validate if a string is a valid UUID
-const isUUID = (str: string | null): boolean => {
+// Helper function to validate if a string is a valid number
+const isValidId = (str: string | null): boolean => {
   if (!str) return false;
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(str);
+  return !isNaN(parseInt(str));
 };
 
 export function useConversationState() {
-  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [showExample, setShowExample] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,12 +24,12 @@ export function useConversationState() {
   const navigate = useNavigate();
   
   const { 
-    conversations, 
-    loading: convoLoading, 
-    createConversation, 
-    deleteConversation,
-    updateTitleFromFirstMessage,
-    fetchConversations
+    conversations: sessions, 
+    loading: sessionsLoading, 
+    createConversation: createSession, 
+    deleteConversation: deleteSession,
+    updateSessionName,
+    fetchConversations: fetchSessions
   } = useConversations();
   
   const {
@@ -46,13 +45,13 @@ export function useConversationState() {
     addMessage, 
     loadMessages, 
     callOpenAI 
-  } = useMessages(currentConversation?.id || null);
+  } = useMessages(currentSession?.id?.toString() || null);
 
   // Convert database messages to UI messages
   const syncMessagesFromDB = useCallback((dbMsgs: any[]) => {
     if (dbMsgs) {
       const uiMessages = dbMsgs.map(msg => ({
-        text: msg.content,
+        text: msg.input_text,
         isUser: msg.role === 'user',
       }));
       setMessages(uiMessages);
@@ -61,53 +60,53 @@ export function useConversationState() {
 
   const startNewConversation = useCallback(async () => {
     try {
-      const conversation = await createConversation('New Conversation');
-      setCurrentConversation(conversation);
+      const session = await createSession('New Session');
+      setCurrentSession(session);
       setMessages([]);
       setShowExample(true);
     } catch (error) {
       toast({
         title: "오류",
-        description: "새 대화를 시작하는데 실패했습니다.",
+        description: "새 세션을 시작하는데 실패했습니다.",
         variant: "destructive",
       });
     }
-  }, [createConversation]);
+  }, [createSession]);
 
-  const selectConversation = useCallback(async (conversation: Conversation) => {
-    setCurrentConversation(conversation);
+  const selectConversation = useCallback(async (session: Session) => {
+    setCurrentSession(session);
   }, []);
 
   const handleDeleteConversation = useCallback(async (id: string) => {
     try {
-      // Validate ID is a valid UUID before attempting to delete
-      if (!isUUID(id)) {
-        console.error('Invalid conversation ID format:', id);
+      // Validate ID is a valid number before attempting to delete
+      if (!isValidId(id)) {
+        console.error('Invalid session ID format:', id);
         toast({
           title: "오류",
-          description: "유효하지 않은 대화 ID입니다.",
+          description: "유효하지 않은 세션 ID입니다.",
           variant: "destructive",
         });
         return;
       }
       
-      // Delete the conversation from the database
-      await deleteConversation(id);
+      // Delete the session from the database
+      await deleteSession(id);
       
-      // If the deleted conversation was the current one, reset the current conversation
-      if (currentConversation?.id === id) {
-        setCurrentConversation(null);
+      // If the deleted session was the current one, reset the current session
+      if (currentSession?.id?.toString() === id) {
+        setCurrentSession(null);
         setMessages([]);
         setShowExample(true);
       }
       
-      // Ensure conversations list is refreshed after deletion
-      await fetchConversations();
+      // Ensure sessions list is refreshed after deletion
+      await fetchSessions();
       
     } catch (error) {
       console.error('Error in handleDeleteConversation:', error);
     }
-  }, [currentConversation, deleteConversation, fetchConversations]);
+  }, [currentSession, deleteSession, fetchSessions]);
 
   const handleDeleteBuild = useCallback(async (buildId: string) => {
     try {
@@ -136,19 +135,19 @@ export function useConversationState() {
     
     try {
       // Create a new conversation if none exists
-      if (!currentConversation) {
-        const newConversation = await createConversation('New Conversation');
-        setCurrentConversation(newConversation);
+      if (!currentSession) {
+        const newSession = await createSession('New Session');
+        setCurrentSession(newSession);
         
-        if (!newConversation || !newConversation.id) {
-          throw new Error('Failed to create conversation');
+        if (!newSession || !newSession.id) {
+          throw new Error('Failed to create session');
         }
         
         // Add user message
-        await addMessage(text, 'user', newConversation.id);
+        await addMessage(text, 'user', newSession.id.toString());
         
         // Update the title based on the first message
-        await updateTitleFromFirstMessage(newConversation.id, text);
+        await updateSessionName(newSession.id, text.substring(0, 50));
         
         // Create OpenAI messages array
         const apiMessages = [{ role: 'user', content: text }];
@@ -162,7 +161,7 @@ export function useConversationState() {
           
           // Add assistant response to database
           if (response) {
-            await addMessage(response, 'assistant', newConversation.id);
+            await addMessage(response, 'assistant', newSession.id.toString());
             
             // Schedule multiple build refreshes after receiving a response
             // This ensures we catch builds that might be created with slight delay
@@ -190,17 +189,17 @@ export function useConversationState() {
         }
       } else {
         // Add user message
-        await addMessage(text, 'user', currentConversation.id);
+        await addMessage(text, 'user', currentSession.id.toString());
         
         // If this is the first message, update the title
         if (dbMessages.length === 0) {
-          await updateTitleFromFirstMessage(currentConversation.id, text);
+          await updateSessionName(currentSession.id, text.substring(0, 50));
         }
         
         // Create OpenAI messages array from existing messages
         const apiMessages = dbMessages.map(msg => ({
           role: msg.role,
-          content: msg.content
+          content: msg.input_text
         }));
         
         // Add the new user message
@@ -215,7 +214,7 @@ export function useConversationState() {
           
           // Add assistant response to database
           if (response) {
-            await addMessage(response, 'assistant', currentConversation.id);
+            await addMessage(response, 'assistant', currentSession.id.toString());
             
             // Schedule multiple build refreshes after receiving a response
             setTimeout(() => loadBuilds(), 1000);
@@ -254,10 +253,10 @@ export function useConversationState() {
       setIsLoading(false);
     }
   }, [
-    currentConversation, 
-    createConversation, 
+    currentSession, 
+    createSession, 
     addMessage, 
-    updateTitleFromFirstMessage, 
+    updateSessionName, 
     callOpenAI, 
     loadBuilds, 
     dbMessages
@@ -269,12 +268,12 @@ export function useConversationState() {
   }, [dbMessages, syncMessagesFromDB]);
 
   return {
-    currentConversation,
+    currentConversation: currentSession, // Keep the same interface
     messages,
     showExample,
     isLoading,
-    conversations,
-    convoLoading,
+    conversations: sessions, // Keep the same interface
+    convoLoading: sessionsLoading, // Keep the same interface
     msgLoading,
     dbMessages,
     builds,

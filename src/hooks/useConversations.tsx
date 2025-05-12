@@ -3,20 +3,20 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from '../components/ui/use-toast';
 
-export interface Conversation {
-  id: string;
-  title: string;
+export interface Session {
+  id: number;
+  session_name: string;
   created_at: string;
 }
 
-// Helper function to validate if a string is a valid UUID
-const isUUID = (str: string): boolean => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(str);
+// Helper function to validate if a string is a valid number
+const isValidId = (id: string | null): boolean => {
+  if (!id) return false;
+  return !isNaN(parseInt(id));
 };
 
 export function useConversations() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,26 +28,41 @@ export function useConversations() {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from('conversations')
+        .from('sessions')
         .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
       setConversations(data || []);
-      console.log('Fetched conversations:', data);
+      console.log('Fetched sessions:', data);
     } catch (err) {
-      console.error('Error fetching conversations:', err);
+      console.error('Error fetching sessions:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const createConversation = async (title: string) => {
+  const createConversation = async (sessionName: string) => {
     try {
+      // Get the next available ID
+      const { data: maxIdData, error: maxIdError } = await supabase
+        .from('sessions')
+        .select('id')
+        .order('id', { ascending: false })
+        .limit(1);
+        
+      if (maxIdError) throw maxIdError;
+      
+      const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
+      
       const { data, error } = await supabase
-        .from('conversations')
-        .insert({ title })
+        .from('sessions')
+        .insert({ 
+          id: nextId,
+          session_name: sessionName,
+          device_id: 'web-app'  // Default device ID
+        })
         .select()
         .single();
       
@@ -56,54 +71,55 @@ export function useConversations() {
       setConversations(prev => [data, ...prev]);
       return data;
     } catch (err) {
-      console.error('Error creating conversation:', err);
+      console.error('Error creating session:', err);
       throw err;
     }
   };
 
   const deleteConversation = async (id: string) => {
     try {
-      // Validate that the ID is a proper UUID before proceeding
-      if (!isUUID(id)) {
-        console.error('Invalid conversation ID format:', id);
+      // Validate that the ID is a proper number before proceeding
+      if (!isValidId(id)) {
+        console.error('Invalid session ID format:', id);
         toast({
           title: "오류",
-          description: "유효하지 않은 대화 ID입니다.",
+          description: "유효하지 않은 세션 ID입니다.",
           variant: "destructive",
         });
         return false;
       }
       
-      console.log('Deleting conversation and all associated messages for ID:', id);
+      const sessionId = parseInt(id);
+      console.log('Deleting session and all associated messages for ID:', sessionId);
       
-      // First, delete all messages associated with this conversation
+      // First, delete all messages associated with this session
       const { error: messagesError } = await supabase
         .from('messages')
         .delete()
-        .eq('conversation_id', id);
+        .eq('session_id', sessionId);
       
       if (messagesError) {
         console.error('Error deleting associated messages:', messagesError);
         throw messagesError;
       }
       
-      // After deleting messages, delete the conversation itself
-      const { error: conversationError } = await supabase
-        .from('conversations')
+      // After deleting messages, delete the session itself
+      const { error: sessionError } = await supabase
+        .from('sessions')
         .delete()
-        .eq('id', id);
+        .eq('id', sessionId);
       
-      if (conversationError) {
-        console.error('Error deleting conversation:', conversationError);
-        throw conversationError;
+      if (sessionError) {
+        console.error('Error deleting session:', sessionError);
+        throw sessionError;
       }
       
-      // Update the local state to remove the deleted conversation
-      setConversations(prev => prev.filter(convo => convo.id !== id));
+      // Update the local state to remove the deleted session
+      setConversations(prev => prev.filter(convo => convo.id !== sessionId));
       
       toast({
         title: "성공",
-        description: "대화가 삭제되었습니다.",
+        description: "세션이 삭제되었습니다.",
       });
       
       return true;
@@ -112,7 +128,7 @@ export function useConversations() {
       
       toast({
         title: "오류",
-        description: "대화 삭제에 실패했습니다.",
+        description: "세션 삭제에 실패했습니다.",
         variant: "destructive",
       });
       
@@ -120,69 +136,32 @@ export function useConversations() {
     }
   };
 
-  const updateTitleFromFirstMessage = async (conversationId: string, message: string) => {
+  const updateSessionName = async (sessionId: number, sessionName: string) => {
     try {
-      console.log("Generating title from message:", message);
+      console.log("Updating session name:", sessionName);
       
-      // Call the edge function to generate a concise title
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: [{ role: 'user', content: message }],
-          generateTitleOnly: true,
-          chatMode: '범용 검색',
-          expertiseLevel: 'intermediate'
-        },
-      });
-      
-      if (error) {
-        console.error("Error invoking title generation:", error);
-        // Fallback to simple title generation
-        const title = message.length > 50 ? message.substring(0, 47) + '...' : message;
-        await updateConversationTitle(conversationId, title);
-        return;
-      }
-      
-      // If we got a title back, use it
-      if (data && data.title) {
-        console.log("Generated title:", data.title);
-        await updateConversationTitle(conversationId, data.title);
-      } else {
-        // Fallback to simple title generation
-        const title = message.length > 50 ? message.substring(0, 47) + '...' : message;
-        await updateConversationTitle(conversationId, title);
-      }
-    } catch (err) {
-      console.error('Error updating conversation title:', err);
-      // Fallback to simple title generation
-      const title = message.length > 50 ? message.substring(0, 47) + '...' : message;
-      await updateConversationTitle(conversationId, title);
-    }
-  };
-  
-  const updateConversationTitle = async (conversationId: string, title: string) => {
-    try {
       const { error } = await supabase
-        .from('conversations')
-        .update({ title })
-        .eq('id', conversationId);
+        .from('sessions')
+        .update({ session_name: sessionName })
+        .eq('id', sessionId);
       
       if (error) throw error;
       
       // Update the local state
       setConversations(prev => 
-        prev.map(convo => 
-          convo.id === conversationId ? { ...convo, title } : convo
+        prev.map(session => 
+          session.id === sessionId ? { ...session, session_name: sessionName } : session
         )
       );
     } catch (err) {
-      console.error('Error updating conversation title in DB:', err);
+      console.error('Error updating session name in DB:', err);
     }
   };
 
   const deleteBuild = async (buildId: string) => {
     try {
       const { error } = await supabase
-        .from('pc_builds')
+        .from('estimates')
         .delete()
         .eq('id', buildId);
       
@@ -203,7 +182,7 @@ export function useConversations() {
     loading, 
     createConversation, 
     deleteConversation, 
-    updateTitleFromFirstMessage,
+    updateSessionName,
     deleteBuild,
     fetchConversations
   };

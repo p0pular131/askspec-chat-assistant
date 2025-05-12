@@ -20,9 +20,9 @@ export interface Component {
 }
 
 export interface Build {
-  id: string;
+  id: number;
   name: string;
-  conversation_id: string;
+  session_id: number;
   components: Component[];
   total_price: number;
   recommendation: string;
@@ -37,15 +37,17 @@ export interface Build {
 
 // A type for the raw build data from the database
 interface RawBuild {
-  id: string;
+  id: number;
   name: string;
-  conversation_id: string;
-  components: Json;
+  session_id: number;
+  metrics_score_json: Json;
   total_price: number;
-  recommendation: string;
+  purpose: string;
+  compatibility: boolean;
+  compatibility_json: Json;
+  overall_reason: string;
   created_at: string;
-  rating: Json;
-  user_id: string | null;
+  user_id: number | null;
 }
 
 // Retry function with exponential backoff
@@ -71,43 +73,52 @@ export function useBuilds() {
   const [error, setError] = useState<string | null>(null);
   const [selectedBuild, setSelectedBuild] = useState<Build | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [lastBuildId, setLastBuildId] = useState<string | null>(null);
+  const [lastBuildId, setLastBuildId] = useState<number | null>(null);
   const [lastCheckTime, setLastCheckTime] = useState(Date.now());
   const [consecutiveErrors, setConsecutiveErrors] = useState(0);
 
   // Function to convert raw build data to our Build interface
   const convertRawBuild = (rawBuild: RawBuild): Build => {
-    // Parse the components from JSON to Component[] with proper type checking
-    const componentsArray = Array.isArray(rawBuild.components) 
-      ? rawBuild.components.map((comp: any): Component => ({
-          name: comp.name || '',
-          type: comp.type || '',
-          image: comp.image || '',
-          specs: comp.specs || '',
-          reason: comp.reason || '',
-          purchase_link: comp.purchase_link || '',
-          alternatives: Array.isArray(comp.alternatives) 
-            ? comp.alternatives.map((alt: any) => ({
-                name: alt.name || '',
-                specs: alt.specs || '',
-                purchase_link: alt.purchase_link || ''
-              }))
-            : []
-        }))
-      : [];
-
-    console.log("Raw build rating data:", rawBuild.rating);
+    // Parse the components from the metrics_score_json
+    const metricsData = rawBuild.metrics_score_json as any;
     
-    const ratingData = rawBuild.rating as Build['rating'] || {};
-    console.log("Converted rating data:", ratingData);
+    // Creating component data structure from metrics_score_json
+    const componentsArray: Component[] = [];
+    
+    // Extract components from the metrics data - this is a simplified conversion
+    // In a real implementation, you would need to map the structure properly
+    const componentTypes = ['CPU', 'GPU', 'RAM', 'Storage', 'Motherboard', 'Case', 'PSU', 'Cooler'];
+    
+    componentTypes.forEach(type => {
+      if (metricsData && metricsData[type.toLowerCase()]) {
+        componentsArray.push({
+          name: `${type} Component`,
+          type: type,
+          image: '',
+          specs: JSON.stringify(metricsData[type.toLowerCase()]),
+          reason: 'Based on performance metrics',
+          purchase_link: '',
+          alternatives: []
+        });
+      }
+    });
+    
+    // Create ratings data from compatibility_json
+    const ratingData: Build['rating'] = {};
+    if (rawBuild.compatibility_json) {
+      const compatData = rawBuild.compatibility_json as any;
+      if (compatData.valueForMoney) ratingData.valueForMoney = compatData.valueForMoney;
+      if (compatData.noise) ratingData.noise = compatData.noise;
+      if (compatData.performance) ratingData.performance = compatData.performance;
+    }
     
     return {
       id: rawBuild.id,
-      name: rawBuild.name,
-      conversation_id: rawBuild.conversation_id,
+      name: rawBuild.name || rawBuild.purpose || 'Unnamed Build',
+      session_id: rawBuild.session_id || 0,
       components: componentsArray,
-      total_price: rawBuild.total_price,
-      recommendation: rawBuild.recommendation,
+      total_price: rawBuild.total_price || 0,
+      recommendation: rawBuild.overall_reason || 'Custom PC Build',
       created_at: rawBuild.created_at,
       rating: ratingData
     };
@@ -125,7 +136,7 @@ export function useBuilds() {
       // Use the fetchWithRetry function with our Supabase query
       const fetchBuilds = async () => {
         const { data, error } = await supabase
-          .from('pc_builds')
+          .from('estimates')
           .select('*')
           .order('created_at', { ascending: false });
           
@@ -212,8 +223,13 @@ export function useBuilds() {
       setLoading(true);
       setError(null);
       
+      const buildId = parseInt(id);
+      if (isNaN(buildId)) {
+        throw new Error('Invalid build ID format');
+      }
+      
       // Check if the build is already in our local state
-      const cachedBuild = builds.find(build => build.id === id);
+      const cachedBuild = builds.find(build => build.id === buildId);
       if (cachedBuild) {
         console.log("Using cached build with rating:", cachedBuild.rating);
         setSelectedBuild(cachedBuild);
@@ -224,9 +240,9 @@ export function useBuilds() {
       // If not in cache, fetch from database with retry mechanism
       const fetchBuild = async () => {
         const { data, error } = await supabase
-          .from('pc_builds')
+          .from('estimates')
           .select('*')
-          .eq('id', id)
+          .eq('id', buildId)
           .single();
           
         if (error) throw error;
@@ -241,7 +257,6 @@ export function useBuilds() {
       }
       
       console.log("Raw build from database:", rawBuild);
-      console.log("Raw build rating from database:", rawBuild.rating);
       
       const transformedBuild = convertRawBuild(rawBuild);
       console.log("Transformed build with rating:", transformedBuild.rating);
@@ -265,25 +280,47 @@ export function useBuilds() {
 
   const saveBuild = async (
     name: string,
-    conversationId: string,
+    sessionId: number,
     components: Component[],
     totalPrice: number,
     recommendation: string
   ) => {
     try {
-      // Prepare components for saving to database
-      const componentsJson = components as unknown as Json;
+      // Get the next available ID
+      const { data: maxIdData, error: maxIdError } = await supabase
+        .from('estimates')
+        .select('id')
+        .order('id', { ascending: false })
+        .limit(1);
+      
+      if (maxIdError) throw maxIdError;
+      
+      const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
+      
+      // Convert components to metrics_score_json format
+      const metricsScoreJson: any = {};
+      components.forEach(comp => {
+        const lowerType = comp.type.toLowerCase();
+        metricsScoreJson[lowerType] = {
+          name: comp.name,
+          specs: comp.specs,
+          price: comp.price || 0
+        };
+      });
       
       const saveBuildWithRetry = async () => {
         const { data, error } = await supabase
-          .from('pc_builds')
+          .from('estimates')
           .insert({
+            id: nextId,
             name,
-            conversation_id: conversationId,
-            components: componentsJson,
+            session_id: sessionId,
+            metrics_score_json: metricsScoreJson,
             total_price: totalPrice,
-            recommendation,
-            rating: {}
+            purpose: name,
+            compatibility: true,
+            compatibility_json: { valueForMoney: 5, noise: 3, performance: 4 },
+            overall_reason: recommendation
           })
           .select()
           .single();
@@ -313,11 +350,16 @@ export function useBuilds() {
 
   const deleteBuild = async (id: string) => {
     try {
+      const buildId = parseInt(id);
+      if (isNaN(buildId)) {
+        throw new Error('Invalid build ID format');
+      }
+      
       const deleteBuildWithRetry = async () => {
         const { error } = await supabase
-          .from('pc_builds')
+          .from('estimates')
           .delete()
-          .eq('id', id);
+          .eq('id', buildId);
           
         if (error) throw error;
         return { error };
@@ -328,9 +370,9 @@ export function useBuilds() {
       if (error) throw error;
       
       // Update local state
-      setBuilds(builds.filter(build => build.id !== id));
+      setBuilds(builds.filter(build => build.id !== buildId));
       
-      if (selectedBuild?.id === id) {
+      if (selectedBuild?.id === buildId) {
         setSelectedBuild(null);
       }
       

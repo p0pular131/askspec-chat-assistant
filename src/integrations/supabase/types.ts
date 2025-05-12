@@ -9,95 +9,272 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      conversations: {
+      benchmark_metrics: {
         Row: {
-          created_at: string
-          id: string
-          title: string
-          updated_at: string
-          user_id: string | null
+          component_id: number | null
+          metrics_json: Json | null
         }
         Insert: {
-          created_at?: string
-          id?: string
-          title: string
-          updated_at?: string
-          user_id?: string | null
+          component_id?: number | null
+          metrics_json?: Json | null
         }
         Update: {
-          created_at?: string
-          id?: string
-          title?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      messages: {
-        Row: {
-          content: string
-          conversation_id: string
-          created_at: string
-          id: string
-          role: string
-        }
-        Insert: {
-          content: string
-          conversation_id: string
-          created_at?: string
-          id?: string
-          role: string
-        }
-        Update: {
-          content?: string
-          conversation_id?: string
-          created_at?: string
-          id?: string
-          role?: string
+          component_id?: number | null
+          metrics_json?: Json | null
         }
         Relationships: [
           {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
+            foreignKeyName: "fk_benchmark_metrics_component_id"
+            columns: ["component_id"]
             isOneToOne: false
-            referencedRelation: "conversations"
+            referencedRelation: "components"
             referencedColumns: ["id"]
           },
         ]
       }
-      pc_builds: {
+      component_variants: {
         Row: {
-          components: Json
-          conversation_id: string
-          created_at: string
-          id: string
-          name: string
-          rating: Json
-          recommendation: string
-          total_price: number
-          user_id: string | null
+          component_id: number | null
+          image_url: string | null
+          in_stock: boolean | null
+          price: number | null
+          product_id: number
+          updated_at: string | null
+          variant_spec_json: Json | null
         }
         Insert: {
-          components: Json
-          conversation_id: string
-          created_at?: string
-          id?: string
-          name: string
-          rating: Json
-          recommendation: string
-          total_price: number
-          user_id?: string | null
+          component_id?: number | null
+          image_url?: string | null
+          in_stock?: boolean | null
+          price?: number | null
+          product_id: number
+          updated_at?: string | null
+          variant_spec_json?: Json | null
         }
         Update: {
-          components?: Json
-          conversation_id?: string
-          created_at?: string
-          id?: string
-          name?: string
-          rating?: Json
-          recommendation?: string
-          total_price?: number
-          user_id?: string | null
+          component_id?: number | null
+          image_url?: string | null
+          in_stock?: boolean | null
+          price?: number | null
+          product_id?: number
+          updated_at?: string | null
+          variant_spec_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_component_variants_component_id"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "components"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      components: {
+        Row: {
+          base_spec_json: Json | null
+          category: string | null
+          id: number
+          name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_spec_json?: Json | null
+          category?: string | null
+          id: number
+          name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_spec_json?: Json | null
+          category?: string | null
+          id?: number
+          name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      estimate_items: {
+        Row: {
+          component_score_json: Json | null
+          estimate_id: number | null
+          id: number
+          product_id: number | null
+          quantity: number | null
+          selection_reason: string | null
+        }
+        Insert: {
+          component_score_json?: Json | null
+          estimate_id?: number | null
+          id: number
+          product_id?: number | null
+          quantity?: number | null
+          selection_reason?: string | null
+        }
+        Update: {
+          component_score_json?: Json | null
+          estimate_id?: number | null
+          id?: number
+          product_id?: number | null
+          quantity?: number | null
+          selection_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_estimate_items_estimate_id"
+            columns: ["estimate_id"]
+            isOneToOne: false
+            referencedRelation: "estimates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_estimate_items_product_id"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "component_variants"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
+      estimates: {
+        Row: {
+          compatibility: boolean | null
+          compatibility_json: Json | null
+          created_at: string | null
+          id: number
+          metrics_score_json: Json | null
+          overall_reason: string | null
+          purpose: string | null
+          total_price: number | null
+          user_id: number | null
+        }
+        Insert: {
+          compatibility?: boolean | null
+          compatibility_json?: Json | null
+          created_at?: string | null
+          id: number
+          metrics_score_json?: Json | null
+          overall_reason?: string | null
+          purpose?: string | null
+          total_price?: number | null
+          user_id?: number | null
+        }
+        Update: {
+          compatibility?: boolean | null
+          compatibility_json?: Json | null
+          created_at?: string | null
+          id?: number
+          metrics_score_json?: Json | null
+          overall_reason?: string | null
+          purpose?: string | null
+          total_price?: number | null
+          user_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_estimates_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          created_at: string | null
+          id: number
+          input_text: string | null
+          response_json: Json | null
+          role: string | null
+          session_id: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: number
+          input_text?: string | null
+          response_json?: Json | null
+          role?: string | null
+          session_id?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          input_text?: string | null
+          response_json?: Json | null
+          role?: string | null
+          session_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_messages_session_id"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rag_documents: {
+        Row: {
+          content_text: string | null
+          doc_type: string | null
+          id: number
+          metadata_json: Json | null
+        }
+        Insert: {
+          content_text?: string | null
+          doc_type?: string | null
+          id: number
+          metadata_json?: Json | null
+        }
+        Update: {
+          content_text?: string | null
+          doc_type?: string | null
+          id?: number
+          metadata_json?: Json | null
+        }
+        Relationships: []
+      }
+      sessions: {
+        Row: {
+          created_at: string | null
+          device_id: string | null
+          id: number
+          session_name: string | null
+          user_id: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_id?: string | null
+          id: number
+          session_name?: string | null
+          user_id?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          device_id?: string | null
+          id?: number
+          session_name?: string | null
+          user_id?: number | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          id: number
+          profile: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: number
+          profile?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          profile?: string | null
         }
         Relationships: []
       }

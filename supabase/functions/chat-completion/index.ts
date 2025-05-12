@@ -258,7 +258,7 @@ const generateConciseName = async (openai, content, isConversation = true) => {
     return name;
   } catch (error) {
     console.error("Error generating name:", error);
-    return isConversation ? "New Conversation" : "New PC Build";
+    return isConversation ? "New Session" : "New PC Build";
   }
 };
 
@@ -279,7 +279,7 @@ serve(async (req) => {
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     });
 
-    const { messages, chatMode, conversationId, expertiseLevel = 'intermediate' } = await req.json();
+    const { messages, chatMode, sessionId, expertiseLevel = 'intermediate' } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: 'Invalid messages format' }), {
@@ -313,8 +313,8 @@ serve(async (req) => {
     // We'll try to extract a PC build from ALL responses, not just specific modes
     const buildInfo = extractPcBuild(assistantResponse);
     
-    // If we detected a PC build and have a conversation ID, save it
-    if (buildInfo && conversationId && buildInfo.components.length >= 3) {
+    // If we detected a PC build and have a session ID, save it
+    if (buildInfo && sessionId && buildInfo.components.length >= 3) {
       // Extract a title from the user's last message
       const userLastMessage = messages.findLast(msg => msg.role === 'user')?.content;
       
@@ -322,34 +322,61 @@ serve(async (req) => {
       const buildName = await generateConciseName(openai, userLastMessage, false);
       console.log("Generated build name:", buildName);
       
-      // Save the build to the database
-      try {
-        console.log("Saving build to database:", {
-          name: buildName,
-          conversation_id: conversationId,
-          components: buildInfo.components.length,
-          total_price: buildInfo.totalPrice,
+      // Get the next available ID for the estimates table
+      const { data: maxIdData, error: maxIdError } = await supabaseClient
+        .from('estimates')
+        .select('id')
+        .order('id', { ascending: false })
+        .limit(1);
+        
+      if (maxIdError) {
+        console.error("Error getting next estimate ID:", maxIdError);
+      } else {
+        const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
+        
+        // Create metrics_score_json from components
+        const metricsScoreJson = {};
+        buildInfo.components.forEach(comp => {
+          const lowerType = comp.type.toLowerCase();
+          metricsScoreJson[lowerType] = {
+            name: comp.name,
+            specs: comp.specs,
+            price: comp.price || 0
+          };
         });
         
-        const { data, error } = await supabaseClient
-          .from('pc_builds')
-          .insert({
+        // Save the build to the database
+        try {
+          console.log("Saving build to database:", {
             name: buildName,
-            conversation_id: conversationId,
-            components: buildInfo.components,
-            total_price: buildInfo.totalPrice || 0,
-            recommendation: buildInfo.recommendation || '맞춤형 견적 추천',
-            rating: {}  // Empty JSON object for future ratings
-          })
-          .select();
-        
-        if (error) {
+            session_id: parseInt(sessionId),
+            components_count: buildInfo.components.length,
+            total_price: buildInfo.totalPrice,
+          });
+          
+          const { data, error } = await supabaseClient
+            .from('estimates')
+            .insert({
+              id: nextId,
+              name: buildName,
+              session_id: parseInt(sessionId),
+              metrics_score_json: metricsScoreJson,
+              total_price: buildInfo.totalPrice || 0,
+              purpose: buildName,
+              compatibility: true,
+              compatibility_json: { valueForMoney: 5, noise: 3, performance: 4 },
+              overall_reason: buildInfo.recommendation || '맞춤형 견적 추천'
+            })
+            .select();
+          
+          if (error) {
+            console.error("Error saving build:", error);
+          } else {
+            console.log("Successfully saved build:", data);
+          }
+        } catch (error) {
           console.error("Error saving build:", error);
-        } else {
-          console.log("Successfully saved build:", data);
         }
-      } catch (error) {
-        console.error("Error saving build:", error);
       }
     } else {
       console.log("Debug build extraction:");
@@ -357,8 +384,8 @@ serve(async (req) => {
         console.log("No valid PC build detected.");
       } else if (!buildInfo.components || buildInfo.components.length < 3) {
         console.log("Not enough components found in the build:", buildInfo.components?.length || 0);
-      } else if (!conversationId) {
-        console.log("No conversation ID provided.");
+      } else if (!sessionId) {
+        console.log("No session ID provided.");
       } else {
         console.log("Unknown reason for not saving build.");
       }

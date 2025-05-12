@@ -206,79 +206,104 @@ export const generateBuildName = (components: Component[], purpose?: string): st
 };
 
 /**
- * Process all existing conversation messages to find builds
+ * Process all existing messages to find builds
  * This function will generate PC builds from existing messages and store them in the database
  */
 export const generateBuildsFromMessages = async (): Promise<void> => {
   try {
-    // Get all conversations
-    const { data: conversations, error: convoError } = await supabase
-      .from('conversations')
+    // Get all sessions
+    const { data: sessions, error: sessionError } = await supabase
+      .from('sessions')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (convoError) {
-      console.error('Error loading conversations:', convoError);
-      throw convoError;
+    if (sessionError) {
+      console.error('Error loading sessions:', sessionError);
+      throw sessionError;
     }
     
-    // For each conversation
-    for (const conversation of conversations || []) {
-      // Check if a build already exists for this conversation
+    // For each session
+    for (const session of sessions || []) {
+      // Check if a build already exists for this session
       const { data: existingBuilds } = await supabase
-        .from('pc_builds')
+        .from('estimates')
         .select('id')
-        .eq('conversation_id', conversation.id);
+        .eq('session_id', session.id);
         
       // If build already exists, skip
       if (existingBuilds && existingBuilds.length > 0) {
         continue;
       }
       
-      // Get all messages for this conversation
+      // Get all messages for this session
       const { data: messages, error: msgError } = await supabase
         .from('messages')
         .select('*')
-        .eq('conversation_id', conversation.id)
+        .eq('session_id', session.id)
         .eq('role', 'assistant')  // Only look at assistant messages
         .order('created_at', { ascending: true });
         
       if (msgError) {
-        console.error(`Error loading messages for conversation ${conversation.id}:`, msgError);
+        console.error(`Error loading messages for session ${session.id}:`, msgError);
         continue;
       }
       
       // For each assistant message, try to extract a build
       for (const message of messages || []) {
-        const buildInfo = extractBuildFromContent(message.content);
+        const buildInfo = extractBuildFromContent(message.input_text);
         
         if (buildInfo && buildInfo.components.length >= 3) {
+          // Get the next estimate ID
+          const { data: maxIdData, error: maxIdError } = await supabase
+            .from('estimates')
+            .select('id')
+            .order('id', { ascending: false })
+            .limit(1);
+            
+          if (maxIdError) {
+            console.error("Error getting next estimate ID:", maxIdError);
+            continue;
+          }
+          
+          const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
+          
           // Generate a name for the build
           const buildName = generateBuildName(
             buildInfo.components, 
             buildInfo.recommendation
           );
           
-          // Convert Component[] to Json before inserting into the database
-          const componentsJson = buildInfo.components as unknown as Json;
+          // Convert Component[] to metrics_score_json format
+          const metricsScoreJson: any = {};
+          buildInfo.components.forEach(comp => {
+            const lowerType = comp.type.toLowerCase();
+            metricsScoreJson[lowerType] = {
+              name: comp.name,
+              specs: comp.specs,
+              price: comp.price || 0
+            };
+          });
           
           // Save the build to the database
           const { error: saveError } = await supabase
-            .from('pc_builds')
+            .from('estimates')
             .insert({
+              id: nextId,
               name: buildName,
-              conversation_id: conversation.id,
-              components: componentsJson,
+              session_id: session.id,
+              metrics_score_json: metricsScoreJson,
               total_price: buildInfo.totalPrice,
-              recommendation: buildInfo.recommendation,
-              rating: {} as Json  // Empty JSON object for future ratings
+              purpose: buildName,
+              compatibility: true,
+              compatibility_json: { valueForMoney: 5, noise: 3, performance: 4 },
+              overall_reason: buildInfo.recommendation
             });
             
           if (saveError) {
-            console.error(`Error saving build for conversation ${conversation.id}:`, saveError);
+            console.error(`Error saving build for session ${session.id}:`, saveError);
           } else {
-            console.log(`Successfully generated build for conversation ${conversation.id}`);
-            // Once we find a build in this conversation, move to the next one
+            console.log(`Successfully generated build for session ${session.id}`);
+            // Once we find a build in this session, move to the next one
             break;
           }
         }
