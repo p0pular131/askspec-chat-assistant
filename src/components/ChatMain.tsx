@@ -4,7 +4,7 @@ import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
 import { MessageInput } from './MessageInput';
 import { fetchCompatibilityData } from '../integrations/supabase/client';
-import { CompatibilityDiagram } from './CompatibilityDiagram';
+import CompatibilityDiagram from './CompatibilityDiagram';
 
 interface ChatMainProps {
   messages: Array<{ text: string; isUser: boolean }>;
