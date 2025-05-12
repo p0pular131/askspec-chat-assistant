@@ -4,147 +4,167 @@ import { Cpu, HardDrive, VideoIcon, CircuitBoard, MemoryStick, Power, Fan, Check
 
 interface CompatNode {
   id: string;
-  x: number;
-  y: number;
+  label: string;
+  x?: number;
+  y?: number;
 }
 
 interface CompatLink {
   source: string;
   target: string;
-  status: 'success' | 'failure';
-}
-
-interface CompatData {
-  components: string[];
-  links: CompatLink[];
+  status: string;
 }
 
 interface CompatibilityGraphProps {
-  data: CompatData;
+  data: {
+    components: string[];
+    links: CompatLink[];
+  };
 }
 
 const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const nodes: Record<string, CompatNode> = {};
-  
-  // Map component types to icons
-  const getIconForComponent = (type: string) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  // Create a function to get an icon based on component type
+  const getIconForComponent = (type: string): JSX.Element => {
     switch (type.toLowerCase()) {
       case 'cpu':
-        return <Cpu className="h-6 w-6" />;
-      case 'storage':
-        return <HardDrive className="h-6 w-6" />;
+        return <Cpu />;
       case 'gpu':
-        return <VideoIcon className="h-6 w-6" />;
+        return <VideoIcon />;
       case 'motherboard':
-        return <CircuitBoard className="h-6 w-6" />;
+        return <CircuitBoard />;
       case 'ram':
-        return <MemoryStick className="h-6 w-6" />;
+        return <MemoryStick />;
       case 'psu':
-        return <Power className="h-6 w-6" />;
+        return <Power />;
       case 'cooling':
-        return <Fan className="h-6 w-6" />;
+        return <Fan />;
+      case 'storage':
+        return <HardDrive />;
       default:
-        return <HardDrive className="h-6 w-6" />;
+        return <HardDrive />;
     }
   };
 
-  // Position nodes in a circle
   useEffect(() => {
-    if (!canvasRef.current || !data.components || data.components.length === 0) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!svgRef.current || !data.components || !data.links) return;
 
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const svg = svgRef.current;
+    const width = 320;
+    const height = 320;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) * 0.35;
     
-    // Calculate positions
-    const radius = Math.min(canvas.width, canvas.height) / 2.5;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    // Clear SVG
+    svg.innerHTML = '';
     
-    // Create nodes with positions
-    data.components.forEach((component, i) => {
-      const angle = (i / data.components.length) * 2 * Math.PI;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      
-      nodes[component] = { id: component, x, y };
+    // Function to calculate position on a circle
+    const getPositionOnCircle = (index: number, total: number) => {
+      const angle = (index / total) * 2 * Math.PI;
+      return {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle)
+      };
+    };
+    
+    // Create nodes (components)
+    const nodes: CompatNode[] = data.components.map((component, index) => ({
+      id: component,
+      label: component,
+      ...getPositionOnCircle(index, data.components.length)
+    }));
+    
+    // Create a map for quick node lookup
+    const nodeMap: Record<string, CompatNode> = {};
+    nodes.forEach(node => {
+      nodeMap[node.id] = node;
     });
     
-    // Draw links first (so they're behind the nodes)
+    // Create links
     data.links.forEach(link => {
-      const sourceNode = nodes[link.source];
-      const targetNode = nodes[link.target];
+      const sourceNode = nodeMap[link.source];
+      const targetNode = nodeMap[link.target];
       
       if (sourceNode && targetNode) {
-        // Draw link
-        ctx.beginPath();
-        ctx.moveTo(sourceNode.x, sourceNode.y);
-        ctx.lineTo(targetNode.x, targetNode.y);
-        ctx.strokeStyle = link.status === 'success' ? '#10b981' : '#ef4444';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        // Draw line
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', sourceNode.x!.toString());
+        line.setAttribute('y1', sourceNode.y!.toString());
+        line.setAttribute('x2', targetNode.x!.toString());
+        line.setAttribute('y2', targetNode.y!.toString());
+        line.setAttribute('stroke', link.status === 'success' ? '#22c55e' : '#ef4444');
+        line.setAttribute('stroke-width', '2');
+        svg.appendChild(line);
         
-        // Draw status indicator icon in the middle of the link
-        const midX = (sourceNode.x + targetNode.x) / 2;
-        const midY = (sourceNode.y + targetNode.y) / 2;
+        // Add status indicator in middle of line
+        const midX = (sourceNode.x! + targetNode.x!) / 2;
+        const midY = (sourceNode.y! + targetNode.y!) / 2;
         
-        ctx.fillStyle = link.status === 'success' ? '#10b981' : '#ef4444';
-        ctx.beginPath();
-        ctx.arc(midX, midY, 10, 0, 2 * Math.PI);
-        ctx.fill();
+        const statusGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         
-        // Add a status icon (check or x)
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(link.status === 'success' ? '✓' : '✗', midX, midY);
+        const statusCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        statusCircle.setAttribute('cx', midX.toString());
+        statusCircle.setAttribute('cy', midY.toString());
+        statusCircle.setAttribute('r', '10');
+        statusCircle.setAttribute('fill', 'white');
+        statusCircle.setAttribute('stroke', link.status === 'success' ? '#22c55e' : '#ef4444');
+        statusCircle.setAttribute('stroke-width', '1');
+        statusGroup.appendChild(statusCircle);
+        
+        // Status icon (✓ or ✗)
+        const statusText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        statusText.setAttribute('x', midX.toString());
+        statusText.setAttribute('y', (midY + 1).toString());
+        statusText.setAttribute('text-anchor', 'middle');
+        statusText.setAttribute('dominant-baseline', 'middle');
+        statusText.setAttribute('font-size', '12');
+        statusText.setAttribute('fill', link.status === 'success' ? '#22c55e' : '#ef4444');
+        statusText.textContent = link.status === 'success' ? '✓' : '✗';
+        statusGroup.appendChild(statusText);
+        
+        svg.appendChild(statusGroup);
       }
     });
     
-    // Then draw nodes (so they're on top)
-    Object.values(nodes).forEach(node => {
-      // Draw node circle
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, 30, 0, 2 * Math.PI);
-      ctx.fillStyle = '#f3f4f6';
-      ctx.fill();
-      ctx.strokeStyle = '#d1d5db';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+    // Create node circles and labels
+    nodes.forEach(node => {
+      const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       
-      // Draw node label
-      ctx.fillStyle = '#374151';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(node.id, node.x, node.y + 45);
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', node.x!.toString());
+      circle.setAttribute('cy', node.y!.toString());
+      circle.setAttribute('r', '24');
+      circle.setAttribute('fill', 'white');
+      circle.setAttribute('stroke', '#3b82f6');
+      circle.setAttribute('stroke-width', '2');
+      nodeGroup.appendChild(circle);
+      
+      // Add label text
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('x', node.x!.toString());
+      label.setAttribute('y', (node.y! + 45).toString());
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('font-size', '12');
+      label.setAttribute('fill', '#1f2937');
+      label.textContent = node.label;
+      nodeGroup.appendChild(label);
+      
+      svg.appendChild(nodeGroup);
     });
     
   }, [data]);
-
+  
   return (
-    <div className="compatibility-graph-container">
-      <canvas 
-        ref={canvasRef} 
-        width={600} 
-        height={400} 
-        className="w-full max-h-96"
-      />
-      <div className="flex justify-center mt-4 gap-8">
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-8 bg-green-500 rounded"></div>
-          <span className="text-sm text-gray-600">호환 가능</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-8 bg-red-500 rounded"></div>
-          <span className="text-sm text-gray-600">호환 불가</span>
-        </div>
-      </div>
+    <div className="w-full flex justify-center">
+      <svg 
+        ref={svgRef} 
+        width="320" 
+        height="360" 
+        viewBox="0 0 320 360"
+        className="overflow-visible"
+      ></svg>
     </div>
   );
 };

@@ -16,10 +16,10 @@ interface CompatData {
 }
 
 interface CompatibilityDiagramProps {
-  data: CompatData;
+  compatData: CompatData;
 }
 
-const CompatibilityDiagram: React.FC<CompatibilityDiagramProps> = ({ data }) => {
+const CompatibilityDiagram: React.FC<CompatibilityDiagramProps> = ({ compatData }) => {
   const [view, setView] = useState<'graph' | 'list'>('graph');
   
   // Map component types to icons
@@ -61,12 +61,12 @@ const CompatibilityDiagram: React.FC<CompatibilityDiagramProps> = ({ data }) => 
         </TabsList>
         
         <TabsContent value="graph" className="mt-0">
-          <CompatibilityGraph data={data} />
+          <CompatibilityGraph data={compatData} />
         </TabsContent>
         
         <TabsContent value="list" className="mt-0">
           <div className="space-y-4">
-            {data.links.map((link, index) => (
+            {compatData.links.map((link, index) => (
               <div key={index} className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">{link.source}</span>

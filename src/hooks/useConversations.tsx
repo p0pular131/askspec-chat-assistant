@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export interface Session {
   id: number;
-  user_id: string;
+  user_id: string; // This should be a string for compatibility
   created_at: string;
   session_name: string | null;
 }
@@ -17,8 +17,6 @@ interface DatabaseMessage {
   input_text: string;
   response_json: any;
   role: 'user' | 'assistant';
-  expertise_level?: string | null;
-  chat_mode?: string | null;
 }
 
 export interface Build {
@@ -67,7 +65,7 @@ export const useConversationState = () => {
         // Ensure the correct type for user_id
         const typedData: Session[] = data.map(session => ({
           ...session,
-          user_id: session.user_id?.toString() || 'user-123' // Convert to string if present, otherwise use default
+          user_id: session.user_id?.toString() || 'user-123' // Convert to string
         }));
         setSessions(typedData);
       }
@@ -106,8 +104,6 @@ export const useConversationState = () => {
           role: (message.role === 'user' || message.role === 'assistant') 
             ? message.role 
             : 'user', // Default to 'user' if it's not valid
-          expertise_level: message.expertise_level || null,
-          chat_mode: message.chat_mode || null
         }));
         
         setMessages(typedMessages);
@@ -143,8 +139,9 @@ export const useConversationState = () => {
         const convertedBuilds: Build[] = data.map(item => ({
           id: item.id,
           name: item.purpose || 'Unnamed Build',
-          session_id: item.session_id || 0,
-          created_at: item.created_at,
+          // Assign 0 as default session_id since it doesn't exist in the estimates table
+          session_id: 0,
+          created_at: item.created_at || '',
           total_price: item.total_price || 0,
           parts: item.metrics_score_json || {}
         }));
@@ -209,7 +206,7 @@ export const useConversationState = () => {
     setShowExample(false);
   }, []);
 
-  const sendMessage = useCallback(async (text: string, expertiseLevel: string, chatMode: string) => {
+  const sendMessage = useCallback(async (text: string) => {
     if (!currentConversation) {
       toast({
         title: "대화 선택 필요",
@@ -229,8 +226,6 @@ export const useConversationState = () => {
       input_text: text,
       response_json: null,
       role: 'user', // Properly typed as 'user'
-      expertise_level: expertiseLevel,
-      chat_mode: chatMode,
     };
     
     try {
@@ -238,15 +233,13 @@ export const useConversationState = () => {
       setMessages(prevMessages => [...prevMessages, tempMessage]);
       setShowExample(false);
 
-      // Send the message to Supabase
+      // Send the message to Supabase - only include fields that exist in the table
       const { data, error } = await supabase
         .from('messages')
         .insert({
           session_id: currentConversation.id,
           input_text: text,
           role: 'user',
-          expertise_level: expertiseLevel,
-          chat_mode: chatMode,
         })
         .select()
         .single();
@@ -265,8 +258,8 @@ export const useConversationState = () => {
           message: text,
           messages: dbMessages,
           session_id: currentConversation.id,
-          expertise_level: expertiseLevel,
-          chat_mode: chatMode
+          expertise_level: 'intermediate', // Default value
+          chat_mode: '범용 검색' // Default value
         }),
       });
 
@@ -284,21 +277,17 @@ export const useConversationState = () => {
         input_text: responseData.content,
         response_json: null,
         role: 'assistant', // Properly typed as 'assistant'
-        expertise_level: expertiseLevel,
-        chat_mode: chatMode,
       };
       
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
       
-      // Send the assistant's message to Supabase
+      // Send the assistant's message to Supabase - only include fields that exist in the table
       const { error: assistantError } = await supabase
         .from('messages')
         .insert({
           session_id: currentConversation.id,
           input_text: responseData.content,
           role: 'assistant',
-          expertise_level: expertiseLevel,
-          chat_mode: chatMode,
         })
         .select()
         .single();

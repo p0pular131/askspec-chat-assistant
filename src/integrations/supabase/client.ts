@@ -21,10 +21,9 @@ export async function fetchCompatibilityData() {
       
     if (error) throw error;
     
-    // if (data && data.length > 0) {
-    //   // If we have real data, return it
-    //   return data[0].compat;
-    // }
+    if (data && data.length > 0 && data[0].compat) {
+      return data[0].compat;
+    }
     
     // If no data is available, return dummy compatibility data for demonstration
     return {

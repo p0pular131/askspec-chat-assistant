@@ -34,14 +34,14 @@ export function useConversationState() {
   
   const {
     builds,
-    loading: buildsLoading,
+    buildsLoading,
     loadBuilds,
-    deleteBuild
+    handleDeleteBuild: deleteBuild
   } = useBuilds();
   
   const { 
     messages: dbMessages, 
-    loading: msgLoading, 
+    isLoading: msgLoading, 
     addMessage, 
     loadMessages, 
     callOpenAI 
