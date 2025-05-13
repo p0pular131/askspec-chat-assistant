@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export interface Session {
   id: number;
-  user_id: string; // This should be a string for compatibility
+  user_id: number; // Changed from string to number to match database
   created_at: string;
   session_name: string | null;
 }
@@ -62,10 +62,10 @@ export const useConversationState = () => {
       }
 
       if (data) {
-        // Ensure the correct type for user_id
+        // Make sure data is correctly typed
         const typedData: Session[] = data.map(session => ({
           ...session,
-          user_id: session.user_id?.toString() || 'user-123' // Convert to string
+          user_id: session.user_id || 123 // Default to a numeric user ID
         }));
         setSessions(typedData);
       }
@@ -163,9 +163,10 @@ export const useConversationState = () => {
   const startNewConversation = useCallback(async () => {
     setConvoLoading(true);
     try {
+      // Use a numeric user ID (123) instead of a string
       const { data, error } = await supabase
         .from('sessions')
-        .insert([{ user_id: 'user-123' }])
+        .insert([{ user_id: 123 }])
         .select()
         .single();
 
@@ -177,7 +178,7 @@ export const useConversationState = () => {
         // Ensure correct typing for the new session
         const newSession: Session = {
           ...data,
-          user_id: data.user_id?.toString() || 'user-123'
+          user_id: data.user_id || 123
         };
         
         setSessions(prevSessions => [newSession, ...prevSessions]);

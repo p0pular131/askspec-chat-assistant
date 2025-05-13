@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
@@ -29,19 +28,15 @@ export function useConversationState() {
     startNewConversation: createSession, 
     handleDeleteConversation: deleteSession,
     updateSession,
-    loadConversations: fetchSessions
-  } = useConversations();
-  
-  const {
+    loadConversations: fetchSessions,
     builds,
-    buildsLoading,
-    loadBuilds,
-    handleDeleteBuild: deleteBuild
-  } = useBuilds();
+    handleDeleteBuild: deleteBuild,
+    handleViewBuild
+  } = useConversations();
   
   const { 
     messages: dbMessages, 
-    isLoading: msgLoading, 
+    loading: msgLoading, 
     addMessage, 
     loadMessages, 
     callOpenAI 
@@ -112,8 +107,7 @@ export function useConversationState() {
     try {
       const result = await deleteBuild(buildId);
       if (result) {
-        // Reload the builds list
-        await loadBuilds();
+        // Handled in useConversations, no need to reload here
       }
     } catch (error) {
       toast({
@@ -122,7 +116,7 @@ export function useConversationState() {
         variant: "destructive",
       });
     }
-  }, [deleteBuild, loadBuilds]);
+  }, [deleteBuild]);
 
   const handleViewBuild = useCallback((buildId: string) => {
     navigate(`/build/${buildId}`);
@@ -258,7 +252,6 @@ export function useConversationState() {
     addMessage, 
     updateSession, 
     callOpenAI, 
-    loadBuilds, 
     dbMessages
   ]);
 
@@ -277,16 +270,15 @@ export function useConversationState() {
     msgLoading,
     dbMessages,
     builds,
-    buildsLoading,
     startNewConversation,
-    selectConversation,
-    handleDeleteConversation,
+    selectConversation: setCurrentSession,
+    handleDeleteConversation: deleteSession,
     handleDeleteBuild,
     handleViewBuild,
     sendMessage,
     loadMessages,
     syncMessagesFromDB,
-    loadBuilds,
+    loadBuilds: fetchSessions, // Use the function from useConversations
     setShowExample
   };
 }
