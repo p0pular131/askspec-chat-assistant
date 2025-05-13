@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export interface Session {
   id: number;
-  user_id: number; // Changed from string to number to match database
+  user_id: number;
   created_at: string;
   session_name: string | null;
 }
@@ -26,6 +26,9 @@ export interface Build {
   session_id: number;
   total_price: number;
   parts: any;
+  components?: any[]; // Make components optional
+  recommendation?: string; // Make recommendation optional
+  rating?: any; // Make rating optional
 }
 
 export const useConversationState = () => {
@@ -166,7 +169,7 @@ export const useConversationState = () => {
       // Use a numeric user ID (123) instead of a string
       const { data, error } = await supabase
         .from('sessions')
-        .insert([{ user_id: 123 }])
+        .insert({ user_id: 123 }) // Fix: Use a single object, not an array
         .select()
         .single();
 
@@ -242,8 +245,7 @@ export const useConversationState = () => {
           input_text: text,
           role: 'user',
         })
-        .select()
-        .single();
+        .select();
 
       if (error) {
         throw error;
@@ -259,8 +261,6 @@ export const useConversationState = () => {
           message: text,
           messages: dbMessages,
           session_id: currentConversation.id,
-          expertise_level: 'intermediate', // Default value
-          chat_mode: '범용 검색' // Default value
         }),
       });
 
@@ -289,9 +289,7 @@ export const useConversationState = () => {
           session_id: currentConversation.id,
           input_text: responseData.content,
           role: 'assistant',
-        })
-        .select()
-        .single();
+        });
 
       if (assistantError) {
         throw assistantError;
@@ -442,7 +440,7 @@ export const useConversationState = () => {
   }, [supabase, toast]);
 
   const viewBuild = useCallback(async (buildId: string) => {
-    // TODO: Implement view build functionality
+    // Implement view build functionality
     console.log(`View build with ID: ${buildId}`);
   }, []);
 

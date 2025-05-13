@@ -1,9 +1,9 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
 import { useConversationState as useConversations } from './useConversations';
 import { useMessages } from './useMessages';
-import { useBuilds } from './useBuilds';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../components/ui/use-toast';
 
@@ -31,7 +31,8 @@ export function useConversationState() {
     loadConversations: fetchSessions,
     builds,
     handleDeleteBuild: deleteBuild,
-    handleViewBuild
+    handleViewBuild: viewBuild, // Renamed to viewBuild to avoid conflict
+    loadBuilds // Import loadBuilds function
   } = useConversations();
   
   const { 
@@ -118,6 +119,7 @@ export function useConversationState() {
     }
   }, [deleteBuild]);
 
+  // Use the viewBuild from useConversations instead of defining a new one
   const handleViewBuild = useCallback((buildId: string) => {
     navigate(`/build/${buildId}`);
   }, [navigate]);
@@ -252,7 +254,8 @@ export function useConversationState() {
     addMessage, 
     updateSession, 
     callOpenAI, 
-    dbMessages
+    dbMessages,
+    loadBuilds
   ]);
 
   // Sync messages from database when dbMessages change
@@ -270,6 +273,7 @@ export function useConversationState() {
     msgLoading,
     dbMessages,
     builds,
+    buildsLoading: false, // Add buildsLoading property
     startNewConversation,
     selectConversation: setCurrentSession,
     handleDeleteConversation: deleteSession,
@@ -278,7 +282,7 @@ export function useConversationState() {
     sendMessage,
     loadMessages,
     syncMessagesFromDB,
-    loadBuilds: fetchSessions, // Use the function from useConversations
+    loadBuilds, // Return the loadBuilds function directly
     setShowExample
   };
 }

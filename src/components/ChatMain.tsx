@@ -1,4 +1,3 @@
-
 import React, { memo, useState } from 'react';
 import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
@@ -67,7 +66,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
 
         {compatibilityData && messages.length > 0 && !isLoading && (
           <div className="mt-4 mb-4">
-            <CompatibilityDiagram compatData={compatibilityData} />
+            <CompatibilityDiagram data={compatibilityData} />
           </div>
         )}
 

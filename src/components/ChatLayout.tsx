@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
@@ -36,7 +35,7 @@ export const ChatLayout: React.FC = () => {
     convoLoading,
     dbMessages,
     builds,
-    buildsLoading,
+    buildsLoading, // Added this property
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
