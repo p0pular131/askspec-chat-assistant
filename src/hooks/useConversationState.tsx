@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
@@ -31,8 +30,8 @@ export function useConversationState() {
     loadConversations: fetchSessions,
     builds,
     handleDeleteBuild: deleteBuild,
-    handleViewBuild: viewBuild, // Renamed to viewBuild to avoid conflict
-    loadBuilds // Import loadBuilds function
+    handleViewBuild: viewBuildFromHook, // Renamed to avoid duplication
+    loadBuilds
   } = useConversations();
   
   const { 
@@ -119,7 +118,7 @@ export function useConversationState() {
     }
   }, [deleteBuild]);
 
-  // Use the viewBuild from useConversations instead of defining a new one
+  // Define our own handleViewBuild that uses navigation
   const handleViewBuild = useCallback((buildId: string) => {
     navigate(`/build/${buildId}`);
   }, [navigate]);
@@ -273,16 +272,16 @@ export function useConversationState() {
     msgLoading,
     dbMessages,
     builds,
-    buildsLoading: false, // Add buildsLoading property
+    buildsLoading: false, // Define buildsLoading to match the interface
     startNewConversation,
     selectConversation: setCurrentSession,
     handleDeleteConversation: deleteSession,
     handleDeleteBuild,
-    handleViewBuild,
+    handleViewBuild, // Use our local implementation
     sendMessage,
     loadMessages,
     syncMessagesFromDB,
-    loadBuilds, // Return the loadBuilds function directly
+    loadBuilds, // Use the loadBuilds from useConversations
     setShowExample
   };
 }

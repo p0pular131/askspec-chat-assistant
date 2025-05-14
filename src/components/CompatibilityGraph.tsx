@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import { CircuitBoard, Cpu, Gpu, Database, Power, Fan } from 'lucide-react';
+import { CircuitBoard, Cpu, HardDrive, Database, Power, Fan } from 'lucide-react';
 
 interface CompatibilityGraphProps {
   data: {
@@ -19,7 +19,7 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
       case 'cpu':
         return Cpu;
       case 'gpu':
-        return Gpu;
+        return HardDrive; // Changed from Gpu to HardDrive as Gpu isn't available
       case 'motherboard':
         return CircuitBoard;
       case 'storage':

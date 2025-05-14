@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
@@ -166,24 +165,43 @@ export const useConversationState = () => {
   const startNewConversation = useCallback(async () => {
     setConvoLoading(true);
     try {
-      // According to the database schema, 'id' is required but likely auto-generated
-      // Removing 'id' from the insert object since it should be auto-generated
-      const { data, error } = await supabase
-        .from('sessions')
-        .insert({ user_id: 123 })
-        .select();
+      // According to the database schema, 'id' field is required but might be auto-generated
+      // We'll use RPC call instead of direct insert to let the database handle the ID generation
+      const { data, error } = await supabase.rpc('create_new_session', {
+        user_id_param: 123 // Pass user_id as a parameter
+      }).select();
 
+      // If RPC doesn't exist or fails, fall back to a different approach
       if (error) {
-        throw error;
-      }
+        console.log("Failed to use RPC, falling back to direct insert:", error);
+        // Try to use insert with returning to get the auto-generated ID
+        const { data: insertData, error: insertError } = await supabase
+          .from('sessions')
+          .insert({
+            user_id: 123,
+            created_at: new Date().toISOString()
+          })
+          .select();
 
-      if (data && data.length > 0) {
-        // Ensure correct typing for the new session
+        if (insertError) throw insertError;
+        
+        if (insertData && insertData.length > 0) {
+          const newSession: Session = {
+            ...insertData[0],
+            user_id: insertData[0].user_id || 123
+          };
+          setSessions(prevSessions => [newSession, ...prevSessions]);
+          setCurrentConversation(newSession);
+          setMessages([]);
+          setShowExample(true);
+          return newSession;
+        }
+      } else if (data && data.length > 0) {
+        // RPC worked
         const newSession: Session = {
           ...data[0],
           user_id: data[0].user_id || 123
         };
-        
         setSessions(prevSessions => [newSession, ...prevSessions]);
         setCurrentConversation(newSession);
         setMessages([]);
@@ -237,19 +255,29 @@ export const useConversationState = () => {
       setMessages(prevMessages => [...prevMessages, tempMessage]);
       setShowExample(false);
 
-      // Based on the database schema, 'id' appears to be required but auto-generated
-      // We'll exclude it from the insert to let the database generate it
-      const { data, error } = await supabase
-        .from('messages')
-        .insert({
-          session_id: currentConversation.id,
-          input_text: text,
-          role: 'user',
-        })
-        .select();
+      // Use a stored procedure or similar to insert with auto-generated id
+      const { data, error } = await supabase.rpc('create_message', {
+        session_id_param: currentConversation.id,
+        input_text_param: text,
+        role_param: 'user'
+      }).select();
 
+      // Fallback if RPC doesn't exist
       if (error) {
-        throw error;
+        console.log("Falling back to direct message insert:", error);
+        // Use a more direct approach that works with the schema
+        const nextId = await getNextMessageId();
+        
+        const { error: insertError } = await supabase
+          .from('messages')
+          .insert({
+            id: nextId,
+            session_id: currentConversation.id,
+            input_text: text,
+            role: 'user'
+          });
+
+        if (insertError) throw insertError;
       }
 
       // Fetch response from the server
@@ -283,13 +311,15 @@ export const useConversationState = () => {
       
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
       
-      // Send the assistant's message to Supabase - only include fields that exist in the table
+      // Send the assistant's message to Supabase with similar approach
+      const nextId = await getNextMessageId();
       const { error: assistantError } = await supabase
         .from('messages')
         .insert({
+          id: nextId,
           session_id: currentConversation.id,
           input_text: responseData.content,
-          role: 'assistant',
+          role: 'assistant'
         });
 
       if (assistantError) {
@@ -311,6 +341,22 @@ export const useConversationState = () => {
       setIsLoading(false);
     }
   }, [currentConversation, toast, dbMessages, loadMessages]);
+
+  // Helper function to get next available message ID
+  const getNextMessageId = async () => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+      
+    if (error) {
+      console.error('Error getting next message ID:', error);
+      return Date.now(); // Fallback to timestamp if query fails
+    }
+    
+    return (data && data.length > 0) ? data[0].id + 1 : 1;
+  };
 
   // Update session name
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {

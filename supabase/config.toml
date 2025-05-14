@@ -3,3 +3,6 @@ project_id = "jjnlzdxwodurnooflsen"
 
 [functions.chat-completion]
 verify_jwt = true
+
+[functions.db-helpers]
+verify_jwt = false
