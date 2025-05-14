@@ -166,22 +166,22 @@ export const useConversationState = () => {
   const startNewConversation = useCallback(async () => {
     setConvoLoading(true);
     try {
-      // Use a numeric user ID (123) instead of a string
+      // According to the database schema, 'id' is required but likely auto-generated
+      // Removing 'id' from the insert object since it should be auto-generated
       const { data, error } = await supabase
         .from('sessions')
-        .insert({ user_id: 123 }) // Fix: Use a single object, not an array
-        .select()
-        .single();
+        .insert({ user_id: 123 })
+        .select();
 
       if (error) {
         throw error;
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         // Ensure correct typing for the new session
         const newSession: Session = {
-          ...data,
-          user_id: data.user_id || 123
+          ...data[0],
+          user_id: data[0].user_id || 123
         };
         
         setSessions(prevSessions => [newSession, ...prevSessions]);
@@ -237,7 +237,8 @@ export const useConversationState = () => {
       setMessages(prevMessages => [...prevMessages, tempMessage]);
       setShowExample(false);
 
-      // Send the message to Supabase - only include fields that exist in the table
+      // Based on the database schema, 'id' appears to be required but auto-generated
+      // We'll exclude it from the insert to let the database generate it
       const { data, error } = await supabase
         .from('messages')
         .insert({

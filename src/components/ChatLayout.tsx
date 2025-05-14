@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
@@ -149,6 +150,9 @@ export const ChatLayout: React.FC = () => {
     }
   };
 
+  // Use type assertion to make sure the builds property is compatible with the BuildsList component
+  const buildsList = builds as any[];
+
   return (
     <div className="flex w-screen h-screen bg-neutral-100">
       <Sidebar
@@ -215,7 +219,7 @@ export const ChatLayout: React.FC = () => {
           {activeTab === 'builds' && (
             <>
               <BuildsList
-                builds={builds}
+                builds={buildsList}
                 loading={buildsLoading}
                 error={null}
                 onViewBuild={handleViewBuild}

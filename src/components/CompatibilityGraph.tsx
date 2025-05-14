@@ -1,172 +1,160 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Cpu, HardDrive, VideoIcon, CircuitBoard, MemoryStick, Power, Fan, CheckCircle, XCircle } from 'lucide-react';
-
-interface CompatNode {
-  id: string;
-  label: string;
-  x?: number;
-  y?: number;
-}
-
-interface CompatLink {
-  source: string;
-  target: string;
-  status: string;
-}
+import * as d3 from 'd3';
+import { CircuitBoard, Cpu, Gpu, Database, Power, Fan } from 'lucide-react';
 
 interface CompatibilityGraphProps {
   data: {
     components: string[];
-    links: CompatLink[];
+    links: Array<{ source: string; target: string; status: string }>;
   };
 }
 
 const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // Create a function to get an icon based on component type
-  const getIconForComponent = (type: string): JSX.Element => {
-    switch (type.toLowerCase()) {
+  // Get icon component for a given component name
+  const getIconComponent = (name: string) => {
+    switch (name.toLowerCase()) {
       case 'cpu':
-        return <Cpu />;
+        return Cpu;
       case 'gpu':
-        return <VideoIcon />;
+        return Gpu;
       case 'motherboard':
-        return <CircuitBoard />;
-      case 'ram':
-        return <MemoryStick />;
-      case 'psu':
-        return <Power />;
-      case 'cooling':
-        return <Fan />;
+        return CircuitBoard;
       case 'storage':
-        return <HardDrive />;
+        return Database;
+      case 'psu':
+        return Power;
+      case 'cooling':
+        return Fan;
       default:
-        return <HardDrive />;
+        return CircuitBoard;
     }
   };
 
   useEffect(() => {
-    if (!svgRef.current || !data.components || !data.links) return;
+    if (!svgRef.current || !data || !data.components || !data.links) return;
 
-    const svg = svgRef.current;
-    const width = 320;
-    const height = 320;
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = Math.min(width, height) * 0.35;
+    // Clear previous graph
+    d3.select(svgRef.current).selectAll("*").remove();
+
+    // Set up dimensions
+    const width = svgRef.current.clientWidth;
+    const height = svgRef.current.clientHeight;
     
-    // Clear SVG
-    svg.innerHTML = '';
-    
-    // Function to calculate position on a circle
-    const getPositionOnCircle = (index: number, total: number) => {
-      const angle = (index / total) * 2 * Math.PI;
-      return {
-        x: centerX + radius * Math.cos(angle),
-        y: centerY + radius * Math.sin(angle)
-      };
-    };
-    
-    // Create nodes (components)
-    const nodes: CompatNode[] = data.components.map((component, index) => ({
-      id: component,
-      label: component,
-      ...getPositionOnCircle(index, data.components.length)
+    // Create a force simulation
+    const simulation = d3.forceSimulation()
+      .force("link", d3.forceLink().id((d: any) => d.id).distance(100))
+      .force("charge", d3.forceManyBody().strength(-200))
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+    // Create SVG element
+    const svg = d3.select(svgRef.current)
+      .attr("width", width)
+      .attr("height", height);
+      
+    // Prepare nodes and links
+    const nodes = data.components.map(name => ({ id: name }));
+    const links = data.links.map(link => ({
+      source: link.source,
+      target: link.target,
+      status: link.status
     }));
     
-    // Create a map for quick node lookup
-    const nodeMap: Record<string, CompatNode> = {};
-    nodes.forEach(node => {
-      nodeMap[node.id] = node;
-    });
-    
     // Create links
-    data.links.forEach(link => {
-      const sourceNode = nodeMap[link.source];
-      const targetNode = nodeMap[link.target];
+    const linkElements = svg.append("g")
+      .selectAll("line")
+      .data(links)
+      .enter().append("line")
+      .attr("stroke-width", 2)
+      .attr("stroke", (d) => d.status === "success" ? "#4ade80" : "#f43f5e");
       
-      if (sourceNode && targetNode) {
-        // Draw line
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', sourceNode.x!.toString());
-        line.setAttribute('y1', sourceNode.y!.toString());
-        line.setAttribute('x2', targetNode.x!.toString());
-        line.setAttribute('y2', targetNode.y!.toString());
-        line.setAttribute('stroke', link.status === 'success' ? '#22c55e' : '#ef4444');
-        line.setAttribute('stroke-width', '2');
-        svg.appendChild(line);
+    // Create node groups
+    const nodeGroups = svg.append("g")
+      .selectAll(".node")
+      .data(nodes)
+      .enter().append("g")
+      .attr("class", "node")
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
         
-        // Add status indicator in middle of line
-        const midX = (sourceNode.x! + targetNode.x!) / 2;
-        const midY = (sourceNode.y! + targetNode.y!) / 2;
-        
-        const statusGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        
-        const statusCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        statusCircle.setAttribute('cx', midX.toString());
-        statusCircle.setAttribute('cy', midY.toString());
-        statusCircle.setAttribute('r', '10');
-        statusCircle.setAttribute('fill', 'white');
-        statusCircle.setAttribute('stroke', link.status === 'success' ? '#22c55e' : '#ef4444');
-        statusCircle.setAttribute('stroke-width', '1');
-        statusGroup.appendChild(statusCircle);
-        
-        // Status icon (✓ or ✗)
-        const statusText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        statusText.setAttribute('x', midX.toString());
-        statusText.setAttribute('y', (midY + 1).toString());
-        statusText.setAttribute('text-anchor', 'middle');
-        statusText.setAttribute('dominant-baseline', 'middle');
-        statusText.setAttribute('font-size', '12');
-        statusText.setAttribute('fill', link.status === 'success' ? '#22c55e' : '#ef4444');
-        statusText.textContent = link.status === 'success' ? '✓' : '✗';
-        statusGroup.appendChild(statusText);
-        
-        svg.appendChild(statusGroup);
-      }
+    // Add circles for nodes
+    nodeGroups.append("circle")
+      .attr("r", 25)
+      .attr("fill", "white")
+      .attr("stroke", "#e5e7eb")
+      .attr("stroke-width", 2);
+      
+    // Add icons to nodes using foreignObject
+    nodeGroups.each(function(d: any) {
+      const IconComponent = getIconComponent(d.id);
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+      icon.setAttribute("width", "24");
+      icon.setAttribute("height", "24");
+      icon.setAttribute("x", "-12");
+      icon.setAttribute("y", "-12");
+      
+      const div = document.createElement("div");
+      div.style.width = "100%";
+      div.style.height = "100%";
+      div.style.display = "flex";
+      div.style.alignItems = "center";
+      div.style.justifyContent = "center";
+      
+      // Render the icon
+      div.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IconComponent().props.children}</svg>`;
+      
+      icon.appendChild(div);
+      this.appendChild(icon);
     });
+      
+    // Add labels
+    nodeGroups.append("text")
+      .attr("dy", 40)
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .style("font-weight", "500")
+      .text((d: any) => d.id);
+      
+    // Update positions on each tick
+    simulation
+      .nodes(nodes as any)
+      .on("tick", () => {
+        linkElements
+          .attr("x1", (d: any) => d.source.x)
+          .attr("y1", (d: any) => d.source.y)
+          .attr("x2", (d: any) => d.target.x)
+          .attr("y2", (d: any) => d.target.y);
+          
+        nodeGroups.attr("transform", (d: any) => `translate(${d.x},${d.y})`);
+      });
+      
+    (simulation.force("link") as d3.ForceLink<any, any>).links(links);
     
-    // Create node circles and labels
-    nodes.forEach(node => {
-      const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', node.x!.toString());
-      circle.setAttribute('cy', node.y!.toString());
-      circle.setAttribute('r', '24');
-      circle.setAttribute('fill', 'white');
-      circle.setAttribute('stroke', '#3b82f6');
-      circle.setAttribute('stroke-width', '2');
-      nodeGroup.appendChild(circle);
-      
-      // Add label text
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      label.setAttribute('x', node.x!.toString());
-      label.setAttribute('y', (node.y! + 45).toString());
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('font-size', '12');
-      label.setAttribute('fill', '#1f2937');
-      label.textContent = node.label;
-      nodeGroup.appendChild(label);
-      
-      svg.appendChild(nodeGroup);
-    });
+    // Drag functions
+    function dragstarted(event: any) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
+    }
+    
+    function dragged(event: any) {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
+    }
+    
+    function dragended(event: any) {
+      if (!event.active) simulation.alphaTarget(0);
+      event.subject.fx = null;
+      event.subject.fy = null;
+    }
     
   }, [data]);
   
-  return (
-    <div className="w-full flex justify-center">
-      <svg 
-        ref={svgRef} 
-        width="320" 
-        height="360" 
-        viewBox="0 0 320 360"
-        className="overflow-visible"
-      ></svg>
-    </div>
-  );
+  return <svg ref={svgRef} width="100%" height="100%" />;
 };
 
 export default CompatibilityGraph;
