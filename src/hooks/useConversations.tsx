@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
@@ -177,6 +178,22 @@ export const useConversationState = () => {
     return (data && data.length > 0) ? data[0].id + 1 : 1;
   };
 
+  // Helper function to get next available message ID
+  const getNextMessageId = async () => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+      
+    if (error) {
+      console.error('Error getting next message ID:', error);
+      return Date.now(); // Fallback to timestamp if query fails
+    }
+    
+    return (data && data.length > 0) ? data[0].id + 1 : 1;
+  };
+
   // Start a new conversation
   const startNewConversation = useCallback(async () => {
     setConvoLoading(true);
@@ -238,22 +255,6 @@ export const useConversationState = () => {
     setCurrentConversation(conversation);
     setShowExample(false);
   }, []);
-
-  // Get the next available ID for a new message
-  const getNextMessageId = async () => {
-    const { data, error } = await supabase
-      .from('messages')
-      .select('id')
-      .order('id', { ascending: false })
-      .limit(1);
-      
-    if (error) {
-      console.error('Error getting next message ID:', error);
-      return Date.now(); // Fallback to timestamp if query fails
-    }
-    
-    return (data && data.length > 0) ? data[0].id + 1 : 1;
-  };
 
   const sendMessage = useCallback(async (text: string) => {
     if (!currentConversation) {
@@ -360,22 +361,6 @@ export const useConversationState = () => {
       setIsLoading(false);
     }
   }, [currentConversation, toast, dbMessages, loadMessages]);
-
-  // Helper function to get next available message ID
-  const getNextMessageId = async () => {
-    const { data, error } = await supabase
-      .from('messages')
-      .select('id')
-      .order('id', { ascending: false })
-      .limit(1);
-      
-    if (error) {
-      console.error('Error getting next message ID:', error);
-      return Date.now(); // Fallback to timestamp if query fails
-    }
-    
-    return (data && data.length > 0) ? data[0].id + 1 : 1;
-  };
 
   // Update session name
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
