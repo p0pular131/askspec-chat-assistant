@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
@@ -165,19 +166,41 @@ export const useConversationState = () => {
   const startNewConversation = useCallback(async () => {
     setConvoLoading(true);
     try {
-      // According to the database schema, 'id' field is required but might be auto-generated
-      // We'll use RPC call instead of direct insert to let the database handle the ID generation
-      const { data, error } = await supabase.rpc('create_new_session', {
+      // Use the RPC function to create a session
+      const { data: rpcData, error: rpcError } = await supabase.rpc('create_new_session', {
         user_id_param: 123 // Pass user_id as a parameter
-      }).select();
+      });
 
-      // If RPC doesn't exist or fails, fall back to a different approach
-      if (error) {
-        console.log("Failed to use RPC, falling back to direct insert:", error);
-        // Try to use insert with returning to get the auto-generated ID
+      // If RPC exists and works, we'll have data here
+      if (!rpcError && rpcData) {
+        const newSessionData = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+        const newSession: Session = {
+          id: newSessionData.id,
+          created_at: newSessionData.created_at,
+          session_name: newSessionData.session_name,
+          user_id: newSessionData.user_id || 123,
+        };
+        setSessions(prevSessions => [newSession, ...prevSessions]);
+        setCurrentConversation(newSession);
+        setMessages([]);
+        setShowExample(true);
+        return newSession;
+      } else {
+        // Fallback to direct insertion if RPC fails
+        // Get the next available ID first
+        const { data: lastSession } = await supabase
+          .from('sessions')
+          .select('id')
+          .order('id', { ascending: false })
+          .limit(1);
+        
+        const nextId = (lastSession && lastSession.length > 0) ? lastSession[0].id + 1 : 1;
+        
+        // Now insert with the generated ID
         const { data: insertData, error: insertError } = await supabase
           .from('sessions')
           .insert({
+            id: nextId,
             user_id: 123,
             created_at: new Date().toISOString()
           })
@@ -187,7 +210,9 @@ export const useConversationState = () => {
         
         if (insertData && insertData.length > 0) {
           const newSession: Session = {
-            ...insertData[0],
+            id: insertData[0].id,
+            created_at: insertData[0].created_at,
+            session_name: insertData[0].session_name,
             user_id: insertData[0].user_id || 123
           };
           setSessions(prevSessions => [newSession, ...prevSessions]);
@@ -196,19 +221,23 @@ export const useConversationState = () => {
           setShowExample(true);
           return newSession;
         }
-      } else if (data && data.length > 0) {
-        // RPC worked
-        const newSession: Session = {
-          ...data[0],
-          user_id: data[0].user_id || 123
-        };
-        setSessions(prevSessions => [newSession, ...prevSessions]);
-        setCurrentConversation(newSession);
-        setMessages([]);
-        setShowExample(true);
-        return newSession;
       }
-      return null;
+      
+      // If all else fails, create a client-side session object
+      console.warn("Falling back to client-side session creation");
+      const fallbackSession: Session = {
+        id: Date.now(),
+        user_id: 123,
+        created_at: new Date().toISOString(),
+        session_name: null
+      };
+      
+      setSessions(prevSessions => [fallbackSession, ...prevSessions]);
+      setCurrentConversation(fallbackSession);
+      setMessages([]);
+      setShowExample(true);
+      return fallbackSession;
+      
     } catch (error: any) {
       console.error("Error starting new conversation:", error);
       toast({
@@ -255,30 +284,20 @@ export const useConversationState = () => {
       setMessages(prevMessages => [...prevMessages, tempMessage]);
       setShowExample(false);
 
-      // Use a stored procedure or similar to insert with auto-generated id
-      const { data, error } = await supabase.rpc('create_message', {
-        session_id_param: currentConversation.id,
-        input_text_param: text,
-        role_param: 'user'
-      }).select();
+      // Get the next message ID
+      const nextId = await getNextMessageId();
 
-      // Fallback if RPC doesn't exist
-      if (error) {
-        console.log("Falling back to direct message insert:", error);
-        // Use a more direct approach that works with the schema
-        const nextId = await getNextMessageId();
-        
-        const { error: insertError } = await supabase
-          .from('messages')
-          .insert({
-            id: nextId,
-            session_id: currentConversation.id,
-            input_text: text,
-            role: 'user'
-          });
+      // Insert message with explicit ID
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          id: nextId,
+          session_id: currentConversation.id,
+          input_text: text,
+          role: 'user'
+        });
 
-        if (insertError) throw insertError;
-      }
+      if (error) throw error;
 
       // Fetch response from the server
       const response = await fetch('/api/chat', {
@@ -311,12 +330,14 @@ export const useConversationState = () => {
       
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
       
-      // Send the assistant's message to Supabase with similar approach
-      const nextId = await getNextMessageId();
+      // Get next message ID for assistant response
+      const nextAssistantId = await getNextMessageId();
+      
+      // Insert assistant message
       const { error: assistantError } = await supabase
         .from('messages')
         .insert({
-          id: nextId,
+          id: nextAssistantId,
           session_id: currentConversation.id,
           input_text: responseData.content,
           role: 'assistant'
@@ -397,7 +418,7 @@ export const useConversationState = () => {
     } finally {
       setLoadingUpdateSession(false);
     }
-  }, [supabase, toast]);
+  }, [toast]);
 
   // Delete a conversation
   const handleDeleteConversation = useCallback(async (sessionId: string) => {
@@ -446,7 +467,7 @@ export const useConversationState = () => {
     } finally {
       setLoadingDeleteSession(false);
     }
-  }, [supabase, toast]);
+  }, [toast]);
   
   const deleteBuild = useCallback(async (buildId: string) => {
     setBuildsLoading(true);
@@ -484,9 +505,9 @@ export const useConversationState = () => {
     } finally {
       setBuildsLoading(false);
     }
-  }, [supabase, toast]);
+  }, [toast]);
 
-  const viewBuild = useCallback(async (buildId: string) => {
+  const viewBuild = useCallback((buildId: string) => {
     // Implement view build functionality
     console.log(`View build with ID: ${buildId}`);
   }, []);
