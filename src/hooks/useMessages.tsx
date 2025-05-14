@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from '../components/ui/use-toast';
@@ -96,7 +97,7 @@ export function useMessages(sessionId: string | null) {
       
     if (error) {
       console.error('Error getting next message ID:', error);
-      return 1; // Default to 1 if there's an error
+      return Date.now(); // Default to timestamp if there's an error
     }
     
     return (data && data.length > 0) ? data[0].id + 1 : 1;
@@ -112,7 +113,7 @@ export function useMessages(sessionId: string | null) {
       const sesId = parseInt(sessionIdStr);
       const nextId = await getNextMessageId();
       
-      const newMessage: Omit<DatabaseMessage, 'created_at'> & { created_at?: string } = {
+      const newMessage = {
         id: nextId,
         session_id: sesId,
         role: role,
@@ -139,7 +140,8 @@ export function useMessages(sessionId: string | null) {
           ...data[0],
           role: (data[0].role === 'user' || data[0].role === 'assistant') 
             ? data[0].role as 'user' | 'assistant' 
-            : 'user' // Default to 'user' if invalid
+            : 'user', // Default to 'user' if invalid
+          created_at: data[0].created_at || new Date().toISOString()
         };
         setMessages(prevMessages => [...prevMessages, typedData]);
       }

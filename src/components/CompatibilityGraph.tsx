@@ -19,7 +19,7 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
       case 'cpu':
         return Cpu;
       case 'gpu':
-        return HardDrive; // Using HardDrive as Gpu isn't available
+        return HardDrive; // Using HardDrive as GPU icon
       case 'motherboard':
         return CircuitBoard;
       case 'storage':
@@ -104,9 +104,9 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
       div.style.alignItems = "center";
       div.style.justifyContent = "center";
       
-      // Use SVG string directly instead of trying to access React component props
-      const IconSvg = React.createElement(IconComponent);
-      const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${IconComponent.displayName?.toLowerCase() || 'circle'}"><circle cx="12" cy="12" r="10"></circle></svg>`;
+      // Fix the SVG icon rendering
+      const displayName = IconComponent.displayName?.toLowerCase() || 'circle';
+      const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${displayName}"></svg>`;
       
       div.innerHTML = svgString;
       

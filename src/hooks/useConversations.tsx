@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
@@ -162,71 +161,54 @@ export const useConversationState = () => {
     }
   }, [toast]);
 
+  // Get the next available ID for a new session
+  const getNextSessionId = async () => {
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+      
+    if (error) {
+      console.error('Error getting next session ID:', error);
+      return Date.now(); // Fallback to timestamp if query fails
+    }
+    
+    return (data && data.length > 0) ? data[0].id + 1 : 1;
+  };
+
   // Start a new conversation
   const startNewConversation = useCallback(async () => {
     setConvoLoading(true);
     try {
-      // Use the RPC function to create a session
-      const { data: rpcData, error: rpcError } = await supabase.rpc('create_new_session', {
-        user_id_param: 123 // Pass user_id as a parameter
-      });
-
-      // If RPC exists and works, we'll have data here
-      if (!rpcError && rpcData) {
-        const newSessionData = Array.isArray(rpcData) ? rpcData[0] : rpcData;
-        const newSession: Session = {
-          id: newSessionData.id,
-          created_at: newSessionData.created_at,
-          session_name: newSessionData.session_name,
-          user_id: newSessionData.user_id || 123,
-        };
+      // Get the next available ID
+      const nextId = await getNextSessionId();
+      
+      // Insert with explicit ID
+      const { data, error } = await supabase
+        .from('sessions')
+        .insert({
+          id: nextId,
+          user_id: 123,
+          created_at: new Date().toISOString()
+        })
+        .select();
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        const newSession = data[0] as Session;
         setSessions(prevSessions => [newSession, ...prevSessions]);
         setCurrentConversation(newSession);
         setMessages([]);
         setShowExample(true);
         return newSession;
-      } else {
-        // Fallback to direct insertion if RPC fails
-        // Get the next available ID first
-        const { data: lastSession } = await supabase
-          .from('sessions')
-          .select('id')
-          .order('id', { ascending: false })
-          .limit(1);
-        
-        const nextId = (lastSession && lastSession.length > 0) ? lastSession[0].id + 1 : 1;
-        
-        // Now insert with the generated ID
-        const { data: insertData, error: insertError } = await supabase
-          .from('sessions')
-          .insert({
-            id: nextId,
-            user_id: 123,
-            created_at: new Date().toISOString()
-          })
-          .select();
-
-        if (insertError) throw insertError;
-        
-        if (insertData && insertData.length > 0) {
-          const newSession: Session = {
-            id: insertData[0].id,
-            created_at: insertData[0].created_at,
-            session_name: insertData[0].session_name,
-            user_id: insertData[0].user_id || 123
-          };
-          setSessions(prevSessions => [newSession, ...prevSessions]);
-          setCurrentConversation(newSession);
-          setMessages([]);
-          setShowExample(true);
-          return newSession;
-        }
       }
       
       // If all else fails, create a client-side session object
       console.warn("Falling back to client-side session creation");
       const fallbackSession: Session = {
-        id: Date.now(),
+        id: nextId,
         user_id: 123,
         created_at: new Date().toISOString(),
         session_name: null
@@ -256,6 +238,22 @@ export const useConversationState = () => {
     setCurrentConversation(conversation);
     setShowExample(false);
   }, []);
+
+  // Get the next available ID for a new message
+  const getNextMessageId = async () => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+      
+    if (error) {
+      console.error('Error getting next message ID:', error);
+      return Date.now(); // Fallback to timestamp if query fails
+    }
+    
+    return (data && data.length > 0) ? data[0].id + 1 : 1;
+  };
 
   const sendMessage = useCallback(async (text: string) => {
     if (!currentConversation) {

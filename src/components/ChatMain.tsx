@@ -3,8 +3,6 @@ import React, { memo, useState } from 'react';
 import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
 import { MessageInput } from './MessageInput';
-import { fetchCompatibilityData } from '../integrations/supabase/client';
-import CompatibilityDiagram from './CompatibilityDiagram';
 
 interface ChatMainProps {
   messages: Array<{ text: string; isUser: boolean }>;
@@ -25,28 +23,11 @@ const ChatMain: React.FC<ChatMainProps> = ({
   sendMessage,
   getExamplePrompt
 }) => {
-  const [compatibilityData, setCompatibilityData] = useState<any | null>(null);
   const exampleText = getExamplePrompt();
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = (text: string) => {
     // Process the message normally
     sendMessage(text);
-
-    // If in compatibility check mode, fetch the compatibility data
-    if (chatMode === '호환성 검사' || chatMode === '견적 평가') {
-      try {
-        const data = await fetchCompatibilityData();
-        if (data) {
-          setCompatibilityData(data);
-          console.log("Compatibility data fetched:", data);
-        }
-      } catch (error) {
-        console.error("Error fetching compatibility data:", error);
-      }
-    } else {
-      // Reset compatibility data if not in relevant modes
-      setCompatibilityData(null);
-    }
   };
 
   return (
@@ -62,12 +43,6 @@ const ChatMain: React.FC<ChatMainProps> = ({
         {showExample && messages.length === 0 && (
           <div className="absolute top-2/4 left-2/4 px-5 py-0 text-base italic text-center -translate-x-2/4 -translate-y-2/4 pointer-events-none max-w-[600px] text-neutral-400">
             {exampleText}
-          </div>
-        )}
-
-        {compatibilityData && messages.length > 0 && !isLoading && (
-          <div className="mt-4 mb-4">
-            <CompatibilityDiagram data={compatibilityData} />
           </div>
         )}
 
