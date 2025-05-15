@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
@@ -144,22 +145,18 @@ export function useConversationState() {
         // Update the title based on the first message
         await updateSession(newSession.id, text.substring(0, 50));
         
-        // Create OpenAI messages array
-        const apiMessages = [{ role: 'user', content: text }];
-        
         try {
           // Reset the auto-refresh flag
           setAutoRefreshTriggered(false);
           
-          // Get response from OpenAI, passing expertise level
-          const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
+          // Process the message according to the selected chat mode
+          const response = await callOpenAI([{ role: 'user', content: text }], chatMode, expertiseLevel);
           
           // Add assistant response to database
           if (response) {
             await addMessage(response, 'assistant', newSession.id.toString());
             
             // Schedule multiple build refreshes after receiving a response
-            // This ensures we catch builds that might be created with slight delay
             setTimeout(() => loadBuilds(), 1000);
             setTimeout(() => loadBuilds(), 3000);
             setTimeout(() => {
@@ -167,7 +164,7 @@ export function useConversationState() {
               setAutoRefreshTriggered(true);
             }, 6000);
           } else {
-            console.error("Empty response received from OpenAI");
+            console.error("Empty response received");
             toast({
               title: "오류",
               description: "AI 응답을 받지 못했습니다.",
@@ -191,7 +188,7 @@ export function useConversationState() {
           await updateSession(currentSession.id, text.substring(0, 50));
         }
         
-        // Create OpenAI messages array from existing messages
+        // Create messages array from existing messages
         const apiMessages = dbMessages.map(msg => ({
           role: msg.role,
           content: msg.input_text
@@ -204,7 +201,7 @@ export function useConversationState() {
           // Reset the auto-refresh flag
           setAutoRefreshTriggered(false);
           
-          // Get response from OpenAI, passing expertise level
+          // Get response using the selected chat mode
           const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
           
           // Add assistant response to database
@@ -219,7 +216,7 @@ export function useConversationState() {
               setAutoRefreshTriggered(true);
             }, 6000);
           } else {
-            console.error("Empty response received from OpenAI");
+            console.error("Empty response received");
             toast({
               title: "오류",
               description: "AI 응답을 받지 못했습니다.",

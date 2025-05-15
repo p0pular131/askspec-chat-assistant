@@ -1,4 +1,7 @@
 
-import { useToast, toast } from "@/hooks/use-toast";
+// Export from the hooks directory
+import { useToast as useToastHook, toast as toastFn } from "@/hooks/use-toast";
 
-export { useToast, toast };
+// Re-export with the same names
+export const useToast = useToastHook;
+export const toast = toastFn;

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from '../components/ui/use-toast';
+import { responseModules } from '../modules/responseModules';
 
 export interface DatabaseMessage {
   id: number;
@@ -162,57 +163,71 @@ export function useMessages(sessionId: string | null) {
     expertiseLevel: string = 'intermediate'
   ) => {
     try {
-      console.log("Calling OpenAI with messages:", messages);
+      console.log("Processing with chat mode:", chatMode);
       
-      // Increase timeout to 90 seconds
-      const timeoutMs = 90000; 
-      
-      const apiCallWithTimeout = async () => {
-        try {
-          const callApi = async () => {
-            const { data, error } = await supabase.functions.invoke('chat-completion', {
-              body: {
-                messages,
-                chatMode,
-                sessionId,
-                expertiseLevel,
-                max_tokens: 2000, // Explicitly set max tokens
+      // Use the appropriate response module based on chatMode
+      if (responseModules[chatMode]) {
+        const responseModule = responseModules[chatMode];
+        // Get the last user message content
+        const lastUserMessage = messages.findLast(msg => msg.role === 'user');
+        const content = lastUserMessage ? lastUserMessage.content : '';
+        
+        // Process with the module
+        return await responseModule.process(content, expertiseLevel);
+      } else {
+        // Fallback to OpenAI API if no module found
+        console.log("Calling OpenAI with messages:", messages);
+        
+        // Increase timeout to 90 seconds
+        const timeoutMs = 90000; 
+        
+        const apiCallWithTimeout = async () => {
+          try {
+            const callApi = async () => {
+              const { data, error } = await supabase.functions.invoke('chat-completion', {
+                body: {
+                  messages,
+                  chatMode,
+                  sessionId,
+                  expertiseLevel,
+                  max_tokens: 2000, // Explicitly set max tokens
+                }
+              });
+              
+              if (error) {
+                console.error('Error invoking chat-completion function:', error);
+                throw new Error(error.message || 'Failed to call OpenAI API');
               }
-            });
+              
+              if (!data || !data.response) {
+                throw new Error('No response received from the API');
+              }
+              
+              return data.response;
+            };
             
-            if (error) {
-              console.error('Error invoking chat-completion function:', error);
-              throw new Error(error.message || 'Failed to call OpenAI API');
-            }
-            
-            if (!data || !data.response) {
-              throw new Error('No response received from the API');
-            }
-            
-            return data.response;
-          };
-          
-          // Use retry logic for API calls
-          return await fetchWithRetry(callApi, 2, 1000);
-        } catch (err) {
-          console.error('Error in API call:', err);
-          throw err;
-        }
-      };
-      
-      // Create a promise that rejects after timeoutMs
-      const timeoutPromise = new Promise<string>((_, reject) => {
-        setTimeout(() => reject(new Error('API request timed out after 90 seconds')), timeoutMs);
-      });
-      
-      // Race the API call against the timeout
-      const response = await Promise.race([
-        apiCallWithTimeout(),
-        timeoutPromise
-      ]);
-      
-      console.log("Got response from OpenAI:", response?.substring(0, 100) + "...");
-      return response;
+            // Use retry logic for API calls
+            return await fetchWithRetry(callApi, 2, 1000);
+          } catch (err) {
+            console.error('Error in API call:', err);
+            throw err;
+          }
+        };
+        
+        // Create a promise that rejects after timeoutMs
+        const timeoutPromise = new Promise<string>((_, reject) => {
+          setTimeout(() => reject(new Error('API request timed out after 90 seconds')), timeoutMs);
+        });
+        
+        // Race the API call against the timeout
+        const response = await Promise.race([
+          apiCallWithTimeout(),
+          timeoutPromise
+        ]);
+        
+        console.log("Got response:", response?.substring(0, 100) + "...");
+        return response;
+      }
     } catch (err) {
       console.error('Error calling OpenAI:', err);
       toast({
