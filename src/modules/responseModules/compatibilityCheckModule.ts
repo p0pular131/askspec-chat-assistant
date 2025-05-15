@@ -27,10 +27,16 @@ const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
     }
     
     if (data && data.length > 0 && data[0].compat) {
-      return data[0].compat as CompatibilityData;
+      // Explicitly cast to unknown first, then to CompatibilityData to avoid type errors
+      const compatData = data[0].compat as unknown as CompatibilityData;
+      
+      // Validate the data structure
+      if (Array.isArray(compatData.components) && Array.isArray(compatData.links)) {
+        return compatData;
+      }
     }
     
-    // Fallback compatibility data if none in the database
+    // Fallback compatibility data if none in the database or invalid format
     return {
       components: ["CPU", "Motherboard", "GPU", "RAM", "Storage", "PSU"],
       links: [

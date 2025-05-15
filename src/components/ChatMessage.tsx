@@ -35,8 +35,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
               ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
               ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
               li: ({node, ...props}) => <li className="mb-1" {...props} />,
-              code: ({node, inline, ...props}) => 
-                inline ? <code className="bg-gray-200 px-1 py-0.5 rounded" {...props} /> :
+              code: ({node, className, ...props}) => 
+                className ? <code className="bg-gray-200 px-1 py-0.5 rounded" {...props} /> :
                 <pre className="bg-gray-200 p-2 rounded overflow-x-auto"><code {...props} /></pre>,
               blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-3 italic my-2" {...props} />,
             }}>{message.text}</ReactMarkdown>

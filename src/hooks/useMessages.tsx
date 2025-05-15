@@ -169,7 +169,7 @@ export function useMessages(sessionId: string | null) {
       if (responseModules[chatMode]) {
         const responseModule = responseModules[chatMode];
         // Get the last user message content
-        const lastUserMessage = messages.findLast(msg => msg.role === 'user');
+        const lastUserMessage = messages.filter(msg => msg.role === 'user').pop();
         const content = lastUserMessage ? lastUserMessage.content : '';
         
         // Process with the module
