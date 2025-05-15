@@ -141,14 +141,11 @@ export const compatibilityCheckModule = {
         return "호환성 데이터를 가져오는 중 오류가 발생했습니다. 나중에 다시 시도해주세요.";
       }
       
+      // Return only the compatibility table with reasons, no additional text
       return `
       # 호환성 검사 결과
       
-      선택하신 부품들의 호환성 검사 결과입니다.
-      
       ${generateCompatibilityTable(compatData)}
-      
-      호환성에 문제가 있는 경우 대체 부품을 추천해 드릴 수 있습니다. 추가 문의사항이 있으면 알려주세요.
       `;
     } catch (error) {
       console.error('Error in compatibility check module:', error);

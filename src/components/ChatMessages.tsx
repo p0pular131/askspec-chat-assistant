@@ -155,7 +155,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
                   </Table>
                 </div>
                 
-                {/* Display reasons for incompatible components */}
+                {/* Display reasons for incompatible components only */}
                 <div className="mt-4 text-sm">
                   <h4 className="font-semibold mb-2">호환성 문제 세부 정보:</h4>
                   <ul className="list-disc pl-5 space-y-1">
@@ -167,11 +167,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
                         </li>
                       ))}
                   </ul>
-                </div>
-                
-                {/* Add general advice about the compatibility */}
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <p>{message.text}</p>
                 </div>
               </div>
             </div>
@@ -217,11 +212,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
-                
-                {/* Show remaining text after the compatibility information */}
-                <div className="mt-4">
-                  {message.text.split('\n').slice(3 + compatInfo.entries.length).join('\n')}
                 </div>
               </div>
             </div>
