@@ -5,11 +5,9 @@ import { compatibilityCheckModule } from './compatibilityCheckModule';
 import { buildRecommendationModule } from './buildRecommendationModule';
 import { specUpgradeModule } from './specUpgradeModule';
 import { buildEvaluationModule } from './buildEvaluationModule';
+import { ResponseModule } from './types';
 
-export type ResponseModule = {
-  process: (message: string, expertiseLevel?: string) => Promise<string>;
-  name: string;
-};
+export type { ResponseModule };
 
 export const responseModules: Record<string, ResponseModule> = {
   '범용 검색': generalSearchModule,

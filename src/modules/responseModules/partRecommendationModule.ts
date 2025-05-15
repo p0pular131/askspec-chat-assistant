@@ -1,4 +1,6 @@
 
+import { ResponseModule } from './types';
+
 // Static data for part recommendations
 const recommendedParts = [
   {
@@ -57,8 +59,9 @@ const generatePartsTable = (parts: typeof recommendedParts) => {
   </div>`;
 };
 
-export const partRecommendationModule = {
+export const partRecommendationModule: ResponseModule = {
   name: 'partRecommendation',
+  moduleType: '부품 추천',
   process: async () => {
     // Return fixed response with parts table
     return `

@@ -1,6 +1,9 @@
 
-export const specUpgradeModule = {
+import { ResponseModule } from './types';
+
+export const specUpgradeModule: ResponseModule = {
   name: 'specUpgrade',
+  moduleType: '스펙 업그레이드',
   process: async () => {
     // Placeholder for future implementation
     return `

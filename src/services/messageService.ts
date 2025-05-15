@@ -1,4 +1,3 @@
-
 import { supabase } from '../integrations/supabase/client';
 import { DatabaseMessage } from '../types/messages';
 import { fetchWithRetry, isValidId } from '../utils/fetchUtils';
@@ -145,7 +144,11 @@ export const processMessage = async (
     if (responseModules[chatMode]) {
       const responseModule = responseModules[chatMode];
       // Get the last user message content
-      const lastUserMessage = messages.filter(msg => msg.role === 'user').pop();
+      // Replace findLast with alternative since it's not supported in older ES versions
+      const lastUserMessage = messages
+        .filter(msg => msg.role === 'user')
+        .reduce((prev, current) => current, undefined);
+      
       const content = lastUserMessage ? lastUserMessage.content : '';
       
       // Process with the module

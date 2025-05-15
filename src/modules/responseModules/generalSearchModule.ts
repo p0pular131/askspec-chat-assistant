@@ -1,6 +1,9 @@
 
-export const generalSearchModule = {
+import { ResponseModule } from './types';
+
+export const generalSearchModule: ResponseModule = {
   name: 'generalSearch',
+  moduleType: '범용 검색',
   process: async (message: string, expertiseLevel: string = 'intermediate') => {
     // For general search, we'll just pass through to the OpenAI API
     try {

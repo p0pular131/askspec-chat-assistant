@@ -1,6 +1,9 @@
 
-export const buildRecommendationModule = {
+import { ResponseModule } from './types';
+
+export const buildRecommendationModule: ResponseModule = {
   name: 'buildRecommendation',
+  moduleType: '견적 추천',
   process: async () => {
     // Placeholder for future implementation
     return `

@@ -1,47 +1,54 @@
 
 import React from 'react';
-import { ChatMessageProps } from './types';
+import { Message } from './types';
+import { Avatar } from './ui/avatar';
 import ReactMarkdown from 'react-markdown';
+import ResponseRenderer from './responseRenderers/ResponseRenderer';
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+// Helper function to detect compatibility check requests
+const isCompatibilityCheckRequest = (text: string): boolean => {
+  const compatibilityKeywords = [
+    '호환성', '호환', 'compatibility', 'compatible', '맞는지', '맞나요', 
+    '같이 사용', '함께 사용', '궁합', '조합'
+  ];
+  
+  return compatibilityKeywords.some(keyword => text.toLowerCase().includes(keyword));
+};
+
+interface ChatMessageProps {
+  message: Message;
+  chatMode?: string;
+}
+
+export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '범용 검색' }) => {
+  const isCompatibilityRequest = !message.isUser && isCompatibilityCheckRequest(message.text);
+  
+  if (message.isUser) {
+    return (
+      <div className="flex gap-3 justify-end items-start">
+        <div className="max-w-[80%] rounded-lg p-3 bg-blue-100 text-zinc-900 rounded-tr-none">
+          <ReactMarkdown className="prose prose-sm dark:prose-invert break-words">
+            {message.text}
+          </ReactMarkdown>
+        </div>
+        <Avatar className="h-8 w-8 bg-blue-500 text-white flex items-center justify-center">
+          <span className="text-xs">사용자</span>
+        </Avatar>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={`flex mb-4 ${
-        message.isUser ? 'justify-end' : 'justify-start'
-      }`}
-    >
-      <div
-        className={`max-w-[80%] rounded-lg p-3 ${
-          message.isUser
-            ? 'bg-askspec-purple text-white rounded-tr-none'
-            : 'bg-gray-100 text-zinc-900 rounded-tl-none'
-        }`}
-      >
-        {message.isUser ? (
-          <p className="text-sm">{message.text}</p>
-        ) : (
-          <div className="markdown text-sm prose prose-sm max-w-none">
-            <ReactMarkdown components={{
-              // Allow HTML content to be rendered safely within markdown
-              p: ({node, ...props}) => <p className="mb-2" {...props} />,
-              h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-3 mb-2" {...props} />,
-              h2: ({node, ...props}) => <h2 className="text-md font-bold mt-3 mb-2" {...props} />,
-              h3: ({node, ...props}) => <h3 className="text-sm font-bold mt-2 mb-1" {...props} />,
-              table: ({node, ...props}) => <div className="overflow-x-auto"><table className="min-w-full border-collapse border border-gray-300 my-2" {...props} /></div>,
-              th: ({node, ...props}) => <th className="border border-gray-300 px-2 py-1 bg-gray-100 font-medium" {...props} />,
-              td: ({node, ...props}) => <td className="border border-gray-300 px-2 py-1" {...props} />,
-              a: ({node, href, ...props}) => <a href={href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
-              img: ({node, src, alt, ...props}) => <img src={src} alt={alt} className="max-w-full h-auto my-2" {...props} />,
-              ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
-              ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
-              li: ({node, ...props}) => <li className="mb-1" {...props} />,
-              code: ({node, className, ...props}) => 
-                className ? <code className="bg-gray-200 px-1 py-0.5 rounded" {...props} /> :
-                <pre className="bg-gray-200 p-2 rounded overflow-x-auto"><code {...props} /></pre>,
-              blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-3 italic my-2" {...props} />,
-            }}>{message.text}</ReactMarkdown>
-          </div>
-        )}
+    <div className="flex gap-3 justify-start items-start">
+      <Avatar className="h-8 w-8 bg-teal-600 text-white flex items-center justify-center">
+        <span className="text-xs">PC봇</span>
+      </Avatar>
+      <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
+        <ResponseRenderer 
+          content={message.text} 
+          chatMode={chatMode} 
+          isCompatibilityRequest={isCompatibilityRequest} 
+        />
       </div>
     </div>
   );

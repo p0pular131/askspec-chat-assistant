@@ -1,5 +1,6 @@
 
 import { supabase } from '../../integrations/supabase/client';
+import { ResponseModule } from './types';
 
 // Type for compatibility data from the database
 interface CompatibilityData {
@@ -27,7 +28,7 @@ const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
     }
     
     if (data && data.length > 0 && data[0].compat) {
-      // Explicitly cast to unknown first, then to CompatibilityData to avoid type errors
+      // Cast to unknown first, then to CompatibilityData
       const compatData = data[0].compat as unknown as CompatibilityData;
       
       // Validate the data structure
@@ -131,8 +132,9 @@ const generateCompatibilityTable = (data: CompatibilityData) => {
   return tableHtml;
 };
 
-export const compatibilityCheckModule = {
+export const compatibilityCheckModule: ResponseModule = {
   name: 'compatibilityCheck',
+  moduleType: '호환성 검사',
   process: async () => {
     try {
       const compatData = await getCompatibilityData();

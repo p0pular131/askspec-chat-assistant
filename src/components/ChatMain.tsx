@@ -38,6 +38,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
         <ChatMessages 
           messages={messages} 
           isLoading={isLoading}
+          chatMode={chatMode}
         />
 
         {showExample && messages.length === 0 && (
