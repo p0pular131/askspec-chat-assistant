@@ -135,16 +135,16 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
                           <TableCell className="font-medium">{link.source}</TableCell>
                           <TableCell>
                             <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                              link.status === 'success' 
+                              link.status === 'true' 
                                 ? 'bg-green-100 text-green-800' 
                                 : link.status === 'warning'
                                   ? 'bg-yellow-100 text-yellow-800'
                                   : 'bg-red-100 text-red-800'
                             }`}>
-                              {link.status === 'success' && <Check className="mr-1 h-3 w-3" />}
+                              {link.status === 'true' && <Check className="mr-1 h-3 w-3" />}
                               {link.status === 'warning' && <AlertTriangle className="mr-1 h-3 w-3" />}
-                              {link.status === 'error' && <X className="mr-1 h-3 w-3" />}
-                              {link.status === 'success' ? '호환 가능' : 
+                              {link.status === 'false' && <X className="mr-1 h-3 w-3" />}
+                              {link.status === 'true' ? '호환 가능' : 
                                link.status === 'warning' ? '일부 호환' : '호환 불가'}
                             </span>
                           </TableCell>
@@ -160,7 +160,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
                   <h4 className="font-semibold mb-2">호환성 문제 세부 정보:</h4>
                   <ul className="list-disc pl-5 space-y-1">
                     {compatibilityData.links
-                      .filter((link: any) => link.status !== 'success' && link.reason)
+                      .filter((link: any) => link.status !== 'true' && link.reason)
                       .map((link: any, i: number) => (
                         <li key={`reason-${i}`} className={link.status === 'warning' ? 'text-yellow-700' : 'text-red-700'}>
                           <span className="font-medium">{link.source} ↔ {link.target}</span>: {link.reason}

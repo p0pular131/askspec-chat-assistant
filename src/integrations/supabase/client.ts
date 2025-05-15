@@ -37,26 +37,38 @@ export async function fetchCompatibilityData() {
         { 
           source: "CPU", 
           target: "Motherboard", 
-          status: "success",
-          reason: null
+          status: "true",
+          reason: "소켓 타입이 LGA1700으로 CPU와 메인보드가 일치합니다."
         },
         { 
-          source: "GPU", 
-          target: "Motherboard", 
-          status: "success",
-          reason: null
+          source: "CPU", 
+          target: "Memory", 
+          status: "true",
+          reason: "CPU는 DDR5를 지원하고, 메모리도 DDR5입니다."
         },
         { 
-          source: "RAM", 
+          source: "Memory", 
           target: "Motherboard", 
-          status: "warning",
-          reason: "RAM speed might be limited by motherboard" 
+          status: "true",
+          reason: "메인보드는 최대 128GB DDR5를 지원하며, 메모리는 32GB DDR5입니다."
         },
         { 
-          source: "Storage", 
-          target: "Motherboard", 
-          status: "error",
-          reason: "Motherboard has no available M.2 slots for this SSD" 
+          source: "Motherboard", 
+          target: "Case", 
+          status: "false",
+          reason: "ATX 폼팩터 메인보드는 선택한 미니타워 케이스에 장착되지 않습니다."
+        },
+        { 
+          source: "Case", 
+          target: "PSU", 
+          status: "true",
+          reason: "PSU는 표준 ATX 사이즈로 케이스와 호환됩니다."
+        },
+        { 
+          source: "Case", 
+          target: "GPU", 
+          status: "false",
+          reason: "GPU 길이(340mm)가 케이스 최대 지원 길이(320mm)를 초과합니다." 
         }
       ]
     };
