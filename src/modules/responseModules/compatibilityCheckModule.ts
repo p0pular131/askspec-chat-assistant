@@ -34,7 +34,7 @@ const generateCompatibilityTable = (data: CompatibilityData) => {
   `;
   
   // Process all keys to find compatibility relationships
-  const links: Array<{source: string, target: string, status: any, reason?: string}> = [];
+  const links: Array<{source: string, target: string, status: boolean, reason?: string}> = [];
   
   Object.keys(data).forEach(key => {
     // Skip the 'components' key and any keys ending with '_Reason' or null values
@@ -48,42 +48,29 @@ const generateCompatibilityTable = (data: CompatibilityData) => {
       const source = parts[0];
       const target = parts[1];
       
-      // Skip if the components don't exist in our components list
-      if (!components.includes(source) || !components.includes(target)) {
+      // Skip if not a boolean value
+      const status = data[key];
+      if (typeof status !== 'boolean') {
         return;
       }
       
-      const status = data[key];
-      // Only add valid relationships
-      if (status === true || status === false || status === 'warning') {
-        const statusString = status === true ? 'true' : 
-                            status === false ? 'false' : 'warning';
-        
-        // Check if there's a corresponding reason
-        const reasonKey = `${key}_Reason`;
-        const reason = data[reasonKey];
-        
-        links.push({
-          source,
-          target,
-          status: statusString,
-          reason: reason || undefined
-        });
-      }
+      // Check if there's a corresponding reason
+      const reasonKey = `${key}_Reason`;
+      const reason = data[reasonKey];
+      
+      links.push({
+        source,
+        target,
+        status,
+        reason: reason || undefined
+      });
     }
   });
   
   // Add each compatibility link to the table
   links.forEach(link => {
-    const statusClass = 
-      link.status === "true" ? "bg-green-100 text-green-800" : 
-      link.status === "warning" ? "bg-yellow-100 text-yellow-800" : 
-      "bg-red-100 text-red-800";
-
-    const statusText = 
-      link.status === "true" ? "✓ 호환 가능" : 
-      link.status === "warning" ? "⚠️ 일부 호환" : 
-      "✗ 호환 불가";
+    const statusClass = link.status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
+    const statusText = link.status ? "✓ 호환 가능" : "✗ 호환 불가";
 
     tableHtml += `
       <tr>
@@ -104,7 +91,7 @@ const generateCompatibilityTable = (data: CompatibilityData) => {
   `;
 
   // Add incompatibility reasons if any exist
-  const incompatibilities = links.filter(link => link.status !== "true" && link.reason);
+  const incompatibilities = links.filter(link => !link.status && link.reason);
   if (incompatibilities.length > 0) {
     tableHtml += `
     <div class="mt-4">
@@ -113,9 +100,8 @@ const generateCompatibilityTable = (data: CompatibilityData) => {
     `;
     
     incompatibilities.forEach(link => {
-      const textColorClass = link.status === "warning" ? "text-yellow-700" : "text-red-700";
       tableHtml += `
-        <li class="${textColorClass}">
+        <li class="text-red-700">
           <span class="font-medium">${link.source} ↔ ${link.target}</span>: ${link.reason}
         </li>
       `;
