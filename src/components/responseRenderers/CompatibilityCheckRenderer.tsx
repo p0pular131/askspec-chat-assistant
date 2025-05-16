@@ -3,21 +3,63 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Check, AlertTriangle, X } from 'lucide-react';
-
-interface CompatibilityData {
-  components: string[];
-  links: Array<{
-    source: string;
-    target: string;
-    status: string;
-    reason?: string;
-  }>;
-}
+import { CompatibilityData } from '../../modules/responseModules/types';
 
 interface CompatibilityCheckRendererProps {
   content: string;
   compatibilityData?: CompatibilityData;
 }
+
+// Helper function to extract compatibility links from the new data format
+const extractCompatibilityLinks = (data: CompatibilityData) => {
+  const components = data.components;
+  const links: Array<{
+    source: string;
+    target: string;
+    status: string;
+    reason?: string;
+  }> = [];
+  
+  // Process all keys to find compatibility relationships
+  Object.keys(data).forEach(key => {
+    // Skip the 'components' key and any keys ending with '_Reason'
+    if (key === 'components' || key.endsWith('_Reason')) {
+      return;
+    }
+    
+    // Check if this is a component relationship key (contains underscore)
+    const parts = key.split('_');
+    if (parts.length === 2) {
+      const source = parts[0];
+      const target = parts[1];
+      
+      // Skip if the components don't exist in our components list
+      if (!components.includes(source) || !components.includes(target)) {
+        return;
+      }
+      
+      const status = data[key];
+      // Only add valid relationships
+      if (status === true || status === false || status === 'warning') {
+        const statusString = status === true ? 'true' : 
+                            status === false ? 'false' : 'warning';
+        
+        // Check if there's a corresponding reason
+        const reasonKey = `${key}_Reason`;
+        const reason = data[reasonKey];
+        
+        links.push({
+          source,
+          target,
+          status: statusString,
+          reason: reason || undefined
+        });
+      }
+    }
+  });
+  
+  return links;
+};
 
 const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({ content, compatibilityData }) => {
   if (!compatibilityData) {
@@ -27,6 +69,9 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
       </div>
     );
   }
+
+  // Extract links from compatibility data
+  const links = extractCompatibilityLinks(compatibilityData);
 
   return (
     <div className="compatibility-check-response rounded-lg p-4">
@@ -42,7 +87,7 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {compatibilityData.links.map((link, i) => (
+            {links.map((link, i) => (
               <TableRow key={`comp-${i}`}>
                 <TableCell className="font-medium">{link.source}</TableCell>
                 <TableCell>
@@ -71,7 +116,7 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
       <div className="mt-4 text-sm">
         <h4 className="font-semibold mb-2">호환성 문제 세부 정보:</h4>
         <ul className="list-disc pl-5 space-y-1">
-          {compatibilityData.links
+          {links
             .filter((link) => link.status !== 'true' && link.reason)
             .map((link, i) => (
               <li key={`reason-${i}`} className={link.status === 'warning' ? 'text-yellow-700' : 'text-red-700'}>

@@ -1,17 +1,6 @@
 
 import { supabase } from '../../integrations/supabase/client';
-import { ResponseModule } from './types';
-
-// Type for compatibility data from the database
-interface CompatibilityData {
-  components: string[];
-  links: Array<{
-    source: string;
-    target: string;
-    status: string;
-    reason?: string;
-  }>;
-}
+import { ResponseModule, CompatibilityData } from './types';
 
 // Function to get compatibility data from the database
 const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
@@ -32,7 +21,7 @@ const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
       const compatData = data[0].compat as unknown as CompatibilityData;
       
       // Validate the data structure
-      if (Array.isArray(compatData.components) && Array.isArray(compatData.links)) {
+      if (Array.isArray(compatData.components)) {
         return compatData;
       }
     }
@@ -40,13 +29,13 @@ const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
     // Fallback compatibility data if none in the database or invalid format
     return {
       components: ["CPU", "Motherboard", "GPU", "RAM", "Storage", "PSU"],
-      links: [
-        { source: "CPU", target: "Motherboard", status: "false", reason: "Socket incompatibility" },
-        { source: "Motherboard", target: "RAM", status: "true" },
-        { source: "GPU", target: "PSU", status: "warning", reason: "Power supply might be insufficient" },
-        { source: "CPU", target: "RAM", status: "true" },
-        { source: "Motherboard", target: "Storage", status: "true" },
-      ]
+      "CPU_Motherboard": false,
+      "CPU_Motherboard_Reason": "Socket incompatibility",
+      "Motherboard_RAM": true,
+      "GPU_PSU": "warning",
+      "GPU_PSU_Reason": "Power supply might be insufficient",
+      "CPU_RAM": true,
+      "Motherboard_Storage": true
     };
   } catch (error) {
     console.error('Error in getCompatibilityData:', error);
@@ -54,11 +43,62 @@ const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
   }
 };
 
+// Extract compatibility links from the new key-value format
+const extractCompatibilityLinks = (data: CompatibilityData) => {
+  const components = data.components;
+  const links: Array<{
+    source: string;
+    target: string;
+    status: string;
+    reason?: string;
+  }> = [];
+  
+  // Process all keys to find compatibility relationships
+  Object.keys(data).forEach(key => {
+    // Skip the 'components' key and any keys ending with '_Reason'
+    if (key === 'components' || key.endsWith('_Reason')) {
+      return;
+    }
+    
+    // Check if this is a component relationship key (contains underscore)
+    const parts = key.split('_');
+    if (parts.length === 2) {
+      const source = parts[0];
+      const target = parts[1];
+      
+      // Skip if the components don't exist in our components list
+      if (!components.includes(source) || !components.includes(target)) {
+        return;
+      }
+      
+      const status = data[key];
+      // Only add valid relationships
+      if (status === true || status === false || status === 'warning') {
+        const statusString = status === true ? 'true' : 
+                            status === false ? 'false' : 'warning';
+        
+        // Check if there's a corresponding reason
+        const reasonKey = `${key}_Reason`;
+        const reason = data[reasonKey];
+        
+        links.push({
+          source,
+          target,
+          status: statusString,
+          reason: reason || undefined
+        });
+      }
+    }
+  });
+  
+  return links;
+};
+
 // Generate HTML for compatibility table
 const generateCompatibilityTable = (data: CompatibilityData) => {
-  // Create component lists and compatibility matrix
+  // Extract components and compatibility links
   const components = data.components;
-  const links = data.links;
+  const links = extractCompatibilityLinks(data);
   
   let tableHtml = `
   <div class="compatibility-check">

@@ -2,13 +2,56 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { CircuitBoard, Cpu, HardDrive, Database, Power, Fan } from 'lucide-react';
+import { CompatibilityData } from '../modules/responseModules/types';
 
 interface CompatibilityGraphProps {
-  data: {
-    components: string[];
-    links: Array<{ source: string; target: string; status: string }>;
-  };
+  data: CompatibilityData;
 }
+
+// Helper function to extract compatibility links from the new data format
+const extractCompatibilityLinks = (data: CompatibilityData) => {
+  const components = data.components;
+  const links: Array<{
+    source: string;
+    target: string;
+    status: string;
+  }> = [];
+  
+  // Process all keys to find compatibility relationships
+  Object.keys(data).forEach(key => {
+    // Skip the 'components' key and any keys ending with '_Reason'
+    if (key === 'components' || key.endsWith('_Reason')) {
+      return;
+    }
+    
+    // Check if this is a component relationship key (contains underscore)
+    const parts = key.split('_');
+    if (parts.length === 2) {
+      const source = parts[0];
+      const target = parts[1];
+      
+      // Skip if the components don't exist in our components list
+      if (!components.includes(source) || !components.includes(target)) {
+        return;
+      }
+      
+      const status = data[key];
+      // Only add valid relationships
+      if (status === true || status === false || status === 'warning') {
+        const statusString = status === true ? 'success' : 
+                            status === false ? 'error' : 'warning';
+        
+        links.push({
+          source,
+          target,
+          status: statusString
+        });
+      }
+    }
+  });
+  
+  return links;
+};
 
 const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -27,6 +70,7 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
       case 'psu':
         return Power;
       case 'cooling':
+      case 'cooler':
         return Fan;
       default:
         return CircuitBoard;
@@ -34,7 +78,7 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
   };
 
   useEffect(() => {
-    if (!svgRef.current || !data || !data.components || !data.links) return;
+    if (!svgRef.current || !data || !data.components) return;
 
     // Clear previous graph
     d3.select(svgRef.current).selectAll("*").remove();
@@ -43,6 +87,9 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
     const width = svgRef.current.clientWidth;
     const height = svgRef.current.clientHeight;
     
+    // Extract links from compatibility data
+    const links = extractCompatibilityLinks(data);
+
     // Create a force simulation
     const simulation = d3.forceSimulation()
       .force("link", d3.forceLink().id((d: any) => d.id).distance(100))
@@ -54,13 +101,8 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
       .attr("width", width)
       .attr("height", height);
       
-    // Prepare nodes and links
+    // Prepare nodes from components
     const nodes = data.components.map(name => ({ id: name }));
-    const links = data.links.map(link => ({
-      source: link.source,
-      target: link.target,
-      status: link.status
-    }));
     
     // Create links
     const linkElements = svg.append("g")
