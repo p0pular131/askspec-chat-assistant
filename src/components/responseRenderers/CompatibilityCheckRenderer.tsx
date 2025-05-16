@@ -1,9 +1,15 @@
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Check, AlertTriangle, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { CompatibilityData } from '../../modules/responseModules/types';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CompatibilityCheckRendererProps {
   content: string;
@@ -82,7 +88,6 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
               <th className="px-4 py-2 text-left border">부품 1</th>
               <th className="px-4 py-2 text-center border">호환성</th>
               <th className="px-4 py-2 text-left border">부품 2</th>
-              <th className="px-4 py-2 text-left border">상세 정보</th>
             </tr>
           </thead>
           <tbody>
@@ -93,29 +98,39 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
                 <X className="h-5 w-5 text-red-600" />;
               
               return (
-                <tr key={`compatibility-row-${i}`} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 border font-medium">{link.source}</td>
-                  <td className={`px-4 py-2 border text-center ${statusClass}`}>
-                    <div className="flex justify-center">
-                      {statusIcon}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 border font-medium">{link.target}</td>
-                  <td className="px-4 py-2 border">
-                    {link.reason && (
-                      <HoverCard>
-                        <HoverCardTrigger asChild>
-                          <button className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors">
-                            세부 정보
-                          </button>
-                        </HoverCardTrigger>
-                        <HoverCardContent className="w-80">
-                          <p className="text-sm">{link.reason}</p>
-                        </HoverCardContent>
-                      </HoverCard>
-                    )}
-                  </td>
-                </tr>
+                <React.Fragment key={`compatibility-row-${i}`}>
+                  <tr className="hover:bg-gray-50 group">
+                    <td className="px-4 py-2 border font-medium">{link.source}</td>
+                    <td className={`px-4 py-2 border text-center ${statusClass}`}>
+                      {link.status ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger className="flex justify-center w-full">
+                              {statusIcon}
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs text-sm">{link.reason}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <div className="flex justify-center">
+                          {statusIcon}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 border font-medium">{link.target}</td>
+                  </tr>
+                  
+                  {/* Display reason directly for incompatible items */}
+                  {!link.status && link.reason && (
+                    <tr className="bg-red-50">
+                      <td colSpan={3} className="px-4 py-2 border text-red-700 text-sm">
+                        <p>{link.reason}</p>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               );
             })}
           </tbody>
