@@ -1,32 +1,18 @@
 
-import { supabase } from '../../integrations/supabase/client';
+import { supabase, fetchCompatibilityData } from '../../integrations/supabase/client';
 import { ResponseModule, CompatibilityData } from './types';
 
 // Function to get compatibility data from the database
 const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
   try {
-    // Fetch compatibility data from database
-    const { data, error } = await supabase
-      .from('demo_compatibility')
-      .select('compat')
-      .limit(1);
+    // Use the fetchCompatibilityData function from the client
+    const compatData = await fetchCompatibilityData();
     
-    if (error) {
-      console.error('Error fetching compatibility data:', error);
-      return null;
+    if (compatData) {
+      return compatData;
     }
     
-    if (data && data.length > 0 && data[0].compat) {
-      // Cast to unknown first, then to CompatibilityData
-      const compatData = data[0].compat as unknown as CompatibilityData;
-      
-      // Validate the data structure
-      if (Array.isArray(compatData.components)) {
-        return compatData;
-      }
-    }
-    
-    // Fallback compatibility data if none in the database or invalid format
+    // Fallback compatibility data if none in the database
     return {
       components: ["CPU", "Motherboard", "GPU", "RAM", "Storage", "PSU", "Cooler"],
       "CPU_Memory": true,
@@ -54,20 +40,31 @@ const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
   }
 };
 
-// Extract compatibility links from the new key-value format
-const extractCompatibilityLinks = (data: CompatibilityData) => {
-  const components = data.components;
-  const links: Array<{
-    source: string;
-    target: string;
-    status: string;
-    reason?: string;
-  }> = [];
+// Generate HTML for compatibility table (legacy, for backward compatibility)
+const generateCompatibilityTable = (data: CompatibilityData) => {
+  // Extract components
+  const components = data.components || [];
+  
+  let tableHtml = `
+  <div class="compatibility-check">
+    <h3>부품 호환성 검사 결과</h3>
+    <table class="w-full border-collapse">
+      <thead>
+        <tr>
+          <th class="px-2 py-1 border">부품 1</th>
+          <th class="px-2 py-1 border">호환성</th>
+          <th class="px-2 py-1 border">부품 2</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
   
   // Process all keys to find compatibility relationships
+  const links: Array<{source: string, target: string, status: any, reason?: string}> = [];
+  
   Object.keys(data).forEach(key => {
-    // Skip the 'components' key and any keys ending with '_Reason'
-    if (key === 'components' || key.endsWith('_Reason')) {
+    // Skip the 'components' key and any keys ending with '_Reason' or null values
+    if (key === 'components' || key.endsWith('_Reason') || data[key] === null) {
       return;
     }
     
@@ -101,29 +98,6 @@ const extractCompatibilityLinks = (data: CompatibilityData) => {
       }
     }
   });
-  
-  return links;
-};
-
-// Generate HTML for compatibility table
-const generateCompatibilityTable = (data: CompatibilityData) => {
-  // Extract components and compatibility links
-  const components = data.components;
-  const links = extractCompatibilityLinks(data);
-  
-  let tableHtml = `
-  <div class="compatibility-check">
-    <h3>부품 호환성 검사 결과</h3>
-    <table class="w-full border-collapse">
-      <thead>
-        <tr>
-          <th class="px-2 py-1 border">부품 1</th>
-          <th class="px-2 py-1 border">호환성</th>
-          <th class="px-2 py-1 border">부품 2</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
   
   // Add each compatibility link to the table
   links.forEach(link => {

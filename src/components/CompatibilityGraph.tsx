@@ -10,7 +10,7 @@ interface CompatibilityGraphProps {
 
 // Helper function to extract compatibility links from the new data format
 const extractCompatibilityLinks = (data: CompatibilityData) => {
-  const components = data.components;
+  const components = data.components || [];
   const links: Array<{
     source: string;
     target: string;
@@ -19,8 +19,8 @@ const extractCompatibilityLinks = (data: CompatibilityData) => {
   
   // Process all keys to find compatibility relationships
   Object.keys(data).forEach(key => {
-    // Skip the 'components' key and any keys ending with '_Reason'
-    if (key === 'components' || key.endsWith('_Reason')) {
+    // Skip the 'components' key, any keys ending with '_Reason', and null values
+    if (key === 'components' || key.endsWith('_Reason') || data[key] === null) {
       return;
     }
     
@@ -110,7 +110,7 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
       .data(links)
       .enter().append("line")
       .attr("stroke-width", 2)
-      .attr("stroke", (d) => d.status === "success" ? "#4ade80" : "#f43f5e");
+      .attr("stroke", (d) => d.status === "success" ? "#4ade80" : d.status === "warning" ? "#facc15" : "#f43f5e");
       
     // Create node groups
     const nodeGroups = svg.append("g")

@@ -32,45 +32,21 @@ export async function fetchCompatibilityData() {
 
     // Return sample data if nothing is found
     return {
-      components: ["CPU", "GPU", "RAM", "Motherboard", "Storage",],
-      links: [
-        { 
-          source: "CPU", 
-          target: "Motherboard", 
-          status: "true",
-          reason: "소켓 타입이 LGA1700으로 CPU와 메인보드가 일치합니다."
-        },
-        { 
-          source: "CPU", 
-          target: "Memory", 
-          status: "true",
-          reason: "CPU는 DDR5를 지원하고, 메모리도 DDR5입니다."
-        },
-        { 
-          source: "Memory", 
-          target: "Motherboard", 
-          status: "true",
-          reason: "메인보드는 최대 128GB DDR5를 지원하며, 메모리는 32GB DDR5입니다."
-        },
-        { 
-          source: "Motherboard", 
-          target: "Case", 
-          status: "false",
-          reason: "ATX 폼팩터 메인보드는 선택한 미니타워 케이스에 장착되지 않습니다."
-        },
-        { 
-          source: "Case", 
-          target: "PSU", 
-          status: "true",
-          reason: "PSU는 표준 ATX 사이즈로 케이스와 호환됩니다."
-        },
-        { 
-          source: "Case", 
-          target: "GPU", 
-          status: "false",
-          reason: "GPU 길이(340mm)가 케이스 최대 지원 길이(320mm)를 초과합니다." 
-        }
-      ]
+      components: ["CPU", "GPU", "RAM", "Motherboard", "Storage", "PSU", "Case"],
+      "CPU_Motherboard": true,
+      "CPU_Motherboard_Reason": "소켓 타입이 LGA1700으로 CPU와 메인보드가 일치합니다.",
+      "CPU_RAM": true,
+      "CPU_RAM_Reason": "CPU는 DDR5를 지원하고, 메모리도 DDR5입니다.",
+      "RAM_Motherboard": true,
+      "RAM_Motherboard_Reason": "메인보드는 최대 128GB DDR5를 지원하며, 메모리는 32GB DDR5입니다.",
+      "Motherboard_Case": false,
+      "Motherboard_Case_Reason": "ATX 폼팩터 메인보드는 선택한 미니타워 케이스에 장착되지 않습니다.",
+      "Case_PSU": true,
+      "Case_PSU_Reason": "PSU는 표준 ATX 사이즈로 케이스와 호환됩니다.",
+      "Case_GPU": false,
+      "Case_GPU_Reason": "GPU 길이(340mm)가 케이스 최대 지원 길이(320mm)를 초과합니다.",
+      "EdgeCase": null,
+      "Replace": null
     };
   } catch (error) {
     console.error('Error fetching compatibility data:', error);
