@@ -7,33 +7,7 @@ const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
   try {
     // Use the fetchCompatibilityData function from the client
     const compatData = await fetchCompatibilityData();
-    
-    if (compatData) {
-      return compatData;
-    }
-    
-    // Fallback compatibility data if none in the database
-    return {
-      components: ["CPU", "Motherboard", "GPU", "RAM", "Storage", "PSU", "Cooler"],
-      "CPU_Memory": true,
-      "CPU_Memory_Reason": "인텔 코어 i5-13600K 프로세서는 DDR5-5600 메모리를 지원합니다. 따라서 SK하이닉스 DDR5-5600 (16GB) 메모리와 호환됩니다.",
-      "CPU_Motherboard": false,
-      "CPU_Motherboard_Reason": "인텔 코어 i5-13600K 프로세서는 LGA 1700 소켓을 사용하며, ASRock B860M-X 메인보드는 해당 소켓을 지원하지 않습니다. 따라서 두 부품은 호환되지 않습니다.",
-      "Memory_Motherboard": true,
-      "Memory_Motherboard_Reason": "ASRock B860M-X 메인보드는 DDR5 메모리를 지원하며, SK하이닉스 DDR5-5600 16GB 메모리는 데스크탑용 DDR5 메모리로 호환됩니다.",
-      "Motherboard_Case": true,
-      "Motherboard_Case_Reason": "NZXT H9 Flow 케이스는 Micro-ATX 폼팩터를 지원하며, ASRock B860M-X 메인보드는 Micro-ATX 폼팩터로 두 부품은 호환됩니다.",
-      "Case_PSU": true,
-      "Case_PSU_Reason": "NZXT H9 Flow 케이스는 ATX 규격의 파워서플라이를 지원하며, 시소닉 NEW FOCUS V4 GX-750 GOLD는 ATX 규격으로 호환됩니다. 또한, 파워서플라이의 깊이(140mm)는 케이스 내부 공간에 적합합니다.",
-      "Case_GPU": true,
-      "Case_GPU_Reason": "NZXT H9 Flow 케이스는 최대 435mm 길이의 그래픽카드를 지원하며, ASUS DUAL 지포스 RTX 4070 O12G EVO OC D6X 12GB의 길이는 227.2mm로 호환됩니다.",
-      "Cooler_CPU": true,
-      "Cooler_CPU_Reason": "NOCTUA NH-U12S는 인텔 코어 i5-13600K와 물리적으로 호환되지만, 고부하 시 온도 관리에 한계가 있을 수 있습니다. 더 나은 냉각 성능을 위해 NH-U14S와 같은 상위 모델을 고려하는 것이 좋습니다.",
-      "Cooler_Motherboard": true,
-      "Cooler_Motherboard_Reason": "NOCTUA NH-U12S는 LGA1851 소켓을 지원하며, ASRock B860M-X 메인보드는 LGA1851 소켓을 사용하므로 호환됩니다.",
-      "EdgeCase": null,
-      "Replace": null
-    };
+    return compatData;
   } catch (error) {
     console.error('Error in getCompatibilityData:', error);
     return null;
