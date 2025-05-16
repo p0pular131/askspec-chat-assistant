@@ -3,7 +3,6 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Check, X } from 'lucide-react';
 import { CompatibilityData } from '../../modules/responseModules/types';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card';
 import {
   Tooltip,
   TooltipContent,
@@ -76,6 +75,9 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
   // Extract links for the traditional list view
   const links = extractCompatibilityLinks(compatibilityData);
   
+  // Extract incompatible links for the issues section
+  const incompatibleLinks = links.filter(link => !link.status);
+  
   return (
     <div className="compatibility-check-response rounded-lg p-4 space-y-4">
       <h3 className="font-semibold text-lg">호환성 검사 결과</h3>
@@ -98,39 +100,28 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
                 <X className="h-5 w-5 text-red-600" />;
               
               return (
-                <React.Fragment key={`compatibility-row-${i}`}>
-                  <tr className="hover:bg-gray-50 group">
-                    <td className="px-4 py-2 border font-medium">{link.source}</td>
-                    <td className={`px-4 py-2 border text-center ${statusClass}`}>
-                      {link.status ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger className="flex justify-center w-full">
-                              {statusIcon}
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs text-sm">{link.reason}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <div className="flex justify-center">
-                          {statusIcon}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-2 border font-medium">{link.target}</td>
-                  </tr>
-                  
-                  {/* Display reason directly for incompatible items */}
-                  {!link.status && link.reason && (
-                    <tr className="bg-red-50">
-                      <td colSpan={3} className="px-4 py-2 border text-red-700 text-sm">
-                        <p>{link.reason}</p>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
+                <tr key={`compatibility-row-${i}`} className="hover:bg-gray-50 group">
+                  <td className="px-4 py-2 border font-medium">{link.source}</td>
+                  <td className={`px-4 py-2 border text-center ${statusClass}`}>
+                    {link.status ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="flex justify-center w-full">
+                            {statusIcon}
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs text-sm">{link.reason}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <div className="flex justify-center">
+                        {statusIcon}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 border font-medium">{link.target}</td>
+                </tr>
               );
             })}
           </tbody>
@@ -141,6 +132,20 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
       {links.length === 0 && (
         <div className="text-center p-4 text-gray-500">
           호환성 데이터가 없습니다.
+        </div>
+      )}
+
+      {/* Display incompatible reasons as a list below the table */}
+      {incompatibleLinks.length > 0 && (
+        <div className="mt-6 border-t pt-4">
+          <h4 className="font-semibold mb-2">호환성 문제:</h4>
+          <ul className="list-disc pl-5 space-y-2">
+            {incompatibleLinks.map((link, i) => (
+              <li key={`incompatible-${i}`} className="text-red-700">
+                <span className="font-medium">{link.source}와 {link.target}</span>: {link.reason}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
