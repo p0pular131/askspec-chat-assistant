@@ -32,7 +32,7 @@ export async function fetchCompatibilityData() {
 
     // Return sample data if nothing is found
     return {
-      components: ["CPU", "GPU", "RAM", "Motherboard", "Storage"],
+      components: ["CPU", "GPU", "RAM", "Motherboard", "Storage",],
       links: [
         { 
           source: "CPU", 
