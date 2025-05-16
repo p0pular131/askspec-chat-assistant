@@ -43,11 +43,14 @@ const extractCompatibilityLinks = (data: CompatibilityData) => {
       const reasonKey = `${key}_Reason`;
       const reason = data[reasonKey];
       
+      // Make sure reason is a string or undefined
+      const reasonString = typeof reason === 'string' ? reason : undefined;
+      
       links.push({
         source,
         target,
         status,
-        reason: reason || undefined
+        reason: reasonString
       });
     }
   });
