@@ -8,6 +8,7 @@ export interface DatabaseMessage {
   created_at: string;
   chat_mode: string; // Add chat_mode to store the category when the message was created
 }
+
 export interface MessageRequest {
   role: string;
   content: string;

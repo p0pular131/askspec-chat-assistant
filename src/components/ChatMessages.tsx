@@ -26,7 +26,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading, chatMo
           key={`message-${index}-${message.text.substring(0, 10)}`} 
           message={message} 
           // Use each message's stored chatMode if available, otherwise fall back to current mode
-          // This ensures each message retains its original format
+          chatMode={chatMode}
         />
       ))}
       

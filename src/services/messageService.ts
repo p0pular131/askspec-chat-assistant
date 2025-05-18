@@ -45,12 +45,31 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
     }
     const typedData = data as DatabaseMessage[];
     
-    // Ensure the data conforms to DatabaseMessage type
-    return (typedData || []).map(item => ({
-      ...item,
-      role: item.role === 'user' || item.role === 'assistant' ? item.role : 'user',
-      chat_mode: item.chat_mode || '범용 검색' // Ensure chat_mode is always present
-    }));
+    // Find the chat mode for each message from response_json if possible
+    const enhancedData = typedData.map(message => {
+      let chatMode = '범용 검색'; // Default mode
+      
+      // Try to extract chat mode from response_json
+      if (message.response_json) {
+        try {
+          const jsonData = JSON.parse(message.response_json);
+          if (jsonData && jsonData.chat_mode) {
+            chatMode = jsonData.chat_mode;
+          }
+        } catch (e) {
+          // If parsing fails, use default mode
+          console.warn('Failed to parse response_json for chat mode');
+        }
+      }
+      
+      return {
+        ...message,
+        role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user',
+        chat_mode: chatMode
+      };
+    });
+    
+    return enhancedData;
   } catch (error) {
     console.error('Error in loadMessagesForSession:', error);
     throw error;
@@ -68,16 +87,18 @@ export async function addMessageToDatabase(
     // Get the next message ID
     const nextMessageId = await getNextId('messages');
     
-    // Add the message directly to the database without using edge functions
-    // since we're having issues with them
+    // Create response_json with chat mode for proper rendering on reload
+    const responseJson = JSON.stringify({ chat_mode: chatMode });
+    
+    // Add the message directly to the database
     const { data, error } = await supabase
       .from('messages')
       .insert({
-        id: nextMessageId, // Include the required ID field
+        id: nextMessageId,
         input_text: content,
         role: role,
-        session_id: parseInt(sessionId, 10), // Convert string sessionId to number
-        // No need to include chat_mode as it's not a column in the database
+        session_id: parseInt(sessionId, 10),
+        response_json: responseJson // Store chat mode in response_json
       })
       .select();
     
@@ -91,12 +112,12 @@ export async function addMessageToDatabase(
       throw new Error('Failed to add message');
     }
     
-    // Ensure the returned data conforms to DatabaseMessage type
+    // Return the message with chat mode
     const message = data[0];
     return {
       ...message,
       role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user',
-      chat_mode: chatMode // Since it's not in the DB, we set it here for the app
+      chat_mode: chatMode
     } as DatabaseMessage;
   } catch (error) {
     console.error('Error in addMessageToDatabase:', error);
