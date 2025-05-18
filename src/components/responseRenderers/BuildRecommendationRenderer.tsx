@@ -28,11 +28,12 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     
     // Look for JSON contents between curly braces
     if (content && content.includes('{') && content.includes('}')) {
-      const startIndex = content.indexOf('{');
-      const endIndex = content.lastIndexOf('}') + 1;
-      if (startIndex >= 0 && endIndex > 0 && endIndex > startIndex) {
-        jsonContent = content.substring(startIndex, endIndex);
+      const match = content.match(/{[\s\S]*}/);
+      if (match) {
+        jsonContent = match[0];
         console.log("Extracted JSON content:", jsonContent.substring(0, 50) + "...");
+      } else {
+        throw new Error("No JSON object found in content");
       }
     }
     
