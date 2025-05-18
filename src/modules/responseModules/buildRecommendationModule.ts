@@ -91,12 +91,19 @@ const sampleData: EstimateResponse = {
 export const buildRecommendationModule: ResponseModule = {
   name: 'buildRecommendation',
   moduleType: '견적 추천',
-  process: async () => {
-    // In a real implementation, this would come from an API or backend service
-    // Using the sample data for now
-    const buildData = sampleData;
-    
-    // Convert the data to a format that can be rendered by our component
-    return JSON.stringify(buildData);
+  process: async (content) => {
+    // Check if the content is already valid JSON
+    try {
+      // Try to parse the content as JSON first
+      JSON.parse(content);
+      // If it parses successfully, then it's already valid JSON, just return it
+      return content;
+    } catch (error) {
+      console.log("Content is not valid JSON, using sample data instead");
+      console.log("Content received:", content ? content.substring(0, 100) + "..." : "null");
+      
+      // Use the sample data as fallback
+      return JSON.stringify(sampleData);
+    }
   }
 };
