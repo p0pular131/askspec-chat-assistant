@@ -9,7 +9,7 @@ async function getNextId(tableName: string): Promise<number> {
       .from(tableName as any)
       .select('id')
       .order('id', { ascending: false })
-      .limit(1);
+      .limit(1) as unknown as { data: MessageRow[] | null, error: any };
       
     if (error) {
       console.error(`Error getting max ID for ${tableName}:`, error);
