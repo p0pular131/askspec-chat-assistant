@@ -6,8 +6,6 @@ import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
 import BuildRecommendationRenderer from './BuildRecommendationRenderer';
 import SpecUpgradeRenderer from './SpecUpgradeRenderer';
 import BuildEvaluationRenderer from './BuildEvaluationRenderer';
-import { fetchCompatibilityData } from '../../integrations/supabase/client';
-import { useState, useEffect } from 'react';
 
 interface ResponseRendererProps {
   content: string;
@@ -15,25 +13,18 @@ interface ResponseRendererProps {
   isCompatibilityRequest?: boolean;
 }
 
-const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, isCompatibilityRequest }) => {
-  const [compatibilityData, setCompatibilityData] = useState<any>(null);
-  
-  // Fetch compatibility data if needed
-  useEffect(() => {
-    const loadCompatibilityData = async () => {
-      if (chatMode === '호환성 검사' || isCompatibilityRequest) {
-        try {
-          const data = await fetchCompatibilityData();
-          setCompatibilityData(data);
-        } catch (error) {
-          console.error('Error fetching compatibility data:', error);
-        }
-      }
-    };
-    
-    loadCompatibilityData();
-  }, [chatMode, isCompatibilityRequest]);
+// Sample compatibility data for compatibility checks
+const sampleCompatibilityData = {
+  components: ['CPU', 'Motherboard', 'RAM', 'GPU', 'PSU', 'Storage'],
+  CPU_Motherboard: true,
+  CPU_RAM: true,
+  Motherboard_RAM: true,
+  GPU_PSU: true,
+  CPU_Motherboard_Reason: "Socket types match (AM4)",
+  GPU_PSU_Reason: "PSU provides sufficient wattage (650W)"
+};
 
+const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, isCompatibilityRequest }) => {
   // Select the appropriate renderer based on chat mode
   switch (chatMode) {
     case '범용 검색':
@@ -41,7 +32,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, 
     case '부품 추천':
       return <PartRecommendationRenderer content={content} />;
     case '호환성 검사':
-      return <CompatibilityCheckRenderer content={content} compatibilityData={compatibilityData} />;
+      return <CompatibilityCheckRenderer content={content} compatibilityData={sampleCompatibilityData} />;
     case '견적 추천':
       return <BuildRecommendationRenderer content={content} />;
     case '스펙 업그레이드':
@@ -50,8 +41,8 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, 
       return <BuildEvaluationRenderer content={content} />;
     default:
       // For compatibility checks detected in other modes
-      if (isCompatibilityRequest && compatibilityData) {
-        return <CompatibilityCheckRenderer content={content} compatibilityData={compatibilityData} />;
+      if (isCompatibilityRequest) {
+        return <CompatibilityCheckRenderer content={content} compatibilityData={sampleCompatibilityData} />;
       }
       // Default to general search renderer
       return <GeneralSearchRenderer content={content} />;

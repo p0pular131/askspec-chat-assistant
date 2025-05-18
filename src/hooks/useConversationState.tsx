@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
@@ -30,7 +31,7 @@ export function useConversationState() {
     loadConversations: fetchSessions,
     builds,
     handleDeleteBuild: deleteBuild,
-    handleViewBuild: viewBuildFromHook, // Renamed to avoid duplication
+    handleViewBuild: viewBuildFromHook, 
     loadBuilds
   } = useConversations();
   
@@ -149,7 +150,7 @@ export function useConversationState() {
           // Reset the auto-refresh flag
           setAutoRefreshTriggered(false);
           
-          // Process the message according to the selected chat mode
+          // Process the message using sample data based on the selected chat mode
           const response = await callOpenAI([{ role: 'user', content: text }], chatMode, expertiseLevel);
           
           // Add assistant response to database with the current chatMode
@@ -167,7 +168,7 @@ export function useConversationState() {
             console.error("Empty response received");
             toast({
               title: "오류",
-              description: "AI 응답을 받지 못했습니다.",
+              description: "응답을 받지 못했습니다.",
               variant: "destructive",
             });
           }
@@ -175,7 +176,7 @@ export function useConversationState() {
           console.error("API error:", apiError);
           toast({
             title: "오류",
-            description: `AI 응답 오류: ${apiError instanceof Error ? apiError.message : '알 수 없는 오류'}`,
+            description: `응답 오류: ${apiError instanceof Error ? apiError.message : '알 수 없는 오류'}`,
             variant: "destructive",
           });
         }
@@ -201,7 +202,7 @@ export function useConversationState() {
           // Reset the auto-refresh flag
           setAutoRefreshTriggered(false);
           
-          // Get response using the selected chat mode
+          // Get response using the selected chat mode with sample data
           const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
           
           // Add assistant response to database with the current chatMode
@@ -219,7 +220,7 @@ export function useConversationState() {
             console.error("Empty response received");
             toast({
               title: "오류",
-              description: "AI 응답을 받지 못했습니다.",
+              description: "응답을 받지 못했습니다.",
               variant: "destructive",
             });
           }
@@ -227,7 +228,7 @@ export function useConversationState() {
           console.error("API error:", apiError);
           toast({
             title: "오류",
-            description: `AI 응답 오류: ${apiError instanceof Error ? apiError.message : '알 수 없는 오류'}`,
+            description: `응답 오류: ${apiError instanceof Error ? apiError.message : '알 수 없는 오류'}`,
             variant: "destructive",
           });
         }

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Card, 
@@ -18,20 +19,8 @@ interface BuildRecommendationRendererProps {
 }
 
 const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ content }) => {
-  let buildData: EstimateResponse = sampleData;
-
-  try {
-    // Try to parse the content as JSON, but fall back to sampleData if there's an error
-    if (content && typeof content === 'string') {
-      const parsedData = JSON.parse(content);
-      if (parsedData && Array.isArray(parsedData.parts) && parsedData.parts.length > 0) {
-        buildData = parsedData;
-      }
-    }
-  } catch (error) {
-    console.log("Using sample data because of parsing error:", error);
-    // Keep using the default sampleData if there's a parsing error
-  }
+  // Always use sample data to ensure consistency between UI and database
+  const buildData = sampleData;
 
   return (
     <div className="build-recommendation-response space-y-6">

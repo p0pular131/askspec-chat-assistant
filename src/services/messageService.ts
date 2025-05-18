@@ -1,6 +1,8 @@
 
 import { supabase } from '../integrations/supabase/client';
 import { DatabaseMessage } from '../types/messages';
+import { responseModules } from '../modules/responseModules';
+
 type MessageRow = { id: number };
 // Helper function to get the next available ID for a table
 async function getNextId(tableName: string): Promise<number> {
@@ -102,7 +104,7 @@ export async function addMessageToDatabase(
   }
 }
 
-// Process a message with the Supabase edge function or use mock data
+// Process a message using the appropriate module based on chat mode
 export async function processMessage(
   messages: { role: string; content: string }[],
   chatMode: string = '범용 검색',
@@ -110,41 +112,28 @@ export async function processMessage(
   expertiseLevel: string = 'intermediate'
 ): Promise<string> {
   try {
-    // Since you mentioned you don't use OpenAI and just use demo data,
-    // we'll use the chat-completion edge function directly or provide mock responses
+    const lastUserMessage = messages.findLast(msg => msg.role === 'user')?.content || '';
     
-    try {
-      // Try to use the Supabase edge function first
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages,
-          chatMode,
-          sessionId,
-          expertiseLevel
-        },
-      });
-
-      if (response.error) {
-        throw new Error(`Edge function error: ${response.error.message}`);
-      }
-
-      return response.data?.response || response.data?.content || '';
-    } catch (edgeFunctionError) {
-      console.error('Edge function error:', edgeFunctionError);
-      
-      // Fallback to mock responses based on chat mode
-      return generateMockResponse(messages[messages.length - 1].content, chatMode);
+    // Use the appropriate module based on chat mode
+    if (responseModules[chatMode]) {
+      // Get response from the corresponding module using sample data
+      return await responseModules[chatMode].process(lastUserMessage, expertiseLevel);
     }
+    
+    // Fallback to general search module
+    return await responseModules['범용 검색'].process(lastUserMessage, expertiseLevel);
   } catch (error) {
     console.error('Error in processMessage:', error);
-    throw error;
+    
+    // Return a fallback sample response
+    return generateMockResponse(messages[messages.length - 1].content, chatMode);
   }
 }
 
 // Helper function to generate mock responses based on chat mode
 function generateMockResponse(userMessage: string, chatMode: string): string {
   // Default response for all chat modes
-  const defaultResponse = "죄송합니다. 현재 AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.";
+  const defaultResponse = "죄송합니다. 현재 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.";
   
   // Generate different responses based on chat mode
   switch(chatMode) {
