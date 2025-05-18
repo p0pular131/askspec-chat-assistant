@@ -17,7 +17,7 @@ export interface EstimateResponse {
 }
 
 // Sample data for testing purposes
-const sampleData: EstimateResponse = {
+export const sampleData: EstimateResponse = {
   "parts": [
     {
       "name": "AMD 라이젠5 5600X",
