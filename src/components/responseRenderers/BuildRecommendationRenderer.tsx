@@ -26,17 +26,12 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     // First, try to extract JSON if the content starts with text or is wrapped in other content
     let jsonContent = content;
     
-    // Look for JSON contents between curly braces
-    if (content && content.includes('{') && content.includes('}')) {
-      const match = content.match(/{[\s\S]*}/);
-      if (match) {
-        jsonContent = match[0];
-        console.log("Extracted JSON content:", jsonContent.substring(0, 50) + "...");
-      } else {
-        throw new Error("No JSON object found in content");
-      }
-    }
-    
+    // 우선 완전한 JSON 덩어리만 추출
+    const match = content.match(/{[\s\S]+}/);
+    if (!match) throw new Error("No JSON object found in content");
+
+    jsonContent = match[0].trim();
+    console.log("Trying to parse this JSON string:\n", jsonContent.substring(0, 200));
     // In case the content is not valid JSON at all, handle the exception in the catch block
     buildData = JSON.parse(jsonContent) as EstimateResponse;
     
