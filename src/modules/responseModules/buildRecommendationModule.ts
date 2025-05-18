@@ -16,7 +16,7 @@ export interface EstimateResponse {
   total_reason: string;
 }
 
-// Sample data for testing purposes
+// Sample data for testing and consistency between UI and database
 export const sampleData: EstimateResponse = {
   "parts": [
     {
@@ -25,7 +25,7 @@ export const sampleData: EstimateResponse = {
       "specs": "6코어 12스레드, 기본 클럭 3.7GHz, 최대 부스트 클럭 4.6GHz",
       "reason": "게임 성능이 우수한 6코어 12스레드의 프로세서입니다.",
       "link": "https://www.amd.com/ko/products/cpu/amd-ryzen-5-5600x",
-      "image": "https://placehold.co/600x400"
+      "image": "https://www.amd.com/system/files/2020-10/1260x709-ryzen-5-5600x.jpg"
     },
     {
       "name": "ASUS TUF Gaming B550-PLUS",
@@ -92,7 +92,8 @@ export const buildRecommendationModule: ResponseModule = {
   name: 'buildRecommendation',
   moduleType: '견적 추천',
   process: async (content) => {
-    // Always use the sample data to ensure we have valid JSON
+    // Always return the sample data as a JSON string
+    // This ensures what's stored in the database is exactly what's displayed to the user
     return JSON.stringify(sampleData);
   }
 };
