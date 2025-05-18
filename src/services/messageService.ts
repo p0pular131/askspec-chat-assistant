@@ -112,7 +112,19 @@ export async function processMessage(
   expertiseLevel: string = 'intermediate'
 ): Promise<string> {
   try {
-    const lastUserMessage = messages.findLast(msg => msg.role === 'user')?.content || '';
+    // Find the last user message using a traditional for loop instead of findLast
+    let lastUserMessage = '';
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        lastUserMessage = messages[i].content;
+        break;
+      }
+    }
+
+    // If no user message was found, use an empty string
+    if (!lastUserMessage) {
+      lastUserMessage = '';
+    }
     
     // Use the appropriate module based on chat mode
     if (responseModules[chatMode]) {
@@ -126,7 +138,7 @@ export async function processMessage(
     console.error('Error in processMessage:', error);
     
     // Return a fallback sample response
-    return generateMockResponse(messages[messages.length - 1].content, chatMode);
+    return generateMockResponse(messages.length > 0 ? messages[messages.length - 1].content : '', chatMode);
   }
 }
 
