@@ -7,7 +7,22 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') as string
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string
 const supabase = createClient(supabaseUrl, supabaseKey)
 
+// Define CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders
+    });
+  }
+
   try {
     const { action, data } = await req.json()
     
@@ -24,7 +39,7 @@ serve(async (req) => {
       if (idError) {
         return new Response(JSON.stringify({ error: idError.message }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
       
@@ -43,13 +58,13 @@ serve(async (req) => {
       if (error) {
         return new Response(JSON.stringify({ error: error.message }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
       
       return new Response(JSON.stringify(newSession), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
     
@@ -66,7 +81,7 @@ serve(async (req) => {
       if (idError) {
         return new Response(JSON.stringify({ error: idError.message }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
       
@@ -87,24 +102,24 @@ serve(async (req) => {
       if (error) {
         return new Response(JSON.stringify({ error: error.message }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
       
       return new Response(JSON.stringify(newMessage), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
     
     return new Response(JSON.stringify({ error: 'Unknown action' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
 })
