@@ -37,13 +37,11 @@ function extractJsonFromContent(content: string): string | null {
 const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ content }) => {
   // Try parsing the content as JSON
   let buildData: EstimateResponse | null = null;
-  
+  console.log("typeof content", typeof content); // string이어야 함
+  console.log("content.slice(0, 100)", content.slice(0, 100)); // 실제 값 미리 확인
   try {
-    const jsonContent = extractJsonFromContent(content);
-    if (!jsonContent) throw new Error("No valid JSON object found in content");
-
-    console.log("Extracted JSON:", jsonContent.substring(0, 200));
-    buildData = JSON.parse(jsonContent) as EstimateResponse;
+    console.log("Raw JSON content:\n", content.substring(0, 200));  // 디버깅용
+    buildData = JSON.parse(content) as EstimateResponse;
 
     if (!buildData || !Array.isArray(buildData.parts)) {
       throw new Error("Invalid data format");
