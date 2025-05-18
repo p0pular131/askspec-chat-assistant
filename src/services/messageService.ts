@@ -15,13 +15,14 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
       console.error('Error loading messages:', error);
       throw error;
     }
-
+    const typedData = data as DatabaseMessage[];
+    
     // Ensure the data conforms to DatabaseMessage type
-    return (data || []).map(item => ({
+    return (typedData || []).map(item => ({
       ...item,
       role: item.role === 'user' || item.role === 'assistant' ? item.role : 'user',
       chat_mode: item.chat_mode || '범용 검색' // Ensure chat_mode is always present
-    })) as DatabaseMessage[];
+    }));
   } catch (error) {
     console.error('Error in loadMessagesForSession:', error);
     throw error;
