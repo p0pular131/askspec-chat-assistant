@@ -16,7 +16,12 @@ async function getNextId(tableName: string): Promise<number> {
       return Date.now(); // Fallback to timestamp if query fails
     }
     
-    return (data && data.length > 0 && 'id' in data[0]) ? data[0].id + 1 : 1;
+    // Add proper type checking to ensure id is a number before adding 1
+    if (data && data.length > 0 && typeof data[0].id === 'number') {
+      return data[0].id + 1;
+    } else {
+      return 1; // Start with 1 if no records found or id is not a number
+    }
   } catch (error) {
     console.error(`Error in getNextId for ${tableName}:`, error);
     return Date.now(); // Fallback to timestamp
