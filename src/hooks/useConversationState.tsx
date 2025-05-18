@@ -48,7 +48,7 @@ export function useConversationState() {
       const uiMessages = dbMsgs.map(msg => ({
         text: msg.input_text,
         isUser: msg.role === 'user',
-        chatMode: msg.chat_mode || null, // Extract chat mode from DB message
+        chatMode: msg.chat_mode || '범용 검색', // Use the stored chat mode or default
       }));
       setMessages(uiMessages);
     }
@@ -274,7 +274,7 @@ export function useConversationState() {
     selectConversation: setCurrentSession,
     handleDeleteConversation: deleteSession,
     handleDeleteBuild,
-    handleViewBuild, // Use our local implementation
+    handleViewBuild: viewBuildFromHook, // Use our local implementation
     sendMessage,
     loadMessages,
     syncMessagesFromDB,

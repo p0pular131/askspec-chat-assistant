@@ -19,7 +19,8 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
     // Ensure the data conforms to DatabaseMessage type
     return (data || []).map(item => ({
       ...item,
-      role: item.role === 'user' || item.role === 'assistant' ? item.role : 'user'
+      role: item.role === 'user' || item.role === 'assistant' ? item.role : 'user',
+      chat_mode: item.chat_mode || '범용 검색' // Ensure chat_mode is always present
     })) as DatabaseMessage[];
   } catch (error) {
     console.error('Error in loadMessagesForSession:', error);
@@ -62,7 +63,8 @@ export async function addMessageToDatabase(
     const message = data[0];
     return message ? {
       ...message,
-      role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user'
+      role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user',
+      chat_mode: message.chat_mode || chatMode // Ensure chat_mode is properly set
     } as DatabaseMessage : null;
   } catch (error) {
     console.error('Error in addMessageToDatabase:', error);

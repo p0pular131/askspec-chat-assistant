@@ -5,7 +5,7 @@ import ChatMessages from './ChatMessages';
 import { MessageInput } from './MessageInput';
 
 interface ChatMainProps {
-  messages: Array<{ text: string; isUser: boolean }>;
+  messages: Array<{ text: string; isUser: boolean; chatMode?: string }>;
   isLoading: boolean;
   showExample: boolean;
   chatMode: string;

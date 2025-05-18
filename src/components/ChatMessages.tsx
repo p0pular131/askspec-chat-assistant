@@ -6,7 +6,7 @@ import { Message } from './types';
 interface ChatMessagesProps {
   messages: Message[];
   isLoading: boolean;
-  chatMode?: string;
+  chatMode?: string; // This is now just the current active mode
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading, chatMode = '범용 검색' }) => {
@@ -25,7 +25,8 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading, chatMo
         <ChatMessage 
           key={`message-${index}-${message.text.substring(0, 10)}`} 
           message={message} 
-          chatMode={chatMode}
+          // Use each message's stored chatMode if available, otherwise fall back to current mode
+          // This ensures each message retains its original format
         />
       ))}
       
