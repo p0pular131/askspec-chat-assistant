@@ -16,6 +16,7 @@ import { EstimateResponse } from '../../modules/responseModules/buildRecommendat
 
 interface BuildRecommendationRendererProps {
   content: string;
+  recommendationData: EstimateResponse;
 }
 
 const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ content, recommendationData }) => {
