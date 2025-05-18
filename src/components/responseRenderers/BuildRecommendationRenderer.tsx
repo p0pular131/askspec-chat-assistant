@@ -23,19 +23,20 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   let buildData: EstimateResponse | null = null;
   
   try {
-    // Look for JSON in the content - it's possible the content contains text plus JSON
+    // First, try to extract JSON if the content starts with text or is wrapped in other content
     let jsonContent = content;
     
-    // Try to extract JSON if the content starts with text
+    // Look for JSON contents between curly braces
     if (content && content.includes('{') && content.includes('}')) {
       const startIndex = content.indexOf('{');
       const endIndex = content.lastIndexOf('}') + 1;
       if (startIndex >= 0 && endIndex > 0 && endIndex > startIndex) {
         jsonContent = content.substring(startIndex, endIndex);
+        console.log("Extracted JSON content:", jsonContent.substring(0, 50) + "...");
       }
     }
     
-    // Try to parse JSON
+    // In case the content is not valid JSON at all, handle the exception in the catch block
     buildData = JSON.parse(jsonContent) as EstimateResponse;
     
     // Basic validation of the parsed data
@@ -46,19 +47,24 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   } catch (error) {
     console.error("Failed to parse build recommendation data:", error);
     
-    // If parsing fails, we'll show an error message
-    return (
-      <Card className="w-full border-red-300">
-        <CardHeader>
-          <CardTitle className="text-red-600">데이터 로딩 오류</CardTitle>
-          <CardDescription>PC 견적 데이터를 불러오는 중 오류가 발생했습니다.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-2">현재 견적 데이터를 파싱할 수 없습니다.</p>
-          <p className="text-sm text-muted-foreground">AI가 제공한 응답이 예상 형식과 일치하지 않습니다. 새로운 견적을 요청해 보세요.</p>
-        </CardContent>
-      </Card>
-    );
+    // Try to import the sample data directly from the module
+    try {
+      // Since we can't directly import at this point, we'll use a fallback error card
+      return (
+        <Card className="w-full border-red-300">
+          <CardHeader>
+            <CardTitle className="text-red-600">데이터 로딩 오류</CardTitle>
+            <CardDescription>PC 견적 데이터를 불러오는 중 오류가 발생했습니다.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-2">현재 견적 데이터를 파싱할 수 없습니다.</p>
+            <p className="text-sm text-muted-foreground">AI가 제공한 응답이 예상 형식과 일치하지 않습니다. 새로운 견적을 요청해 보세요.</p>
+          </CardContent>
+        </Card>
+      );
+    } catch (moduleError) {
+      console.error("Could not load sample data:", moduleError);
+    }
   }
 
   // If we couldn't parse the data or it's invalid, show a message
