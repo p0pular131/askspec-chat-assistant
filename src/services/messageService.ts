@@ -17,7 +17,7 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
     }
 
     // Ensure the data conforms to DatabaseMessage type
-    return (data as DatabaseMessage[]).map(item => ({
+    return (data || []).map(item => ({
       ...item,
       role: item.role === 'user' || item.role === 'assistant' ? item.role : 'user',
       chat_mode: item.chat_mode || '범용 검색' // Ensure chat_mode is always present
