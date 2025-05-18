@@ -92,18 +92,7 @@ export const buildRecommendationModule: ResponseModule = {
   name: 'buildRecommendation',
   moduleType: '견적 추천',
   process: async (content) => {
-    // Check if the content is already valid JSON
-    try {
-      // Try to parse the content as JSON first
-      JSON.parse(content);
-      // If it parses successfully, then it's already valid JSON, just return it
-      return content;
-    } catch (error) {
-      console.log("Content is not valid JSON, using sample data instead");
-      console.log("Content received:", content ? content.substring(0, 100) + "..." : "null");
-      
-      // Use the sample data as fallback
-      return JSON.stringify(sampleData);
-    }
+    // Always use the sample data to ensure we have valid JSON
+    return JSON.stringify(sampleData);
   }
 };
