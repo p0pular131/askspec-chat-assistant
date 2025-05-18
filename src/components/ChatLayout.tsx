@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
@@ -22,10 +21,6 @@ export const ChatLayout: React.FC = () => {
   const [rightOpen, setRightOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('chat');
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [chatMode, setChatMode] = useState('범용 검색');
-  const [lastBuildCount, setLastBuildCount] = useState(0);
-  const [autoSwitchDisabled, setAutoSwitchDisabled] = useState(false);
-  const [isGeneratingBuilds, setIsGeneratingBuilds] = useState(false);
   
   const {
     currentConversation,
@@ -36,7 +31,7 @@ export const ChatLayout: React.FC = () => {
     convoLoading,
     dbMessages,
     builds,
-    buildsLoading, // Added this property
+    buildsLoading,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
@@ -44,7 +39,15 @@ export const ChatLayout: React.FC = () => {
     handleViewBuild,
     sendMessage,
     loadMessages,
-    loadBuilds
+    loadBuilds,
+    chatMode,
+    setChatMode,
+    getExamplePrompt,
+    isGeneratingBuilds,
+    setIsGeneratingBuilds,
+    autoSwitchDisabled,
+    checkForNewBuilds,
+    disableAutoSwitch
   } = useConversationState();
 
   // Load messages when conversation changes
@@ -77,31 +80,20 @@ export const ChatLayout: React.FC = () => {
     if (activeTab === 'builds') {
       loadBuilds();
       // Reset auto-switch flag when user manually goes to builds tab
-      setAutoSwitchDisabled(true);
-      setTimeout(() => setAutoSwitchDisabled(false), 10000); // Re-enable after 10 seconds
+      disableAutoSwitch();
     }
-  }, [activeTab, loadBuilds]);
+  }, [activeTab, loadBuilds, disableAutoSwitch]);
 
   // Track build count and automatically switch to builds tab when new builds are created
   useEffect(() => {
-    // If this is the first load, just save the count
-    if (lastBuildCount === 0 && builds.length > 0) {
-      setLastBuildCount(builds.length);
-      return;
-    }
+    const hasNewBuilds = checkForNewBuilds(builds);
     
-    // Detect new builds by comparing the current count with the previous count
-    if (builds.length > lastBuildCount) {
-      // Automatically switch to the builds tab when a new build is created
-      // But only if the user hasn't disabled auto-switching
-      if (!autoSwitchDisabled) {
-        setActiveTab('builds');
-      }
+    // Automatically switch to the builds tab when a new build is created
+    // But only if the user hasn't disabled auto-switching
+    if (hasNewBuilds && !autoSwitchDisabled) {
+      setActiveTab('builds');
     }
-    
-    // Update the last build count
-    setLastBuildCount(builds.length);
-  }, [builds.length, lastBuildCount, autoSwitchDisabled]);
+  }, [builds, autoSwitchDisabled, checkForNewBuilds]);
 
   // Map the selected answer to an expertise level
   const getExpertiseLevel = useCallback(() => {
@@ -119,21 +111,9 @@ export const ChatLayout: React.FC = () => {
 
   const handleSendMessage = useCallback((text: string) => {
     // Reset auto-switch disabled flag when sending a new message
-    setAutoSwitchDisabled(false);
+    disableAutoSwitch();
     sendMessage(text, getExpertiseLevel(), chatMode);
-  }, [sendMessage, getExpertiseLevel, chatMode]);
-
-  const getExamplePrompt = useCallback(() => {
-    const examples = {
-      '범용 검색': "게이밍용 컴퓨터 견적 추천해주세요. 예산은 150만원 정도입니다.",
-      '부품 추천': "게이밍에 적합한 그래픽카드 추천해주세요.",
-      '견적 추천': "영상 편집용 컴퓨터 견적을 만들어주세요. 4K 영상 작업이 필요합니다.",
-      '호환성 검사': "인텔 13세대 CPU와 B660 메인보드가 호환되나요?",
-      '스펙 업그레이드': "현재 i5-10400, GTX 1660 사용 중인데 업그레이드할 부품을 추천해주세요.",
-      '견적 평가': "RTX 4060, i5-13400F, 16GB RAM, 1TB SSD로 구성된 견적 어떤가요?",
-    };
-    return examples[chatMode as keyof typeof examples] || examples["범용 검색"];
-  }, [chatMode]);
+  }, [sendMessage, getExpertiseLevel, chatMode, disableAutoSwitch]);
 
   const handleGenerateBuilds = async () => {
     setIsGeneratingBuilds(true);
@@ -187,8 +167,7 @@ export const ChatLayout: React.FC = () => {
             onClick={() => {
               setActiveTab('builds');
               // Reset auto-switch flag when user manually goes to builds tab
-              setAutoSwitchDisabled(true);
-              setTimeout(() => setAutoSwitchDisabled(false), 10000); // Re-enable after 10 seconds
+              disableAutoSwitch();
             }}
           >
             <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
