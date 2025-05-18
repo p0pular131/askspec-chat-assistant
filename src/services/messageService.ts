@@ -2,6 +2,27 @@
 import { supabase } from '../integrations/supabase/client';
 import { DatabaseMessage } from '../types/messages';
 
+// Helper function to get the next available ID for a table
+async function getNextId(tableName: string): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from(tableName)
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+      
+    if (error) {
+      console.error(`Error getting max ID for ${tableName}:`, error);
+      return Date.now(); // Fallback to timestamp if query fails
+    }
+    
+    return (data && data.length > 0) ? data[0].id + 1 : 1;
+  } catch (error) {
+    console.error(`Error in getNextId for ${tableName}:`, error);
+    return Date.now(); // Fallback to timestamp
+  }
+}
+
 // Load messages for a specific session
 export async function loadMessagesForSession(sessionId: string): Promise<DatabaseMessage[]> {
   try {
@@ -37,11 +58,15 @@ export async function addMessageToDatabase(
   chatMode: string = '범용 검색'
 ): Promise<DatabaseMessage | null> {
   try {
+    // Get the next message ID
+    const nextMessageId = await getNextId('messages');
+    
     // Add the message directly to the database without using edge functions
     // since we're having issues with them
     const { data, error } = await supabase
       .from('messages')
       .insert({
+        id: nextMessageId, // Include the required ID field
         input_text: content,
         role: role,
         session_id: parseInt(sessionId, 10), // Convert string sessionId to number
