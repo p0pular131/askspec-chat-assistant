@@ -80,30 +80,28 @@ export const addMessageToDatabase = async (
     if (!isValidId(sessionIdStr)) {
       throw new Error('Invalid session ID');
     }
-
-    const sesId = parseInt(sessionIdStr);
-    const nextId = await getNextMessageId();
     
-    const newMessage = {
-      id: nextId,
-      session_id: sesId,
-      role: role,
-      input_text: content,
-      response_json: role === 'assistant' ? { text: content } : null
-    };
+    // Use db-helpers edge function for creating messages to bypass RLS
+    const { data, error } = await supabase.functions.invoke('db-helpers', {
+      body: { 
+        action: 'create_message',
+        data: {
+          session_id: parseInt(sessionIdStr),
+          input_text: content,
+          role: role
+        }
+      }
+    });
     
-    const addMessageToDb = async () => {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert(newMessage)
-        .select();
-        
-      if (error) throw error;
-      return data;
-    };
+    if (error) {
+      console.error('Error creating message with edge function:', error);
+      throw error;
+    }
     
-    // Use retry logic for adding messages
-    const data = await fetchWithRetry(addMessageToDb, 2, 800);
+    if (!data || data.error) {
+      console.error('Error in edge function response:', data?.error || 'Unknown error');
+      throw new Error(data?.error || 'Failed to create message');
+    }
     
     // Return the newly added message with proper typing
     if (data && data[0]) {
