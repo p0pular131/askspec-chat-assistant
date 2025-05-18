@@ -24,14 +24,39 @@ serve(async (req) => {
     const requestData = await req.json();
     const { action, data } = requestData;
 
+    // Helper function to get next available ID
+    async function getNextId(tableName: string) {
+      const { data: maxIdData, error: maxIdError } = await supabase
+        .from(tableName)
+        .select('id')
+        .order('id', { ascending: false })
+        .limit(1);
+
+      if (maxIdError) {
+        console.error(`Error getting max ID for ${tableName}:`, maxIdError);
+        return 1; // Start with 1 if there's an error
+      }
+
+      return maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
+    }
+
     // Perform requested action
     let result;
     switch (action) {
       case 'create_new_session':
-        // Create a new session
-        const { data: sessionData, error: sessionError } = await supabase
+        // Get the next available session ID
+        const nextSessionId = await getNextId('sessions');
+        
+        // Create a new session with an explicit ID
+        const sessionData = {
+          ...data,
+          id: nextSessionId, // Explicitly set the ID
+          created_at: new Date().toISOString() // Ensure created_at is set
+        };
+        
+        const { data: newSessionData, error: sessionError } = await supabase
           .from('sessions')
-          .insert([data])
+          .insert([sessionData])
           .select();
         
         if (sessionError) {
@@ -42,19 +67,25 @@ serve(async (req) => {
           );
         }
         
-        result = sessionData;
+        result = newSessionData;
         break;
         
       case 'create_new_message':
-        // Add chat_mode field to the data if not present
-        if (!data.chat_mode) {
-          data.chat_mode = '범용 검색'; // Default value
-        }
+        // Get the next available message ID
+        const nextMessageId = await getNextId('messages');
+        
+        // Ensure chat_mode is provided or use default
+        const messageData = {
+          ...data,
+          id: nextMessageId, // Explicitly set the ID
+          chat_mode: data.chat_mode || '범용 검색', // Ensure chat_mode is set
+          created_at: new Date().toISOString() // Ensure created_at is set
+        };
         
         // Create a new message
-        const { data: messageData, error: messageError } = await supabase
+        const { data: newMessageData, error: messageError } = await supabase
           .from('messages')
-          .insert([data])
+          .insert([messageData])
           .select();
           
         if (messageError) {
@@ -65,7 +96,7 @@ serve(async (req) => {
           );
         }
         
-        result = messageData;
+        result = newMessageData;
         break;
 
       case 'update_session':
