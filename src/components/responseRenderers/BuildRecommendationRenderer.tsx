@@ -18,26 +18,34 @@ interface BuildRecommendationRendererProps {
   content: string;
 }
 
+function extractJsonFromContent(content: string): string | null {
+  const start = content.indexOf('{');
+  if (start === -1) return null;
+
+  let depth = 0;
+  for (let i = start; i < content.length; i++) {
+    if (content[i] === '{') depth++;
+    else if (content[i] === '}') depth--;
+
+    if (depth === 0) {
+      return content.slice(start, i + 1);  // 포함된 전체 JSON 객체
+    }
+  }
+  return null; // 중괄호 균형 안 맞음
+}
+
 const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ content }) => {
   // Try parsing the content as JSON
   let buildData: EstimateResponse | null = null;
   
   try {
-    // First, try to extract JSON if the content starts with text or is wrapped in other content
-    let jsonContent = content;
-    
-    // 우선 완전한 JSON 덩어리만 추출
-    const match = content.match(/{[\s\S]+}/);
-    if (!match) throw new Error("No JSON object found in content");
+    const jsonContent = extractJsonFromContent(content);
+    if (!jsonContent) throw new Error("No valid JSON object found in content");
 
-    jsonContent = match[0].trim();
-    console.log("Trying to parse this JSON string:\n", jsonContent.substring(0, 200));
-    // In case the content is not valid JSON at all, handle the exception in the catch block
+    console.log("Extracted JSON:", jsonContent.substring(0, 200));
     buildData = JSON.parse(jsonContent) as EstimateResponse;
-    
-    // Basic validation of the parsed data
+
     if (!buildData || !Array.isArray(buildData.parts)) {
-      console.error("Parsed data is not in the expected format:", buildData);
       throw new Error("Invalid data format");
     }
   } catch (error) {
