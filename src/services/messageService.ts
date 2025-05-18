@@ -8,7 +8,7 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
     const { data, error } = await supabase
       .from('messages')
       .select('*')
-      .eq('session_id', sessionId)
+      .eq('session_id', parseInt(sessionId, 10)) // Convert string sessionId to number
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -16,7 +16,11 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
       throw error;
     }
 
-    return data || [];
+    // Ensure the data conforms to DatabaseMessage type
+    return (data || []).map(item => ({
+      ...item,
+      role: item.role === 'user' || item.role === 'assistant' ? item.role : 'user'
+    })) as DatabaseMessage[];
   } catch (error) {
     console.error('Error in loadMessagesForSession:', error);
     throw error;
@@ -38,7 +42,7 @@ export async function addMessageToDatabase(
         data: {
           input_text: content,
           role: role,
-          session_id: parseInt(sessionId, 10),
+          session_id: parseInt(sessionId, 10), // Convert string sessionId to number
           chat_mode: chatMode // Store the chat mode with the message
         }
       }
@@ -53,8 +57,13 @@ export async function addMessageToDatabase(
       console.error('Error in edge function response:', data?.error || 'Unknown error');
       throw new Error(data?.error || 'Failed to add message');
     }
-
-    return data[0] as DatabaseMessage;
+    
+    // Ensure the returned data conforms to DatabaseMessage type
+    const message = data[0];
+    return message ? {
+      ...message,
+      role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user'
+    } as DatabaseMessage : null;
   } catch (error) {
     console.error('Error in addMessageToDatabase:', error);
     throw error;
