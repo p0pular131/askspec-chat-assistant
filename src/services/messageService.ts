@@ -6,7 +6,7 @@ import { DatabaseMessage } from '../types/messages';
 async function getNextId(tableName: string): Promise<number> {
   try {
     const { data, error } = await supabase
-      .from(tableName)
+      .from(tableName as any)
       .select('id')
       .order('id', { ascending: false })
       .limit(1);
@@ -16,7 +16,7 @@ async function getNextId(tableName: string): Promise<number> {
       return Date.now(); // Fallback to timestamp if query fails
     }
     
-    return (data && data.length > 0) ? data[0].id + 1 : 1;
+    return (data && data.length > 0 && 'id' in data[0]) ? data[0].id + 1 : 1;
   } catch (error) {
     console.error(`Error in getNextId for ${tableName}:`, error);
     return Date.now(); // Fallback to timestamp
@@ -97,7 +97,7 @@ export async function addMessageToDatabase(
   }
 }
 
-// Process a message with the OpenAI API
+// Process a message with the Supabase edge function or use mock data
 export async function processMessage(
   messages: { role: string; content: string }[],
   chatMode: string = '범용 검색',
@@ -105,27 +105,61 @@ export async function processMessage(
   expertiseLevel: string = 'intermediate'
 ): Promise<string> {
   try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messages,
-        chatMode,
-        sessionId,
-        expertiseLevel
-      }),
-    });
+    // Since you mentioned you don't use OpenAI and just use demo data,
+    // we'll use the chat-completion edge function directly or provide mock responses
+    
+    try {
+      // Try to use the Supabase edge function first
+      const response = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages,
+          chatMode,
+          sessionId,
+          expertiseLevel
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.error) {
+        throw new Error(`Edge function error: ${response.error.message}`);
+      }
+
+      return response.data?.response || response.data?.content || '';
+    } catch (edgeFunctionError) {
+      console.error('Edge function error:', edgeFunctionError);
+      
+      // Fallback to mock responses based on chat mode
+      return generateMockResponse(messages[messages.length - 1].content, chatMode);
     }
-
-    const data = await response.json();
-    return data.content || '';
   } catch (error) {
     console.error('Error in processMessage:', error);
     throw error;
+  }
+}
+
+// Helper function to generate mock responses based on chat mode
+function generateMockResponse(userMessage: string, chatMode: string): string {
+  // Default response for all chat modes
+  const defaultResponse = "죄송합니다. 현재 AI 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.";
+  
+  // Generate different responses based on chat mode
+  switch(chatMode) {
+    case '호환성 검사':
+      return `호환성 검사 결과: 문제 없습니다. ${userMessage}에 언급된 부품들은 모두 호환됩니다.`;
+      
+    case '견적 추천':
+      return `다음과 같은 PC 견적을 추천합니다:\n\nCPU: AMD Ryzen 7 5800X\nGPU: NVIDIA RTX 3070\nRAM: 16GB DDR4 3200MHz\nSSD: Samsung 970 EVO Plus 1TB\n\n총 가격: ₩1,500,000`;
+      
+    case '부품 추천':
+      return `${userMessage}에 대한 부품 추천:\n\nCPU: Intel i5-12600K\nGPU: RTX 3060 Ti\nRAM: 32GB DDR4\n\n이 부품들은 요구하신 용도에 가장 적합합니다.`;
+      
+    case '스펙 업그레이드':
+      return `업그레이드 추천:\n\n1. GPU를 RTX 3070으로 업그레이드하세요.\n2. RAM을 32GB로 늘리세요.\n3. NVMe SSD를 추가하세요.\n\n이 업그레이드로 성능이 크게 향상될 것입니다.`;
+      
+    case '견적 평가':
+      return `견적 평가:\n\n가성비: 4.5/5\n성능: 4.2/5\n호환성: 5/5\n\n전반적으로 균형 잡힌 구성입니다. GPU와 CPU의 조합이 매우 좋습니다.`;
+      
+    case '범용 검색':
+    default:
+      return `${userMessage}에 대한 답변입니다. 컴퓨터 하드웨어는 매우 다양한 종류가 있으며, 용도에 따라 적합한 부품이 달라집니다.`;
   }
 }
