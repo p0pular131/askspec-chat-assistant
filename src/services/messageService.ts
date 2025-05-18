@@ -37,36 +37,35 @@ export async function addMessageToDatabase(
   chatMode: string = '범용 검색'
 ): Promise<DatabaseMessage | null> {
   try {
-    // Use the edge function to add messages to bypass RLS policies
-    const { data, error } = await supabase.functions.invoke('db-helpers', {
-      body: { 
-        action: 'create_new_message',
-        data: {
-          input_text: content,
-          role: role,
-          session_id: parseInt(sessionId, 10), // Convert string sessionId to number
-          chat_mode: chatMode // Store the chat mode with the message
-        }
-      }
-    });
+    // Add the message directly to the database without using edge functions
+    // since we're having issues with them
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        input_text: content,
+        role: role,
+        session_id: parseInt(sessionId, 10), // Convert string sessionId to number
+        // No need to include chat_mode as it's not a column in the database
+      })
+      .select();
     
     if (error) {
-      console.error('Error adding message with edge function:', error);
+      console.error('Error adding message:', error);
       throw error;
     }
     
-    if (!data || data.error) {
-      console.error('Error in edge function response:', data?.error || 'Unknown error');
-      throw new Error(data?.error || 'Failed to add message');
+    if (!data || data.length === 0) {
+      console.error('No data returned when adding message');
+      throw new Error('Failed to add message');
     }
     
     // Ensure the returned data conforms to DatabaseMessage type
     const message = data[0];
-    return message ? {
+    return {
       ...message,
       role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user',
-      chat_mode: message.chat_mode || chatMode // Ensure chat_mode is properly set
-    } as DatabaseMessage : null;
+      chat_mode: chatMode // Since it's not in the DB, we set it here for the app
+    } as DatabaseMessage;
   } catch (error) {
     console.error('Error in addMessageToDatabase:', error);
     throw error;

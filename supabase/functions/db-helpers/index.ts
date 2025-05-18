@@ -74,15 +74,16 @@ serve(async (req) => {
         // Get the next available message ID
         const nextMessageId = await getNextId('messages');
         
-        // Ensure chat_mode is provided or use default
+        // Remove chat_mode as it's not a column in the database
+        const { chat_mode, ...messageDataWithoutChatMode } = data;
+        
+        // Create a new message
         const messageData = {
-          ...data,
+          ...messageDataWithoutChatMode,
           id: nextMessageId, // Explicitly set the ID
-          chat_mode: data.chat_mode || '범용 검색', // Ensure chat_mode is set
           created_at: new Date().toISOString() // Ensure created_at is set
         };
         
-        // Create a new message
         const { data: newMessageData, error: messageError } = await supabase
           .from('messages')
           .insert([messageData])
@@ -96,7 +97,8 @@ serve(async (req) => {
           );
         }
         
-        result = newMessageData;
+        // Add chat_mode back to the result data
+        result = newMessageData?.map(msg => ({ ...msg, chat_mode: chat_mode || '범용 검색' }));
         break;
 
       case 'update_session':
