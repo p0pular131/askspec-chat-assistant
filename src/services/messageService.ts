@@ -1,7 +1,7 @@
 
 import { supabase } from '../integrations/supabase/client';
 import { DatabaseMessage } from '../types/messages';
-
+type MessageRow = { id: number };
 // Helper function to get the next available ID for a table
 async function getNextId(tableName: string): Promise<number> {
   try {
