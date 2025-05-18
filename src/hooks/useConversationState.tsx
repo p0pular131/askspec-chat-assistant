@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from './useConversations';
 import { Message } from '../components/types';
@@ -49,6 +48,7 @@ export function useConversationState() {
       const uiMessages = dbMsgs.map(msg => ({
         text: msg.input_text,
         isUser: msg.role === 'user',
+        chatMode: msg.chat_mode || null, // Extract chat mode from DB message
       }));
       setMessages(uiMessages);
     }
@@ -139,8 +139,8 @@ export function useConversationState() {
           throw new Error('Failed to create session');
         }
         
-        // Add user message
-        await addMessage(text, 'user', newSession.id.toString());
+        // Add user message with the current chatMode
+        await addMessage(text, 'user', newSession.id.toString(), chatMode);
         
         // Update the title based on the first message
         await updateSession(newSession.id, text.substring(0, 50));
@@ -152,9 +152,9 @@ export function useConversationState() {
           // Process the message according to the selected chat mode
           const response = await callOpenAI([{ role: 'user', content: text }], chatMode, expertiseLevel);
           
-          // Add assistant response to database
+          // Add assistant response to database with the current chatMode
           if (response) {
-            await addMessage(response, 'assistant', newSession.id.toString());
+            await addMessage(response, 'assistant', newSession.id.toString(), chatMode);
             
             // Schedule multiple build refreshes after receiving a response
             setTimeout(() => loadBuilds(), 1000);
@@ -180,8 +180,8 @@ export function useConversationState() {
           });
         }
       } else {
-        // Add user message
-        await addMessage(text, 'user', currentSession.id.toString());
+        // Add user message with the current chatMode
+        await addMessage(text, 'user', currentSession.id.toString(), chatMode);
         
         // If this is the first message, update the title
         if (dbMessages.length === 0) {
@@ -204,9 +204,9 @@ export function useConversationState() {
           // Get response using the selected chat mode
           const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
           
-          // Add assistant response to database
+          // Add assistant response to database with the current chatMode
           if (response) {
-            await addMessage(response, 'assistant', currentSession.id.toString());
+            await addMessage(response, 'assistant', currentSession.id.toString(), chatMode);
             
             // Schedule multiple build refreshes after receiving a response
             setTimeout(() => loadBuilds(), 1000);

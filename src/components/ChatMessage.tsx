@@ -23,6 +23,9 @@ interface ChatMessageProps {
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '범용 검색' }) => {
   const isCompatibilityRequest = !message.isUser && isCompatibilityCheckRequest(message.text);
   
+  // Use the message's stored chatMode if available, otherwise fall back to the provided one
+  const effectiveChatMode = message.chatMode || chatMode;
+  
   if (message.isUser) {
     return (
       <div className="flex gap-3 justify-end items-start">
@@ -46,7 +49,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '�
       <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
         <ResponseRenderer 
           content={message.text} 
-          chatMode={chatMode} 
+          chatMode={effectiveChatMode} 
           isCompatibilityRequest={isCompatibilityRequest} 
         />
       </div>

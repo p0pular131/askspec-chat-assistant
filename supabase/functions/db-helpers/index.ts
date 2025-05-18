@@ -1,4 +1,3 @@
-
 // Edge function for database helper functions
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
@@ -68,11 +67,9 @@ serve(async (req) => {
       })
     }
     
-    if (action === 'create_message') {
-      const { session_id, input_text, role } = data
-      
-      // Get next ID
-      const { data: lastMessage, error: idError } = await supabase
+    if (action === 'create_new_message') {
+      // Get the next message ID
+      const { data: maxIdData, error: idError } = await supabase
         .from('messages')
         .select('id')
         .order('id', { ascending: false })
@@ -85,17 +82,17 @@ serve(async (req) => {
         })
       }
       
-      const nextId = lastMessage && lastMessage.length > 0 ? lastMessage[0].id + 1 : 1
+      const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1
       
-      // Create message with generated ID
+      // Add the new message with the chat_mode field
       const { data: newMessage, error } = await supabase
         .from('messages')
         .insert({
           id: nextId,
-          session_id: session_id,
-          input_text: input_text,
-          role: role,
-          created_at: new Date().toISOString()
+          session_id: data.session_id,
+          input_text: data.input_text,
+          role: data.role,
+          chat_mode: data.chat_mode || '범용 검색' // Add chat_mode to the message
         })
         .select()
       

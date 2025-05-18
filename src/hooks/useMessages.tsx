@@ -24,8 +24,13 @@ export function useMessages(sessionId: string | null) {
     }
   }, []);
 
-  const addMessage = async (content: string, role: 'user' | 'assistant', sessionIdStr: string) => {
-    const newMessage = await addMessageToDatabase(content, role, sessionIdStr);
+  const addMessage = async (
+    content: string, 
+    role: 'user' | 'assistant', 
+    sessionIdStr: string,
+    chatMode: string = '범용 검색'
+  ) => {
+    const newMessage = await addMessageToDatabase(content, role, sessionIdStr, chatMode);
     if (newMessage) {
       setMessages(prevMessages => [...prevMessages, newMessage]);
     }
