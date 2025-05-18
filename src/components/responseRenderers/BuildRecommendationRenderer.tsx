@@ -12,15 +12,15 @@ import { Separator } from '@/components/ui/separator';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Info } from 'lucide-react';
-import { EstimateResponse, sampleData } from '../../modules/responseModules/buildRecommendationModule';
+import { EstimateResponse } from '../../modules/responseModules/buildRecommendationModule';
 
 interface BuildRecommendationRendererProps {
   content: string;
 }
 
-const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ content }) => {
+const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ content, recommendationData }) => {
   // Always use sample data to ensure consistency between UI and database
-  const buildData = sampleData;
+  const buildData = recommendationData;
 
   return (
     <div className="build-recommendation-response space-y-6">
