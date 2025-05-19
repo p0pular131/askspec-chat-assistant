@@ -2,7 +2,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Star } from 'lucide-react';
 import { sampleBuildEvaluationData } from '../../data/sampleData';
@@ -70,37 +69,11 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
         })}
       </div>
       
-      {/* Summary card with average score */}
-      <Card className="bg-gray-50 border-t-4 border-blue-500">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex justify-between items-center">
-            <span>종합 평가</span>
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold">{evaluationData.average_score}</span>
-              <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Progress 
-            value={evaluationData.average_score} 
-            className={`h-3 ${getScoreColor(evaluationData.average_score)}`} 
-          />
-          <div className="mt-4 text-center">
-            <p className="font-medium">
-              이 PC 견적은 종합 {evaluationData.average_score}점으로 평가됩니다.
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              세부 카테고리 점수를 확인하여 견적의 강점과 약점을 파악하세요.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Removed the summary card with average score */}
       
-      {/* If there's any additional markdown content, render it */}
+      {/* Only render markdown content if present and not empty */}
       {content && content.trim() !== "" && (
         <div className="mt-6">
-          <Separator className="my-4" />
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
       )}
