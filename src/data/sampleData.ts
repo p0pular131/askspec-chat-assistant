@@ -1,4 +1,3 @@
-
 /**
  * Centralized sample data for all modules
  * This file contains all the sample data used across the application
@@ -169,46 +168,23 @@ export const sampleSpecUpgradeData = {
   performanceGain: "Approximately 85% increase in gaming performance and 70% in productivity tasks"
 };
 
-// Sample data for build evaluations (placeholder for future implementation)
+// Sample data for build evaluations
 export const sampleBuildEvaluationData = {
-  overallRating: 8.5,
-  pricePerformance: 9.0,
-  buildQuality: 8.0,
-  futureProofing: 7.5,
-  thermals: 8.5,
-  noiseLevel: 9.0,
-  powerEfficiency: 8.0,
-  components: [
-    {
-      name: "AMD Ryzen 7 5800X",
-      rating: 9.0,
-      comments: "Excellent CPU choice for gaming and productivity, good value for money"
-    },
-    {
-      name: "NVIDIA RTX 3070",
-      rating: 9.5,
-      comments: "Powerful GPU that handles all modern games at 1440p with high frame rates"
-    },
-    {
-      name: "32GB DDR4-3600 CL16",
-      rating: 9.0,
-      comments: "Plenty of fast memory, good for multitasking and future needs"
-    },
-    {
-      name: "MSI MAG B550 TOMAHAWK",
-      rating: 8.0,
-      comments: "Good motherboard with solid VRMs and feature set for the price"
-    },
-    {
-      name: "Samsung 970 EVO Plus 1TB",
-      rating: 9.0,
-      comments: "Fast NVMe storage, good capacity for OS and games"
-    }
-  ],
-  recommendations: [
-    "Consider adding a secondary HDD for mass storage",
-    "CPU cooler could be upgraded for lower noise levels",
-    "Case airflow could be improved with additional front fans"
-  ],
-  summary: "A well-balanced high-end gaming PC with good component choices. Offers excellent performance now and should remain capable for several years."
+  "price_performance": {
+    "score": 85,
+    "comment": "이 시스템은 인텔 코어 i5-13600K와 RTX 4070을 조합하여 우수한 성능을 제공하며, 가격 대비 성능이 뛰어납니다. 특히 최신 게임에서도 높은 프레임을 유지할 수 있습니다."
+  },
+  "performance": {
+    "score": 90,
+    "comment": "i5-13600K는 멀티코어 성능이 향상되어 다양한 작업에서 우수한 성능을 발휘합니다. RTX 4070과의 조합으로 대부분의 게임과 작업에서 높은 성능을 기대할 수 있습니다."
+  },
+  "expandability": {
+    "score": 75,
+    "comment": "ASRock B860M-X 메인보드는 M.2 슬롯과 SATA 포트가 제한적일 수 있어 확장성에 일부 제약이 있습니다. 그러나 PSU 용량이 충분하여 향후 더 높은 성능의 GPU로 업그레이드가 가능합니다."
+  },
+  "noise": {
+    "score": 80,
+    "comment": "NOCTUA NH-U12S 쿨러와 NZXT H9 Flow 케이스의 조합으로 효과적인 쿨링과 저소음을 기대할 수 있습니다. 그러나 고성능 부품 사용으로 부하 시 소음이 증가할 수 있습니다."
+  },
+  "average_score": 83
 };

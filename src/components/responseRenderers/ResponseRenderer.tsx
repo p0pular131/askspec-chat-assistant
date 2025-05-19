@@ -6,7 +6,7 @@ import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
 import BuildRecommendationRenderer from './BuildRecommendationRenderer';
 import SpecUpgradeRenderer from './SpecUpgradeRenderer';
 import BuildEvaluationRenderer from './BuildEvaluationRenderer';
-import { sampleBuildRecommendation, sampleCompatibilityData } from '../../data/sampleData';
+import { sampleBuildRecommendation, sampleCompatibilityData, sampleBuildEvaluationData } from '../../data/sampleData';
 
 interface ResponseRendererProps {
   content: string;
@@ -28,7 +28,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, 
     case '스펙 업그레이드':
       return <SpecUpgradeRenderer content={content} />;
     case '견적 평가':
-      return <BuildEvaluationRenderer content={content} />;
+      return <BuildEvaluationRenderer content={content} evaluationData={sampleBuildEvaluationData} />;
     default:
       // For compatibility checks detected in other modes
       if (isCompatibilityRequest) {
