@@ -14,7 +14,7 @@ export const sampleBuildRecommendation = {
       "specs": "6코어 12스레드, 기본 클럭 3.7GHz, 최대 부스트 클럭 4.6GHz",
       "reason": "게임 성능이 우수한 6코어 12스레드의 프로세서입니다.",
       "link": "https://www.amd.com/ko/products/cpu/amd-ryzen-5-5600x",
-      "image": "https://www.amd.com/system/files/2020-10/1260x709-ryzen-5-5600x.jpg"
+      "image": "https://media.istockphoto.com/id/1397047877/ko/%EC%82%AC%EC%A7%84/%EB%A7%88%EB%8D%94%EB%B3%B4%EB%93%9C%EC%9D%98-%EB%A9%94%EC%9D%B8-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%B9%A9.jpg?s=612x612&w=0&k=20&c=aOkQm6fZ6ApeaYu983FGI8f9KbURequCJJgyYPYUniQ="
     },
     {
       "name": "ASUS TUF Gaming B550-PLUS",
