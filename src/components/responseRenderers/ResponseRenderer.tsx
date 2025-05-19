@@ -6,36 +6,13 @@ import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
 import BuildRecommendationRenderer from './BuildRecommendationRenderer';
 import SpecUpgradeRenderer from './SpecUpgradeRenderer';
 import BuildEvaluationRenderer from './BuildEvaluationRenderer';
-import { sampleData } from '../../modules/responseModules/buildRecommendationModule';
+import { sampleBuildRecommendation, sampleCompatibilityData } from '../../data/sampleData';
 
 interface ResponseRendererProps {
   content: string;
   chatMode: string;
   isCompatibilityRequest?: boolean;
 }
-
-// Sample compatibility data for compatibility checks
-const sampleCompatibilityData = {
-    components: ["CPU", "GPU", "RAM", "Motherboard", "Storage", "PSU", "Case", "Cooler"],
-    "CPU_Memory":true,
-    "CPU_Memory_Reason":"인텔 코어 i5-13600K 프로세서는 DDR5-5600 메모리를 지원합니다. 따라서 SK하이닉스 DDR5-5600 (16GB) 메모리와 호환됩니다.",
-    "CPU_Motherboard":false,
-    "CPU_Motherboard_Reason":"인텔 코어 i5-13600K 프로세서는 LGA 1700 소켓을 사용하며, ASRock B860M-X 메인보드는 해당 소켓을 지원하지 않습니다. 따라서 두 부품은 호환되지 않습니다.",
-    "Memory_Motherboard":true,
-    "Memory_Motherboard_Reason":"ASRock B860M-X 메인보드는 DDR5 메모리를 지원하며, SK하이닉스 DDR5-5600 16GB 메모리는 데스크탑용 DDR5 메모리로 호환됩니다.",
-    "Motherboard_Case":true,
-    "Motherboard_Case_Reason":"NZXT H9 Flow 케이스는 Micro-ATX 폼팩터를 지원하며, ASRock B860M-X 메인보드는 Micro-ATX 폼팩터로 두 부품은 호환됩니다.",
-    "Case_PSU":true,
-    "Case_PSU_Reason":"NZXT H9 Flow 케이스는 ATX 규격의 파워서플라이를 지원하며, 시소닉 NEW FOCUS V4 GX-750 GOLD는 ATX 규격으로 호환됩니다. 또한, 파워서플라이의 깊이(140mm)는 케이스 내부 공간에 적합합니다.",
-    "Case_GPU":true,
-    "Case_GPU_Reason":"NZXT H9 Flow 케이스는 최대 435mm 길이의 그래픽카드를 지원하며, ASUS DUAL 지포스 RTX 4070 O12G EVO OC D6X 12GB의 길이는 227.2mm로 호환됩니다.",
-    "Cooler_CPU":false,
-    "Cooler_CPU_Reason":"NOCTUA NH-U12S는 인텔 코어 i5-13600K와 물리적으로 호환되지만, 고부하 시 온도 관리에 한계가 있을 수 있습니다. 더 나은 냉각 성능을 위해 NH-U14S와 같은 상위 모델을 고려하는 것이 좋습니다.",
-    "Cooler_Motherboard":true,
-    "Cooler_Motherboard_Reason":"NOCTUA NH-U12S는 LGA1851 소켓을 지원하며, ASRock B860M-X 메인보드는 LGA1851 소켓을 사용하므로 호환됩니다.",
-    "EdgeCase":null,
-    "Replace":null
-};
 
 const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, isCompatibilityRequest }) => {
   // Select the appropriate renderer based on chat mode
@@ -47,7 +24,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, 
     case '호환성 검사':
       return <CompatibilityCheckRenderer content={content} compatibilityData={sampleCompatibilityData} />;
     case '견적 추천':
-      return <BuildRecommendationRenderer content={content} recommendationData={sampleData} />;
+      return <BuildRecommendationRenderer content={content} recommendationData={sampleBuildRecommendation} />;
     case '스펙 업그레이드':
       return <SpecUpgradeRenderer content={content} />;
     case '견적 평가':

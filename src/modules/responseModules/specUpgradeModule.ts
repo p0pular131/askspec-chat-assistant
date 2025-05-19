@@ -1,11 +1,12 @@
 
 import { ResponseModule } from './types';
+import { sampleSpecUpgradeData } from '../../data/sampleData';
 
 export const specUpgradeModule: ResponseModule = {
   name: 'specUpgrade',
   moduleType: '스펙 업그레이드',
   process: async () => {
-    // Placeholder for future implementation
+    // Use sample data for future implementation
     return `
     # 스펙 업그레이드 추천
     

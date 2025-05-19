@@ -1,36 +1,9 @@
 
 import { ResponseModule } from './types';
-
-// Static data for part recommendations
-const recommendedParts = [
-  {
-    name: "AMD Ryzen 5 5600X",
-    reason: "Excellent price-to-performance ratio for gaming and productivity tasks",
-    price: "₩189,000",
-    specs: "6 cores, 12 threads, 3.7GHz base clock, 4.6GHz boost clock",
-    link: "https://www.example.com/amd-ryzen-5-5600x",
-    image: "https://via.placeholder.com/100x100.png?text=AMD+5600X"
-  },
-  {
-    name: "NVIDIA RTX 3060 Ti",
-    reason: "Great 1440p gaming performance with ray tracing capabilities",
-    price: "₩599,000",
-    specs: "8GB GDDR6, 4864 CUDA cores, 1.67 GHz boost clock",
-    link: "https://www.example.com/nvidia-rtx-3060-ti",
-    image: "https://via.placeholder.com/100x100.png?text=RTX+3060Ti"
-  },
-  {
-    name: "Samsung 970 EVO Plus 1TB",
-    reason: "Fast NVMe SSD with excellent reliability and performance",
-    price: "₩159,000",
-    specs: "3,500MB/s read, 3,300MB/s write, 5-year warranty",
-    link: "https://www.example.com/samsung-970-evo-plus-1tb",
-    image: "https://via.placeholder.com/100x100.png?text=970+EVO+Plus"
-  }
-];
+import { samplePartRecommendations } from '../../data/sampleData';
 
 // Generate HTML table for part recommendations
-const generatePartsTable = (parts: typeof recommendedParts) => {
+const generatePartsTable = (parts: typeof samplePartRecommendations) => {
   return `
   <div class="part-recommendations">
     <h3>추천 부품 목록</h3>
@@ -69,7 +42,7 @@ export const partRecommendationModule: ResponseModule = {
 
     요청하신 부품 추천 정보입니다. 아래 표에서 각 부품의 상세 정보를 확인하세요.
     
-    ${generatePartsTable(recommendedParts)}
+    ${generatePartsTable(samplePartRecommendations)}
     
     추가 문의사항이나 다른 부품에 대한 정보가 필요하시면 질문해주세요.
     `;

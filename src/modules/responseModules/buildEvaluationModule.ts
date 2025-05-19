@@ -1,11 +1,12 @@
 
 import { ResponseModule } from './types';
+import { sampleBuildEvaluationData } from '../../data/sampleData';
 
 export const buildEvaluationModule: ResponseModule = {
   name: 'buildEvaluation',
   moduleType: '견적 평가',
   process: async () => {
-    // Placeholder for future implementation
+    // Use sample data for future implementation
     return `
     # 견적 평가
     

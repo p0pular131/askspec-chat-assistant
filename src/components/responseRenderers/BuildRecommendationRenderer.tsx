@@ -12,16 +12,30 @@ import { Separator } from '@/components/ui/separator';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Info } from 'lucide-react';
-import { EstimateResponse } from '../../modules/responseModules/buildRecommendationModule';
+import { sampleBuildRecommendation } from '../../data/sampleData';
+
+// Define the interface for Build Recommendation data
+export interface EstimateResponse {
+  parts: Array<{
+    name: string;
+    price: string;
+    specs: string;
+    reason: string;
+    link: string;
+    image: string;
+  }>;
+  total_price: string;
+  total_reason: string;
+}
 
 interface BuildRecommendationRendererProps {
   content: string;
-  recommendationData: EstimateResponse;
+  recommendationData?: EstimateResponse;
 }
 
 const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ content, recommendationData }) => {
-  // Always use sample data to ensure consistency between UI and database
-  const buildData = recommendationData;
+  // Use provided data or fall back to sample data to ensure consistency
+  const buildData = recommendationData || sampleBuildRecommendation;
 
   return (
     <div className="build-recommendation-response space-y-6">

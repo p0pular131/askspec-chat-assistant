@@ -1,16 +1,17 @@
 
 import { supabase, fetchCompatibilityData } from '../../integrations/supabase/client';
 import { ResponseModule, CompatibilityData } from './types';
+import { sampleCompatibilityData } from '../../data/sampleData';
 
 // Function to get compatibility data from the database
 const getCompatibilityData = async (): Promise<CompatibilityData | null> => {
   try {
     // Use the fetchCompatibilityData function from the client
     const compatData = await fetchCompatibilityData();
-    return compatData;
+    return compatData || sampleCompatibilityData; // Return sample data as fallback
   } catch (error) {
     console.error('Error in getCompatibilityData:', error);
-    return null;
+    return sampleCompatibilityData; // Return sample data on error
   }
 };
 
