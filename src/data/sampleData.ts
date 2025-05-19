@@ -1,3 +1,4 @@
+
 /**
  * Centralized sample data for all modules
  * This file contains all the sample data used across the application
@@ -29,7 +30,7 @@ export const sampleBuildRecommendation = {
       "specs": "DDR4, 3200MHz, 16GB (8GB x2)",
       "reason": "빠른 속도와 안정성을 제공하는 메모리입니다.",
       "link": "https://www.samsung.com/semiconductor/dram/module/consumer-ddr4/",
-      "image": "https://images.samsung.com/is/image/samsung/p6pim/kr/feature/consumer-ddr4-3200-16gb-8gb-x2-1"
+      "image": "https://media.istockphoto.com/id/1365598557/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%9E%A8-%EC%9E%A5%EC%B9%98-%EC%B9%A9-%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%A9%94%EB%AA%A8%EB%A6%AC-%EB%B3%B4%EB%93%9C-%EC%A0%84%EC%9E%90-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EA%B8%B0%EC%88%A0-ram-%EB%B3%B4%EB%93%9C-%EC%9D%B4%EB%AF%B8%EC%A7%80.jpg?s=612x612&w=0&k=20&c=kBe1gi3c7cDaLagLGXERLb9NDPZIbBaEJsNLGZZgOD4="
     },
     {
       "name": "삼성전자 970 EVO Plus M.2 NVMe 1TB",
@@ -37,7 +38,7 @@ export const sampleBuildRecommendation = {
       "specs": "M.2 NVMe, 1TB, 최대 읽기 속도 3,500MB/s",
       "reason": "빠른 읽기/쓰기 속도를 제공하는 SSD입니다.",
       "link": "https://www.samsung.com/semiconductor/minisite/ssd/product/consumer/970evoplus/",
-      "image": "https://images.samsung.com/is/image/samsung/p6pim/kr/feature/970-evo-plus-m-2-nvme-1tb-1"
+      "image": "https://media.istockphoto.com/id/1330486154/ko/%EC%82%AC%EC%A7%84/ssd-%EC%86%94%EB%A6%AC%EB%93%9C-%EC%8A%A4%ED%85%8C%EC%9D%B4%ED%8A%B8-%EB%B0%95%EB%B6%80-%ED%95%98%EB%93%9C-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B8%8C-%EC%BB%B4%ED%93%A8%ED%84%B0%EC%9A%A9-%EC%BB%B4%ED%93%A8%ED%84%B0-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EB%B0%8F-%EC%BB%B4%ED%93%A8%ED%84%B0-%EC%97%85%EA%B7%B8%EB%A0%88%EC%9D%B4%EB%93%9C-%EA%B0%9C%EB%85%90.jpg?s=612x612&w=0&k=20&c=IYylyFVn4aNcFZBnVQcCxEIAOpypUevdRbZXTgMKZ8E="
     },
     {
       "name": "NVIDIA 지포스 RTX 4060 Ti",
@@ -53,7 +54,7 @@ export const sampleBuildRecommendation = {
       "specs": "700W, 80PLUS Bronze 인증",
       "reason": "안정적인 전력 공급을 위한 파워 서플라이입니다.",
       "link": "https://www.micronics.co.kr/power/classic-ii-700w-80plus-bronze/",
-      "image": "https://www.micronics.co.kr/wp-content/uploads/2020/09/classic-ii-700w-80plus-bronze-1.jpg"
+      "image": "https://media.istockphoto.com/id/622847180/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EC%A0%84%EC%9B%90-%EA%B3%B5%EA%B8%89-%EC%9E%A5%EC%B9%98.jpg?s=612x612&w=0&k=20&c=K9imPdgnVoRGZ_VuNKX-Pl80PLq2sDXg0chcpIWOl1U="
     },
     {
       "name": "ABKO NCORE 식스팬 강화유리",
@@ -61,7 +62,7 @@ export const sampleBuildRecommendation = {
       "specs": "미들 타워, 강화유리, 6개의 쿨링 팬 포함",
       "reason": "효율적인 쿨링과 디자인을 갖춘 케이스입니다.",
       "link": "https://www.abko.co.kr/product/ncore-sixfan/",
-      "image": "https://www.abko.co.kr/wp-content/uploads/2020/09/ncore-sixfan-1.jpg"
+      "image": "https://media.istockphoto.com/id/1419050553/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EC%9E%90%EC%84%B8%ED%95%9C-%EC%BB%B4%ED%93%A8%ED%84%B0-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%ED%85%8C%EB%A7%88-%EA%B0%80%EA%B9%8C%EC%9A%B4-%EA%B2%80%EC%9D%80-%EB%B0%B0%EA%B2%BD.jpg?s=612x612&w=0&k=20&c=Rig4MuWqkO1pdP_GXhnFZ9DxrkXTjO14gcofOYO5j0o="
     },
     {
       "name": "잘만 CNPS10X PERFORMA BLACK",
@@ -69,7 +70,7 @@ export const sampleBuildRecommendation = {
       "specs": "120mm 팬, 4개의 히트파이프",
       "reason": "효율적인 CPU 쿨링을 위한 공랭 쿨러입니다.",
       "link": "https://www.zalman.com/kr/product/cnps10x-performa-black/",
-      "image": "https://www.zalman.com/kr/wp-content/uploads/2020/09/cnps10x-performa-black-1.jpg"
+      "image": "https://media.istockphoto.com/id/175195279/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EC%BF%A8%EB%9F%AC.jpg?s=612x612&w=0&k=20&c=LJcbNpQSacHkuMWms0Rs8n9srQijX6nRJjpQa9X0_Dg="
     }
   ],
   "total_price": "₩1,370,000",
@@ -188,3 +189,4 @@ export const sampleBuildEvaluationData = {
   },
   "average_score": 83
 };
+
