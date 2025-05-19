@@ -22,7 +22,7 @@ export const sampleBuildRecommendation = {
       "specs": "ATX 폼팩터, AM4 소켓, DDR4 메모리 지원",
       "reason": "안정성과 확장성이 뛰어난 메인보드입니다.",
       "link": "https://www.asus.com/kr/Motherboards-Components/Motherboards/TUF-Gaming/TUF-GAMING-B550-PLUS/",
-      "image": "https://dlcdnwebimgs.asus.com/gain/8B0A0A0A-0A0A-4A0A-8A0A-0A0A0A0A0A0A/w1000/h732"
+      "image": "https://media.istockphoto.com/id/958956392/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%B3%B4%EB%93%9C-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EB%A7%88%EB%8D%94%EB%B3%B4%EB%93%9C-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C-%EC%84%9C%EB%B2%84-cpu-%EC%B9%A9-%EB%B0%98%EB%8F%84%EC%B2%B4-%ED%9A%8C%EB%A1%9C-%EB%B8%94%EB%A3%A8-%EC%BD%94%EC%96%B4-%EA%B8%B0%EC%88%A0-%EB%B0%B0%EA%B2%BD%EC%9D%B4-%EB%82%98-%EB%B8%94%EB%A3%A8-%ED%85%8D%EC%8A%A4%EC%B2%98-%ED%94%84%EB%A1%9C%EC%84%B8%EC%84%9C-%EA%B0%9C%EB%85%90-%EC%A0%84%EC%9E%90-%EC%9E%A5%EC%B9%98.jpg?s=612x612&w=0&k=20&c=YODzWyYGg0ZH3C3XtrUEaxSfyojF4PXyPmOzgssJDws="
     },
     {
       "name": "삼성전자 DDR4-3200 16GB (8GB x2)",
