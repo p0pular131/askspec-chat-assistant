@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Message } from '../components/types';
 import { useSessionManagement } from './useSessionManagement';
@@ -55,6 +54,7 @@ export function useConversationState() {
         text: msg.input_text,
         isUser: msg.role === 'user',
         chatMode: msg.chat_mode || '범용 검색', // Use the stored chat mode or default
+        expertiseLevel: msg.expertise_level || 'beginner' // Use the stored expertise level or default
       }));
       setMessages(uiMessages);
     }
@@ -75,7 +75,7 @@ export function useConversationState() {
           throw new Error('Failed to create session');
         }
         
-        // Add user message with the current chatMode
+        // Add user message with the current chatMode and expertiseLevel
         await sendMessageAction(text, expertiseLevel, chatMode, () => {
           // Reset the auto-refresh flag
           setAutoRefreshTriggered(false);
@@ -97,7 +97,7 @@ export function useConversationState() {
           await updateSession(currentSession.id, text.substring(0, 50));
         }
         
-        // Send the message with the current session
+        // Send the message with the current session, including expertiseLevel
         await sendMessageAction(text, expertiseLevel, chatMode, () => {
           // Reset the auto-refresh flag
           setAutoRefreshTriggered(false);

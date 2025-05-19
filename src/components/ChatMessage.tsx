@@ -23,8 +23,9 @@ interface ChatMessageProps {
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '범용 검색' }) => {
   const isCompatibilityRequest = !message.isUser && isCompatibilityCheckRequest(message.text);
   
-  // Use the message's stored chatMode if available, otherwise fall back to the provided one
+  // Use the message's stored chatMode and expertiseLevel if available
   const effectiveChatMode = message.chatMode || chatMode;
+  const expertiseLevel = message.expertiseLevel || 'beginner';
   
   if (message.isUser) {
     return (
@@ -50,7 +51,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '�
         <ResponseRenderer 
           content={message.text} 
           chatMode={effectiveChatMode} 
-          isCompatibilityRequest={isCompatibilityRequest} 
+          isCompatibilityRequest={isCompatibilityRequest}
+          expertiseLevel={expertiseLevel as 'beginner' | 'intermediate' | 'expert'}
         />
       </div>
     </div>

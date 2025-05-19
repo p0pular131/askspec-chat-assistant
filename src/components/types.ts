@@ -3,6 +3,7 @@ export interface Message {
   text: string;
   isUser: boolean;
   chatMode?: string; // Add chatMode to store the category when the message was created
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert'; // Add expertiseLevel
 }
 
 export interface SidebarProps {

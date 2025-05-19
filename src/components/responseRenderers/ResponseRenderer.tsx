@@ -12,13 +12,19 @@ interface ResponseRendererProps {
   content: string;
   chatMode: string;
   isCompatibilityRequest?: boolean;
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
 
-const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, isCompatibilityRequest }) => {
+const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
+  content, 
+  chatMode, 
+  isCompatibilityRequest,
+  expertiseLevel = 'beginner'
+}) => {
   // Select the appropriate renderer based on chat mode
   switch (chatMode) {
     case '범용 검색':
-      return <GeneralSearchRenderer content={content} />;
+      return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;
     case '부품 추천':
       return <PartRecommendationRenderer content={content} />;
     case '호환성 검사':
@@ -35,7 +41,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({ content, chatMode, 
         return <CompatibilityCheckRenderer content={content} compatibilityData={sampleCompatibilityData} />;
       }
       // Default to general search renderer
-      return <GeneralSearchRenderer content={content} />;
+      return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;
   }
 };
 

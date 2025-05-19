@@ -24,7 +24,7 @@ export function useMessageActions(currentSession: Session | null) {
     try {
       // Add user message with the current chatMode
       if (currentSession) {
-        await addMessage(text, 'user', currentSession.id.toString(), chatMode);
+        await addMessage(text, 'user', currentSession.id.toString(), chatMode, expertiseLevel);
         
         // Create messages array from existing messages
         const apiMessages = dbMessages.map(msg => ({
@@ -39,9 +39,9 @@ export function useMessageActions(currentSession: Session | null) {
           // Get response using sample data
           const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
           
-          // Add assistant response to database with the current chatMode
+          // Add assistant response to database with the current chatMode and expertiseLevel
           if (response) {
-            await addMessage(response, 'assistant', currentSession.id.toString(), chatMode);
+            await addMessage(response, 'assistant', currentSession.id.toString(), chatMode, expertiseLevel);
             
             // Call the onSuccess callback if provided
             if (onSuccess) {

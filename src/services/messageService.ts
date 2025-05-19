@@ -45,27 +45,34 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
     }
     const typedData = data as DatabaseMessage[];
     
-    // Find the chat mode for each message from response_json if possible
+    // Find the chat mode and expertise level for each message from response_json if possible
     const enhancedData = typedData.map(message => {
       let chatMode = '범용 검색'; // Default mode
+      let expertiseLevel = 'beginner'; // Default expertise level
       
-      // Try to extract chat mode from response_json
+      // Try to extract chat mode and expertise level from response_json
       if (message.response_json) {
         try {
           const jsonData = JSON.parse(message.response_json);
-          if (jsonData && jsonData.chat_mode) {
-            chatMode = jsonData.chat_mode;
+          if (jsonData) {
+            if (jsonData.chat_mode) {
+              chatMode = jsonData.chat_mode;
+            }
+            if (jsonData.expertise_level) {
+              expertiseLevel = jsonData.expertise_level;
+            }
           }
         } catch (e) {
-          // If parsing fails, use default mode
-          console.warn('Failed to parse response_json for chat mode');
+          // If parsing fails, use default mode and level
+          console.warn('Failed to parse response_json for chat mode or expertise level');
         }
       }
       
       return {
         ...message,
         role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user',
-        chat_mode: chatMode
+        chat_mode: chatMode,
+        expertise_level: expertiseLevel
       };
     });
     
@@ -81,14 +88,18 @@ export async function addMessageToDatabase(
   content: string, 
   role: 'user' | 'assistant', 
   sessionId: string,
-  chatMode: string = '범용 검색'
+  chatMode: string = '범용 검색',
+  expertiseLevel: string = 'beginner'
 ): Promise<DatabaseMessage | null> {
   try {
     // Get the next message ID
     const nextMessageId = await getNextId('messages');
     
-    // Create response_json with chat mode for proper rendering on reload
-    const responseJson = JSON.stringify({ chat_mode: chatMode });
+    // Create response_json with chat mode and expertise level for proper rendering on reload
+    const responseJson = JSON.stringify({ 
+      chat_mode: chatMode,
+      expertise_level: expertiseLevel
+    });
     
     // Add the message directly to the database
     const { data, error } = await supabase
@@ -98,7 +109,7 @@ export async function addMessageToDatabase(
         input_text: content,
         role: role,
         session_id: parseInt(sessionId, 10),
-        response_json: responseJson // Store chat mode in response_json
+        response_json: responseJson // Store chat mode and expertise level in response_json
       })
       .select();
     
@@ -112,12 +123,13 @@ export async function addMessageToDatabase(
       throw new Error('Failed to add message');
     }
     
-    // Return the message with chat mode
+    // Return the message with chat mode and expertise level
     const message = data[0];
     return {
       ...message,
       role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user',
-      chat_mode: chatMode
+      chat_mode: chatMode,
+      expertise_level: expertiseLevel
     } as DatabaseMessage;
   } catch (error) {
     console.error('Error in addMessageToDatabase:', error);

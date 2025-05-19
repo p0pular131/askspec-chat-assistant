@@ -28,9 +28,10 @@ export function useMessages(sessionId: string | null) {
     content: string, 
     role: 'user' | 'assistant', 
     sessionIdStr: string,
-    chatMode: string = '범용 검색'
+    chatMode: string = '범용 검색',
+    expertiseLevel: string = 'beginner'
   ) => {
-    const newMessage = await addMessageToDatabase(content, role, sessionIdStr, chatMode);
+    const newMessage = await addMessageToDatabase(content, role, sessionIdStr, chatMode, expertiseLevel);
     if (newMessage) {
       setMessages(prevMessages => [...prevMessages, newMessage]);
     }

@@ -1,4 +1,3 @@
-
 /**
  * Centralized sample data for all modules
  * This file contains all the sample data used across the application
@@ -22,7 +21,7 @@ export const sampleBuildRecommendation = {
       "specs": "ATX 폼팩터, AM4 소켓, DDR4 메모리 지원",
       "reason": "안정성과 확장성이 뛰어난 메인보드입니다.",
       "link": "https://www.asus.com/kr/Motherboards-Components/Motherboards/TUF-Gaming/TUF-GAMING-B550-PLUS/",
-      "image": "https://media.istockphoto.com/id/958956392/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%B3%B4%EB%93%9C-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EB%A7%88%EB%8D%94%EB%B3%B4%EB%93%9C-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C-%EC%84%9C%EB%B2%84-cpu-%EC%B9%A9-%EB%B0%98%EB%8F%84%EC%B2%B4-%ED%9A%8C%EB%A1%9C-%EB%B8%94%EB%A3%A8-%EC%BD%94%EC%96%B4-%EA%B8%B0%EC%88%A0-%EB%B0%B0%EA%B2%BD%EC%9D%B4-%EB%82%98-%EB%B8%94%EB%A3%A8-%ED%85%8D%EC%8A%A4%EC%B2%98-%ED%94%84%EB%A1%9C%EC%84%B8%EC%84%9C-%EA%B0%9C%EB%85%90-%EC%A0%84%EC%9E%90-%EC%9E%A5%EC%B9%98.jpg?s=612x612&w=0&k=20&c=YODzWyYGg0ZH3C3XtrUEaxSfyojF4PXyPmOzgssJDws="
+      "image": "https://media.istockphoto.com/id/958956392/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%B3%B4%EB%93%9C-%ED%95%98%EB%93%9C%EC%9D%A8%EC%96%B4-%EB%A7%88%EB%8D%94%EB%B3%B4%EB%93%9C-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C-%EC%84%9C%EB%B2%84-cpu-%EC%B9%A9-%EB%B0%98%EB%8F%84%EC%B2%B4-%ED%9A%8C%EB%A1%9C-%EB%B8%94%EB%A3%A8-%EC%BD%94%EC%96%B4-%EA%B8%B0%EC%88%A0-%EB%B0%B0%EA%B2%BD%EC%9D%B4-%EB%82%98-%EB%B8%94%EB%A3%A8-%ED%85%8D%EC%8A%A4%EC%B2%98-%ED%94%84%EB%A1%9C%EC%84%B8%EC%84%9C-%EA%B0%9C%EB%85%90-%EC%A0%84%EC%9E%90-%EC%9E%A5%EC%B9%98.jpg?s=612x612&w=0&k=20&c=YODzWyYGg0ZH3C3XtrUEaxSfyojF4PXyPmOzgssJDws="
     },
     {
       "name": "삼성전자 DDR4-3200 16GB (8GB x2)",
@@ -93,7 +92,7 @@ export const sampleCompatibilityData = {
   "Case_GPU": true,
   "Case_GPU_Reason": "NZXT H9 Flow 케이스는 최대 435mm 길이의 그래픽카드를 지원하며, ASUS DUAL 지포스 RTX 4070 O12G EVO OC D6X 12GB의 길이는 227.2mm로 호환됩니다.",
   "Cooler_CPU": false,
-  "Cooler_CPU_Reason": "NOCTUA NH-U12S는 인텔 코어 i5-13600K와 물리적으로 호환되지만, 고부하 시 온도 관리에 한계가 있을 수 있습니다. 더 나은 냉각 성능을 위해 NH-U14S와 같은 상위 모델을 고려하는 것이 좋습니다.",
+  "Cooler_CPU_Reason": "NOCTUA NH-U12S는 인텔 코어 i5-13600K와 물리적으로 호환되지만, 고부하 시 온도 관리에 한계가 있��� 수 있습니다. 더 나은 냉각 성능을 위해 NH-U14S와 같은 상위 모델을 고려하는 것이 좋습니다.",
   "Cooler_Motherboard": true,
   "Cooler_Motherboard_Reason": "NOCTUA NH-U12S는 LGA1851 소켓을 지원하며, ASRock B860M-X 메인보드는 LGA1851 소켓을 사용하므로 호환됩니다.",
   "EdgeCase": null,
@@ -190,3 +189,11 @@ export const sampleBuildEvaluationData = {
   "average_score": 83
 };
 
+// Sample data for general search responses by expertise level
+export const sampleGeneralSearchResponses = {
+  beginner: "GPU는 '그래픽 처리 장치'로, 컴퓨터에서 화면에 그림이나 영상을 표시할 때 필요한 부품입니다. 쉽게 말하면, 게임을 하거나 영상을 볼 때 그림이 끊기지 않고 부드럽게 나오도록 도와주는 역할을 합니다. GPU를 구매할 때는, 주로 어떤 용도로 쓸지 먼저 생각해야 합니다. 게임이나 영상 작업처럼 그래픽 작업이 많은 경우 더 성능이 좋은 GPU가 필요하며, 단순히 인터넷이나 문서 작업 정도면 보통 내장 그래픽으로도 충분합니다. 예산, 사용할 프로그램, 모니터 해상도 등도 함께 고려해야 합니다.",
+  
+  intermediate: "GPU는 'Graphics Processing Unit'의 약자로, 그래픽 카드를 구성하는 핵심 부품입니다. GPU는 주로 3D 그래픽 연산, 영상 렌더링, 딥러닝 등의 복잡한 계산을 담당합니다. GPU를 구매할 때는 목적에 따라 성능과 메모리 용량, 발열, 호환성, 가격 등을 고려해야 합니다. 예를 들어 게임용이라면 최신 아키텍처와 충분한 VRAM이 중요하며, 딥러닝이나 영상 편집 용도라면 단일·더블 프리시전 성능 및 CUDA 코어 수, VRAM 용량이 중요한 선택 기준이 됩니다. 또한 사용하려는 케이스에 장착 가능한 크기와, 파워 서플라이의 용량도 확인해야 안정적인 시스템 구성이 가능합니다.",
+  
+  expert: "GPU는 컴퓨터에서 그래픽 연산을 담당하는 부품으로, 주로 게임, 영상 편집, 딥러닝 등 높은 연산 성능을 요구하는 작업에서 필수적입니다. GPU를 구매할 때는 사용하는 목적에 따라 VRAM 용량, 연산 능력(예: CUDA 또는 RT 코어 수), 지원하는 최신 기술(DLSS, 하드웨어 인코딩/디코딩 등), 모니터와의 호환성(출력 단자, 최대 해상도 지원), 그리고 전력 소비량과 쿨링 시스템을 고려해야 합니다. 예를 들어, NVIDIA의 RTX 40 시리즈는 DLSS3와 4세대 NVENC를 지원해 게임뿐만 아니라 영상 인코딩 및 AI 워크플로우에도 최적의 선택지입니다."
+};
