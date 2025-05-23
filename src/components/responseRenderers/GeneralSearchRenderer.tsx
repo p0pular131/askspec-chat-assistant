@@ -15,7 +15,7 @@ const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({
 }) => {
   return (
     <div className="general-search-response relative">
-      <div className="mb-2 flex justify-start pl-2">
+      <div className="mb-2 flex justify-start">
         <Badge 
           variant="outline" 
           className={`${getBadgeClass(expertiseLevel)} flex items-center px-2 py-0.5 text-xs`}
