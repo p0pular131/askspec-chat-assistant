@@ -51,11 +51,10 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
       {/* Main evaluation cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {categories.map((category) => {
-          const categoryData = evaluationData[category as keyof typeof evaluationData];
-          // Ensure the category data has a score property
-          const item = categoryData && typeof categoryData === 'object' && 'score' in categoryData
-            ? categoryData as { score: number; comment: string }
-            : { score: 0, comment: '정보 없음' };
+          const item = evaluationData[category as keyof typeof evaluationData] as {
+            score: number;
+            comment: string;
+          };
           
           return (
             <Card key={category} className="hover:shadow-md transition-shadow">
