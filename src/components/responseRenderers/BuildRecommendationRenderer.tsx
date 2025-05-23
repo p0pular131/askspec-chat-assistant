@@ -16,6 +16,7 @@ import { sampleBuildRecommendation } from '../../data/sampleData';
 
 // Define the interface for Build Recommendation data
 export interface EstimateResponse {
+  title: string;  // Added title property to the interface
   parts: Array<{
     name: string;
     price: string;
@@ -42,7 +43,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
       {/* Summary Card with Total Price and Reasoning */}
       <Card className="w-full border-2 border-blue-200">
         <CardHeader className="bg-blue-50 dark:bg-blue-950/30">
-          <CardTitle className="text-2xl font-bold">맞춤 PC 견적</CardTitle>
+          <CardTitle className="text-2xl font-bold">{buildData.title}</CardTitle>
           <div className="flex justify-between items-center mt-2">
             <CardDescription className="text-xl font-semibold text-blue-600 dark:text-blue-400">
               총 예상 가격: {buildData.total_price}

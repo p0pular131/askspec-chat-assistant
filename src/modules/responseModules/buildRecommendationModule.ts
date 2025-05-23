@@ -12,6 +12,7 @@ export interface PartDetail {
 }
 
 export interface EstimateResponse {
+  title: string;  // Added title property to ensure interface matches the data
   parts: PartDetail[];
   total_price: string;
   total_reason: string;
