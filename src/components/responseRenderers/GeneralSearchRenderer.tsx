@@ -6,7 +6,7 @@ import { Badge } from '../ui/badge';
 
 interface GeneralSearchRendererProps {
   content: string;
-  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert' | null;
 }
 
 const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({ 
@@ -18,7 +18,7 @@ const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({
       <div className="mb-2">
         <Badge 
           variant="outline" 
-          className={getBadgeClass(expertiseLevel)}
+          className={`${getBadgeClass(expertiseLevel)} flex items-center`}
         >
           {getExpertiseLevelIcon(expertiseLevel)}
           <span className="ml-1">{getExpertiseLevelLabel(expertiseLevel)}</span>
@@ -33,61 +33,66 @@ const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({
 };
 
 // Helper functions for styling based on expertise level
-const getExpertiseLevelClass = (level: string): string => {
+const getExpertiseLevelClass = (level: string | null): string => {
   switch (level) {
     case 'beginner':
       return 'expertise-beginner';
     case 'expert':
       return 'expertise-expert';
     case 'intermediate':
-    default:
       return 'expertise-intermediate';
+    default:
+      return 'expertise-beginner'; // Default to beginner style
   }
 };
 
-const getBadgeClass = (level: string): string => {
+const getBadgeClass = (level: string | null): string => {
   switch (level) {
     case 'beginner':
       return 'bg-blue-100 text-blue-700 border-blue-300';
     case 'expert':
       return 'bg-red-100 text-red-700 border-red-300';
     case 'intermediate':
-    default:
       return 'bg-green-100 text-green-700 border-green-300';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-300';
   }
 };
 
-const getContentClass = (level: string): string => {
+const getContentClass = (level: string | null): string => {
   switch (level) {
     case 'beginner':
       return 'text-lg leading-relaxed';
     case 'expert':
       return 'text-sm leading-snug';
     case 'intermediate':
-    default:
       return 'text-base leading-normal';
+    default:
+      return 'text-lg leading-relaxed'; // Default to beginner content style
   }
 };
 
-const getExpertiseLevelLabel = (level: string): string => {
+const getExpertiseLevelLabel = (level: string | null): string => {
   switch (level) {
     case 'beginner':
       return '입문자';
     case 'expert':
       return '전문가';
     case 'intermediate':
-    default:
       return '중급자';
+    default:
+      return '선택되지 않음';
   }
 };
 
-const getExpertiseLevelIcon = (level: string) => {
+const getExpertiseLevelIcon = (level: string | null) => {
   switch (level) {
     case 'beginner':
       return <BookOpen className="h-3 w-3" />;
     case 'expert':
       return <Cpu className="h-3 w-3" />;
     case 'intermediate':
+      return <InfoIcon className="h-3 w-3" />;
     default:
       return <InfoIcon className="h-3 w-3" />;
   }

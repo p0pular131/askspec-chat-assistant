@@ -105,14 +105,22 @@ export const ChatLayout: React.FC = () => {
       case 3:
         return 'beginner';
       default:
-        return 'intermediate'; // Default to intermediate if no selection
+        return 'beginner'; // Default to beginner for internal logic
     }
   }, [selectedAnswer]);
+
+  // Get the display expertise level (what will be shown in the UI)
+  const getDisplayExpertiseLevel = useCallback(() => {
+    if (selectedAnswer === null) {
+      return null; // This will show as "선택되지 않음" in the UI
+    }
+    return getExpertiseLevel();
+  }, [selectedAnswer, getExpertiseLevel]);
 
   const handleSendMessage = useCallback((text: string) => {
     // Reset auto-switch disabled flag when sending a new message
     disableAutoSwitch();
-    sendMessage(text, getExpertiseLevel(), chatMode);
+    sendMessage(text, getExpertiseLevel(), chatMode); // Always use beginner as default
   }, [sendMessage, getExpertiseLevel, chatMode, disableAutoSwitch]);
 
   const handleGenerateBuilds = async () => {
@@ -135,6 +143,9 @@ export const ChatLayout: React.FC = () => {
 
   // Get the current expertise level
   const currentExpertiseLevel = getExpertiseLevel();
+
+  // Get the display expertise level for UI
+  const displayExpertiseLevel = getDisplayExpertiseLevel();
 
   return (
     <div className="flex w-screen h-screen bg-neutral-100">
@@ -243,7 +254,7 @@ export const ChatLayout: React.FC = () => {
         setChatMode={setChatMode}
         sendMessage={handleSendMessage}
         getExamplePrompt={getExamplePrompt}
-        expertiseLevel={currentExpertiseLevel}
+        expertiseLevel={displayExpertiseLevel}
       />
 
       <Sidebar
