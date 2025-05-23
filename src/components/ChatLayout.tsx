@@ -133,6 +133,9 @@ export const ChatLayout: React.FC = () => {
   // Use type assertion to make sure the builds property is compatible with the BuildsList component
   const buildsList = builds as any[];
 
+  // Get the current expertise level
+  const currentExpertiseLevel = getExpertiseLevel();
+
   return (
     <div className="flex w-screen h-screen bg-neutral-100">
       <Sidebar
@@ -240,6 +243,7 @@ export const ChatLayout: React.FC = () => {
         setChatMode={setChatMode}
         sendMessage={handleSendMessage}
         getExamplePrompt={getExamplePrompt}
+        expertiseLevel={currentExpertiseLevel}
       />
 
       <Sidebar
