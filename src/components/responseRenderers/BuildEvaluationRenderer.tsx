@@ -34,10 +34,8 @@ const getScoreColor = (score: number): string => {
 };
 
 const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ content, evaluationData = sampleBuildEvaluationData }) => {
-  // Get average score for title display - handle both object with score property and direct number
-  const averageScore = typeof evaluationData.average_score === 'object' && evaluationData.average_score 
-    ? (evaluationData.average_score as any).score || 0 
-    : (typeof evaluationData.average_score === 'number' ? evaluationData.average_score : 0);
+  // Get average score for title display
+  const averageScore = evaluationData.average_score?.score || 0;
   
   // Extract categories for rendering (exclude average_score)
   // Reorder to put "performance" before "price_performance"

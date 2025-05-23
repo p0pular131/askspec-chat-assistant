@@ -1,20 +1,17 @@
 
-import React, { useCallback } from 'react';
+import React, { memo } from 'react';
 import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
 import { MessageInput } from './MessageInput';
-import ChatModeSelector from './ChatModeSelector';
-import { Message } from './types';
 
 interface ChatMainProps {
-  messages: Message[];
+  messages: Array<{ text: string; isUser: boolean; chatMode?: string }>;
   isLoading: boolean;
   showExample: boolean;
   chatMode: string;
   setChatMode: (mode: string) => void;
   sendMessage: (text: string) => void;
   getExamplePrompt: () => string;
-  selectedExpertiseLevel?: number | null;
 }
 
 const ChatMain: React.FC<ChatMainProps> = ({
@@ -24,42 +21,43 @@ const ChatMain: React.FC<ChatMainProps> = ({
   chatMode,
   setChatMode,
   sendMessage,
-  getExamplePrompt,
-  selectedExpertiseLevel = null
+  getExamplePrompt
 }) => {
-  const handleSendMessage = useCallback(
-    (text: string) => {
-      sendMessage(text);
-    },
-    [sendMessage]
-  );
+  const exampleText = getExamplePrompt();
+
+  const handleSendMessage = (text: string) => {
+    // Process the message normally
+    sendMessage(text);
+  };
 
   return (
-    <div className="flex flex-col flex-1 h-screen max-h-screen overflow-hidden px-6 py-6">
-      <ChatHeader selectedExpertiseLevel={selectedExpertiseLevel} />
-      
-      <div className="flex gap-2 mb-6">
-        <ChatModeSelector chatMode={chatMode} setChatMode={setChatMode} />
-      </div>
-      
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <ChatMessages
-          messages={messages}
+    <main className="flex-1 p-6">
+      <div className="flex relative flex-col p-6 bg-white rounded-xl border border-gray-200 shadow-sm size-full h-full">
+        <ChatHeader />
+
+        <ChatMessages 
+          messages={messages} 
           isLoading={isLoading}
           chatMode={chatMode}
         />
-        
+
+        {showExample && messages.length === 0 && (
+          <div className="absolute top-2/4 left-2/4 px-5 py-0 text-base italic text-center -translate-x-2/4 -translate-y-2/4 pointer-events-none max-w-[600px] text-neutral-400">
+            {exampleText}
+          </div>
+        )}
+
         <MessageInput
           onSendMessage={handleSendMessage}
-          isDisabled={isLoading}
           chatMode={chatMode}
           setChatMode={setChatMode}
           showExample={showExample}
-          exampleText={showExample ? getExamplePrompt() : ""}
+          exampleText={exampleText}
+          isDisabled={isLoading}
         />
       </div>
-    </div>
+    </main>
   );
 };
 
-export default ChatMain;
+export default memo(ChatMain);

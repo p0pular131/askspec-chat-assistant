@@ -240,7 +240,6 @@ export const ChatLayout: React.FC = () => {
         setChatMode={setChatMode}
         sendMessage={handleSendMessage}
         getExamplePrompt={getExamplePrompt}
-        selectedExpertiseLevel={selectedAnswer}
       />
 
       <Sidebar
