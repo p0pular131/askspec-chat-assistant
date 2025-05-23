@@ -51,13 +51,11 @@ const ChatMain: React.FC<ChatMainProps> = ({
         
         <MessageInput
           onSendMessage={handleSendMessage}
-          loading={isLoading}
-          example={showExample ? getExamplePrompt() : null}
+          isDisabled={isLoading}
           chatMode={chatMode}
           setChatMode={setChatMode}
           showExample={showExample}
           exampleText={showExample ? getExamplePrompt() : ""}
-          isDisabled={isLoading}
         />
       </div>
     </div>
