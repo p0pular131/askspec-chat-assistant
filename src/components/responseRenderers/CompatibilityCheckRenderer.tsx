@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Check, X } from 'lucide-react';
@@ -103,22 +102,16 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
                 <tr key={`compatibility-row-${i}`} className="hover:bg-gray-50 group">
                   <td className="px-4 py-2 border font-medium">{link.source}</td>
                   <td className={`px-4 py-2 border text-center ${statusClass}`}>
-                    {link.status ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger className="flex justify-center w-full">
-                            {statusIcon}
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs text-sm">{link.reason}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <div className="flex justify-center">
-                        {statusIcon}
-                      </div>
-                    )}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="flex justify-center w-full">
+                          {statusIcon}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs text-sm">{link.reason || (link.status ? "호환됩니다" : "호환되지 않습니다")}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </td>
                   <td className="px-4 py-2 border font-medium">{link.target}</td>
                 </tr>
