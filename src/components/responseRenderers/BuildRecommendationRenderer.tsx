@@ -9,9 +9,8 @@ import {
   CardFooter 
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Info } from 'lucide-react';
+import { ExternalLink, Save } from 'lucide-react';
 import { sampleBuildRecommendation } from '../../data/sampleData';
 
 // Define the interface for Build Recommendation data
@@ -37,27 +36,34 @@ interface BuildRecommendationRendererProps {
 const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ content, recommendationData }) => {
   // Use provided data or fall back to sample data to ensure consistency
   const buildData = recommendationData || sampleBuildRecommendation;
+  
+  // Function to handle saving the estimate (placeholder for future implementation)
+  const handleSaveEstimate = () => {
+    console.log('Saving estimate:', buildData);
+    // This will be implemented later to save the build to the database
+  };
 
   return (
     <div className="build-recommendation-response space-y-6">
       {/* Summary Card with Total Price and Reasoning */}
       <Card className="w-full border-2 border-blue-200">
         <CardHeader className="bg-blue-50 dark:bg-blue-950/30">
-          <CardTitle className="text-2xl font-bold">{buildData.title}</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl font-bold">{buildData.title}</CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-1"
+              onClick={handleSaveEstimate}
+            >
+              <Save size={16} />
+              <span>견적 저장</span>
+            </Button>
+          </div>
           <div className="flex justify-between items-center mt-2">
             <CardDescription className="text-xl font-semibold text-blue-600 dark:text-blue-400">
               총 예상 가격: {buildData.total_price}
             </CardDescription>
-            <HoverCard>
-              <HoverCardTrigger asChild>
-                <Button variant="ghost" size="sm" className="rounded-full p-0 w-8 h-8">
-                  <Info size={16} />
-                </Button>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-80">
-                <p>이 견적은 사용자의 요구사항과 예산에 맞게 최적화되었습니다. 가격은 시장 상황에 따라 변동될 수 있습니다.</p>
-              </HoverCardContent>
-            </HoverCard>
           </div>
         </CardHeader>
         <CardContent className="pt-4">
