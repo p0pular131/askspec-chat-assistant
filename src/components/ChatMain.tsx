@@ -1,7 +1,8 @@
+
 import React, { useCallback } from 'react';
 import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
-import MessageInput from './MessageInput';
+import { MessageInput } from './MessageInput';
 import ChatModeSelector from './ChatModeSelector';
 import { Message } from './types';
 
@@ -52,6 +53,11 @@ const ChatMain: React.FC<ChatMainProps> = ({
           onSendMessage={handleSendMessage}
           loading={isLoading}
           example={showExample ? getExamplePrompt() : null}
+          chatMode={chatMode}
+          setChatMode={setChatMode}
+          showExample={showExample}
+          exampleText={showExample ? getExamplePrompt() : ""}
+          isDisabled={isLoading}
         />
       </div>
     </div>
