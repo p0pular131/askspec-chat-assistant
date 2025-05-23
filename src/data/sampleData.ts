@@ -6,7 +6,7 @@
 
 // Sample data for build recommendations
 export const sampleBuildRecommendation = {
-  "title": "150만원대 게이밍 컴퓨터 견적"
+  "title": "150만원대 게이밍 컴퓨터 견적",
   "parts": [
     {
       "name": "AMD 라이젠5 5600X",
