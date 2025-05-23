@@ -14,18 +14,18 @@ const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({
   expertiseLevel = 'beginner' 
 }) => {
   return (
-    <div className={`general-search-response ${getExpertiseLevelClass(expertiseLevel)} relative`}>
-      <div className="mb-2">
+    <div className="general-search-response relative">
+      <div className="mb-2 flex justify-end">
         <Badge 
           variant="outline" 
-          className={`${getBadgeClass(expertiseLevel)} flex items-center`}
+          className={`${getBadgeClass(expertiseLevel)} flex items-center px-2 py-0.5 text-xs`}
         >
           {getExpertiseLevelIcon(expertiseLevel)}
           <span className="ml-1">{getExpertiseLevelLabel(expertiseLevel)}</span>
         </Badge>
       </div>
       
-      <div className={getContentClass(expertiseLevel)}>
+      <div className="prose prose-zinc prose-sm max-w-none">
         <ReactMarkdown>{content}</ReactMarkdown>
       </div>
     </div>
@@ -33,19 +33,6 @@ const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({
 };
 
 // Helper functions for styling based on expertise level
-const getExpertiseLevelClass = (level: string | null): string => {
-  switch (level) {
-    case 'beginner':
-      return 'expertise-beginner';
-    case 'expert':
-      return 'expertise-expert';
-    case 'intermediate':
-      return 'expertise-intermediate';
-    default:
-      return 'expertise-beginner'; // Default to beginner style
-  }
-};
-
 const getBadgeClass = (level: string | null): string => {
   switch (level) {
     case 'beginner':
@@ -56,19 +43,6 @@ const getBadgeClass = (level: string | null): string => {
       return 'bg-green-100 text-green-700 border-green-300';
     default:
       return 'bg-gray-100 text-gray-700 border-gray-300';
-  }
-};
-
-const getContentClass = (level: string | null): string => {
-  switch (level) {
-    case 'beginner':
-      return 'text-lg leading-relaxed';
-    case 'expert':
-      return 'text-sm leading-snug';
-    case 'intermediate':
-      return 'text-base leading-normal';
-    default:
-      return 'text-lg leading-relaxed'; // Default to beginner content style
   }
 };
 

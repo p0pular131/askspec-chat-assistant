@@ -61,7 +61,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ expertiseLevel }) => {
       
       <Badge 
         variant="outline" 
-        className={`${getBadgeClass(expertiseLevel)} px-3 py-1 flex items-center`}
+        className={`${getBadgeClass(expertiseLevel)} px-2 py-0.5 text-xs flex items-center`}
       >
         {getExpertiseLevelIcon(expertiseLevel)}
         <span>응답 형식: {getExpertiseLevelText(expertiseLevel)}</span>
