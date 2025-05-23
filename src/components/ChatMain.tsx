@@ -12,6 +12,7 @@ interface ChatMainProps {
   setChatMode: (mode: string) => void;
   sendMessage: (text: string) => void;
   getExamplePrompt: () => string;
+  selectedExpertiseLevel?: string | null;
 }
 
 const ChatMain: React.FC<ChatMainProps> = ({
@@ -21,7 +22,8 @@ const ChatMain: React.FC<ChatMainProps> = ({
   chatMode,
   setChatMode,
   sendMessage,
-  getExamplePrompt
+  getExamplePrompt,
+  selectedExpertiseLevel = null
 }) => {
   const exampleText = getExamplePrompt();
 
@@ -33,7 +35,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
   return (
     <main className="flex-1 p-6">
       <div className="flex relative flex-col p-6 bg-white rounded-xl border border-gray-200 shadow-sm size-full h-full">
-        <ChatHeader />
+        <ChatHeader selectedExpertiseLevel={selectedExpertiseLevel} />
 
         <ChatMessages 
           messages={messages} 
