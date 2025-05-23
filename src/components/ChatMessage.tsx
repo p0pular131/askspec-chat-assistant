@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Message } from './types';
-import { Avatar } from './ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import ReactMarkdown from 'react-markdown';
 import ResponseRenderer from './responseRenderers/ResponseRenderer';
+import { UserRound } from 'lucide-react';
 
 // Helper function to detect compatibility check requests
 const isCompatibilityCheckRequest = (text: string): boolean => {
@@ -35,8 +36,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '�
             {message.text}
           </ReactMarkdown>
         </div>
-        <Avatar className="h-8 w-8 bg-blue-500 text-white flex items-center justify-center">
-          <span className="text-xs">사용자</span>
+        <Avatar className="h-8 w-8 bg-blue-500 text-white">
+          <AvatarFallback className="bg-blue-500 text-white flex items-center justify-center">
+            <UserRound className="h-5 w-5" />
+          </AvatarFallback>
         </Avatar>
       </div>
     );
@@ -44,8 +47,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '�
 
   return (
     <div className="flex gap-3 justify-start items-start">
-      <Avatar className="h-8 w-8 bg-teal-600 text-white flex items-center justify-center">
-        <span className="text-xs">PC봇</span>
+      <Avatar className="h-8 w-8">
+        <AvatarImage src="/lovable-uploads/5a98f7eb-ddf1-4112-bf1d-6cda3f363b1e.png" alt="PC봇" />
+        <AvatarFallback className="bg-teal-600 text-white flex items-center justify-center">
+          <span className="text-xs">PC봇</span>
+        </AvatarFallback>
       </Avatar>
       <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
         <ResponseRenderer 
