@@ -34,12 +34,19 @@ const getScoreColor = (score: number): string => {
 };
 
 const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ content, evaluationData = sampleBuildEvaluationData }) => {
+  // Get average score for title display
+  const averageScore = evaluationData.average_score?.score || 0;
+  
   // Extract categories for rendering (exclude average_score)
-  const categories = Object.keys(evaluationData).filter(key => key !== 'average_score');
+  // Reorder to put "performance" before "price_performance"
+  const categoryOrder = ["performance", "price_performance", "expandability", "noise"];
+  const categories = categoryOrder.filter(cat => Object.keys(evaluationData).includes(cat));
 
   return (
     <div className="build-evaluation-response space-y-6">
-      <h2 className="text-2xl font-bold mb-4">견적 평가 결과</h2>
+      <h2 className="text-2xl font-bold mb-4">
+        견적 평가 결과 {averageScore > 0 && <span className="text-blue-600">(평균 점수: {averageScore}점)</span>}
+      </h2>
       
       {/* Main evaluation cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -68,8 +75,6 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
           );
         })}
       </div>
-      
-      {/* Removed the summary card with average score */}
       
       {/* Only render markdown content if present and not empty */}
       {content && content.trim() !== "" && (

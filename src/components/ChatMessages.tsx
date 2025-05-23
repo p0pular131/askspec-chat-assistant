@@ -21,14 +21,22 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading, chatMo
 
   return (
     <div className="flex overflow-y-auto flex-col flex-1 gap-4 mb-20">
-      {messages.map((message, index) => (
-        <ChatMessage 
-          key={`message-${index}-${message.text.substring(0, 10)}`} 
-          message={message} 
-          // Use the current chat mode
-          chatMode={chatMode}
-        />
-      ))}
+      {messages.length === 0 ? (
+        // Show empty state when no messages yet
+        <div className="flex-1 flex items-center justify-center text-gray-400">
+          <p>새로운 대화를 시작하세요</p>
+        </div>
+      ) : (
+        // Render messages when they exist
+        messages.map((message, index) => (
+          <ChatMessage 
+            key={`message-${index}-${message.text.substring(0, 10)}`} 
+            message={message} 
+            // Use the current chat mode
+            chatMode={chatMode}
+          />
+        ))
+      )}
       
       {isLoading && (
         <div className="self-start max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
