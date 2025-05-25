@@ -22,7 +22,7 @@ export const sampleBuildRecommendation = {
       "specs": "ATX 폼팩터, AM4 소켓, DDR4 메모리 지원",
       "reason": "안정성과 확장성이 뛰어난 메인보드입니다.",
       "link": "https://www.asus.com/kr/Motherboards-Components/Motherboards/TUF-Gaming/TUF-GAMING-B550-PLUS/",
-      "image": "https://media.istockphoto.com/id/958956392/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%B3%B4%EB%93%9C-%ED%95%98%EB%93%9C%EC%9D%A8%EC%96%B4-%EB%A7%88%EB%8D%94%EB%B3%B4%EB%93%9C-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C-%EC%84%9C%EB%B2%84-cpu-%EC%B9%A9-%EB%B0%98%EB%8F%84%EC%B2%B4-%ED%9A%8C%EB%A1%9C-%EB%B8%94%EB%A3%A8-%EC%BD%94%EC%96%B4-%EA%B8%B0%EC%88%A0-%EB%B0%B0%EA%B2%BD%EC%9D%B4-%EB%82%98-%EB%B8%94%EB%A3%A8-%ED%85%8D%EC%8A%A4%EC%B2%98-%ED%94%84%EB%A1%9C%EC%84%B8%EC%84%9C-%EA%B0%9C%EB%85%90-%EC%A0%84%EC%9E%90-%EC%9E%A5%EC%B9%98.jpg?s=612x612&w=0&k=20&c=YODzWyYGg0ZH3C3XtrUEaxSfyojF4PXyPmOzgssJDws="
+      "image": "https://media.istockphoto.com/id/958956392/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%B3%B4%EB%93%9C-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EB%A7%88%EB%8D%94%EB%B3%B4%EB%93%9C-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C-%EC%84%9C%EB%B2%84-cpu-%EC%B9%A9-%EB%B0%98%EB%8F%84%EC%B2%B4-%ED%9A%8C%EB%A1%9C-%EB%B8%94%EB%A3%A8-%EC%BD%94%EC%96%B4-%EA%B8%B0%EC%88%A0-%EB%B0%B0%EA%B2%BD%EC%9D%B4-%EB%82%98-%EB%B8%94%EB%A3%A8-%ED%85%8D%EC%8A%A4%EC%B2%98-%ED%94%84%EB%A1%9C%EC%84%B8%EC%84%9C-%EA%B0%9C%EB%85%90-%EC%A0%84%EC%9E%90-%EC%9E%A5%EC%B9%98.jpg?s=612x612&w=0&k=20&c=YODzWyYGg0ZH3C3XtrUEaxSfyojF4PXyPmOzgssJDws="
     },
     {
       "name": "삼성전자 DDR4-3200 16GB (8GB x2)",
@@ -100,33 +100,36 @@ export const sampleCompatibilityData = {
   "Replace": null
 };
 
-// Sample data for part recommendations
-export const samplePartRecommendations = [
-  {
-    name: "AMD Ryzen 5 5600X",
-    reason: "Excellent price-to-performance ratio for gaming and productivity tasks",
-    price: "₩189,000",
-    specs: "6 cores, 12 threads, 3.7GHz base clock, 4.6GHz boost clock",
-    link: "https://www.example.com/amd-ryzen-5-5600x",
-    image: "https://via.placeholder.com/100x100.png?text=AMD+5600X"
+// Sample data for part recommendations (new format)
+export const samplePartRecommendations = {
+  "parts": {
+    "part1": {
+      "name": "인텔 코어i5 13400",
+      "reason": "최신 13세대 인텔 i5 CPU로, 6코어 12쓰레드 및 DDR4/DDR5 지원 등 최신 플랫폼을 사용하는 범용성과 성능이 우수합니다.",
+      "price": "₩238,340",
+      "specs": "6코어 12쓰레드, 베이스 2.5GHz / 부스트 4.6GHz, L3 캐시 20MB, DDR5/DDR4 지원, PCIe 5.0/4.0, 인텔 UHD 730 내장그래픽, 기본 쿨러 포함",
+      "link": "https://www.danawa.com/product/?pcode=18640286",
+      "image_url": "https://img.danawa.com/prod_img/500000/286/640/img/18640286_1.jpg"
+    },
+    "part2": {
+      "name": "인텔 코어i3 13100",
+      "reason": "4코어 8쓰레드, DDR4/DDR5 지원 등 예산 대비 최신 기능을 포함한 엔트리급 사무/가벼운 작업용으로 적합합니다.",
+      "price": "₩166,450",
+      "specs": "4코어 8쓰레드, 베이스 3.4GHz / 부스트 4.5GHz, L3 캐시 12MB, DDR5/DDR4 지원, PCIe 5.0/4.0, 인텔 UHD 730 내장그래픽, 기본 쿨러 포함",
+      "link": "https://www.danawa.com/product/?pcode=18640205",
+      "image_url": "https://img.danawa.com/prod_img/500000/205/640/img/18640205_1.jpg"
+    },
+    "part3": {
+      "name": "인텔 코어i5 11400F",
+      "reason": "6코어 12쓰레드, DDR4 및 PCIe 4.0 지원 등 가성비가 우수하며, 내장 그래픽이 필요 없는 사용자에게 알맞습니다.", 
+      "price": "₩140,020",
+      "specs": "6코어 12쓰레드, 베이스 2.6GHz/부스트 4.4GHz, L3 캐시 12MB, DDR4, PCIe 4.0, 내장그래픽 미탑재, 기본 쿨러 포함",
+      "link": "https://www.danawa.com/product/?pcode=13753394",
+      "image_url": "https://img.danawa.com/prod_img/500000/394/753/img/13753394_1.jpg"
+    }
   },
-  {
-    name: "NVIDIA RTX 3060 Ti",
-    reason: "Great 1440p gaming performance with ray tracing capabilities",
-    price: "₩599,000",
-    specs: "8GB GDDR6, 4864 CUDA cores, 1.67 GHz boost clock",
-    link: "https://www.example.com/nvidia-rtx-3060-ti",
-    image: "https://via.placeholder.com/100x100.png?text=RTX+3060Ti"
-  },
-  {
-    name: "Samsung 970 EVO Plus 1TB",
-    reason: "Fast NVMe SSD with excellent reliability and performance",
-    price: "₩159,000",
-    specs: "3,500MB/s read, 3,300MB/s write, 5-year warranty",
-    link: "https://www.example.com/samsung-970-evo-plus-1tb",
-    image: "https://via.placeholder.com/100x100.png?text=970+EVO+Plus"
-  }
-];
+  "suggestion": "게임용 CPU를 찾고 계신다면 i5 13400이 가장 균형잡힌 선택입니다. 예산이 제한적이라면 i3 13100으로도 충분하며, 별도 그래픽카드 사용 시 i5 11400F가 가성비 면에서 우수합니다."
+};
 
 // Sample data for spec upgrades (placeholder for future implementation)
 export const sampleSpecUpgradeData = {
