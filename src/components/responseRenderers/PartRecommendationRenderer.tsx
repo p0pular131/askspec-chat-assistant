@@ -45,86 +45,88 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
 
   return (
     <div className="part-recommendation-response space-y-6">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+      {/* Header - Left aligned, no subtitle */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
           부품 추천
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          요청하신 부품에 대한 추천 정보입니다
-        </p>
       </div>
 
-      {/* Parts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Parts - Vertical Stack Layout */}
+      <div className="space-y-6">
         {partsArray.map((part, index) => (
-          <Card key={index} className="overflow-hidden h-full flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300">
-            {/* Product Image */}
-            <div className="h-48 overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
-              {part.image_url && (
-                <img 
-                  src={part.image_url} 
-                  alt={part.name}
-                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://placehold.co/400x300?text=이미지+없음";
-                  }}
-                />
-              )}
-              {/* Price Badge */}
-              <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-md text-sm font-semibold">
-                {part.price}
-              </div>
-            </div>
-            
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-bold text-gray-800 dark:text-gray-200 line-clamp-2">
-                {part.name}
-              </CardTitle>
-            </CardHeader>
-            
-            <CardContent className="flex-grow space-y-4">
-              {/* Specs Section */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                  ⚙️ 주요 스펙
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                  {part.specs}
-                </p>
+          <Card key={index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div className="flex flex-col md:flex-row">
+              {/* Product Image */}
+              <div className="md:w-1/3 h-48 md:h-auto overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
+                {part.image_url && (
+                  <img 
+                    src={part.image_url} 
+                    alt={part.name}
+                    className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "https://placehold.co/400x300?text=이미지+없음";
+                    }}
+                  />
+                )}
+                {/* Price Badge */}
+                <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-md text-sm font-semibold">
+                  {part.price}
+                </div>
               </div>
               
-              {/* Reason Section */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                  💡 추천 이유
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                  {part.reason}
-                </p>
+              {/* Content Section */}
+              <div className="md:w-2/3 flex flex-col">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg font-bold text-gray-800 dark:text-gray-200">
+                    {part.name}
+                  </CardTitle>
+                </CardHeader>
+                
+                <CardContent className="flex-grow space-y-4">
+                  {/* Specs Section */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                      ⚙️ 주요 스펙
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {part.specs}
+                    </p>
+                  </div>
+                  
+                  {/* Reason Section */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                      💡 추천 이유
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {part.reason}
+                    </p>
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-0">
+                  {part.link ? (
+                    <a 
+                      href={part.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="w-full"
+                    >
+                      <Button variant="default" className="w-full flex gap-2 items-center">
+                        <span>구매하기</span>
+                        <ExternalLink size={16} />
+                      </Button>
+                    </a>
+                  ) : (
+                    <Button variant="outline" className="w-full" disabled>
+                      링크 없음
+                    </Button>
+                  )}
+                </CardFooter>
               </div>
-            </CardContent>
-            
-            <CardFooter className="pt-0">
-              {part.link ? (
-                <a 
-                  href={part.link} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-full"
-                >
-                  <Button variant="default" className="w-full flex gap-2 items-center">
-                    <span>구매하기</span>
-                    <ExternalLink size={16} />
-                  </Button>
-                </a>
-              ) : (
-                <Button variant="outline" className="w-full" disabled>
-                  링크 없음
-                </Button>
-              )}
-            </CardFooter>
+            </div>
           </Card>
         ))}
       </div>
