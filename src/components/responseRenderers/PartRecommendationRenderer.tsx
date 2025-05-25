@@ -48,7 +48,7 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
       {/* Header - Left aligned, no subtitle */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-          부품 추천
+          부품 추천 결과
         </h2>
       </div>
 
