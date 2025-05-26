@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Card, 
@@ -10,9 +9,9 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Save, TrendingUp } from 'lucide-react';
+import { ExternalLink, Save, ArrowRight } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { sampleSpecUpgradeData } from '../../modules/responseModules/specUpgradeModule';
+import { sampleSpecUpgradeData } from '../../data/sampleData';
 
 // Define the interface for Spec Upgrade data
 export interface SpecUpgradeResponse {
@@ -195,6 +194,21 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({ content, upgr
         ))}
       </div>
       
+      {/* Suggestion Card */}
+      <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800">
+        <CardHeader>
+          <CardTitle className="text-lg font-bold text-green-800 dark:text-green-200 flex items-center gap-2">
+            <ArrowRight size={20} />
+            다음 단계
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-green-700 dark:text-green-300 leading-relaxed">
+            {specData.suggestion}
+          </p>
+        </CardContent>
+      </Card>
+      
       {/* Footer Notes */}
       <Card className="border-green-100">
         <CardContent className="pt-6">
@@ -203,13 +217,6 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({ content, upgr
             * 기존 부품과의 호환성은 검증되었으나, 구매 전 최종 확인하는 것을 권장합니다.<br />
             * 업그레이드 관련 추가 문의는 챗봇에게 물어보세요.
           </p>
-          {specData.suggestion && (
-            <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/20 rounded-md border border-green-200">
-              <p className="text-sm text-green-700 dark:text-green-300">
-                <strong>💡 다음 단계:</strong> {specData.suggestion}
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

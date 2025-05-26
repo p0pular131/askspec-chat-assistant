@@ -8,7 +8,7 @@ import {
   CardFooter 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Info } from 'lucide-react';
+import { ExternalLink, ArrowRight } from 'lucide-react';
 import { samplePartRecommendations } from '../../data/sampleData';
 
 // Define the interface for Part Recommendation data
@@ -131,16 +131,16 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
         ))}
       </div>
       
-      {/* System Suggestion Section */}
-      <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+      {/* Suggestion Card */}
+      <Card className="bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800">
         <CardHeader>
-          <CardTitle className="text-lg font-bold text-blue-800 dark:text-blue-200 flex items-center gap-2">
-            <Info size={20} />
-            추천 가이드
+          <CardTitle className="text-lg font-bold text-purple-800 dark:text-purple-200 flex items-center gap-2">
+            <ArrowRight size={20} />
+            다음 단계
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-blue-700 dark:text-blue-300 leading-relaxed">
+          <p className="text-purple-700 dark:text-purple-300 leading-relaxed">
             {data.suggestion}
           </p>
         </CardContent>
