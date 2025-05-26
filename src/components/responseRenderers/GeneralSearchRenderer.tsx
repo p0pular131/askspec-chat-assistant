@@ -3,12 +3,24 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import LaTexRenderer from '../LaTexRenderer';
 
 interface GeneralSearchRendererProps {
   content: string;
   expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
+
+// Helper function to parse markdown-style bold text
+const parseBoldText = (text: string): React.ReactNode => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2);
+      return <strong key={index}>{boldText}</strong>;
+    }
+    return part;
+  });
+};
 
 const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({ 
   content, 
@@ -41,17 +53,17 @@ const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({
               components={{
                 p: ({ children }) => (
                   <p className="mb-4 last:mb-0">
-                    <LaTexRenderer>{String(children)}</LaTexRenderer>
+                    {parseBoldText(String(children))}
                   </p>
                 ),
                 li: ({ children }) => (
                   <li>
-                    <LaTexRenderer>{String(children)}</LaTexRenderer>
+                    {parseBoldText(String(children))}
                   </li>
                 ),
                 span: ({ children }) => (
                   <span>
-                    <LaTexRenderer>{String(children)}</LaTexRenderer>
+                    {parseBoldText(String(children))}
                   </span>
                 )
               }}

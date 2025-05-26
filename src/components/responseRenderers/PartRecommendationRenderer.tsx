@@ -33,6 +33,19 @@ interface PartRecommendationRendererProps {
   partData?: PartsResponse;
 }
 
+// Helper function to parse markdown-style bold text
+const parseBoldText = (text: string): React.ReactNode => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2);
+      return <strong key={index}>{boldText}</strong>;
+    }
+    return part;
+  });
+};
+
 const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({ 
   content, 
   partData 
@@ -72,7 +85,7 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
                 )}
                 {/* Price Badge */}
                 <div className="absolute top-2 right-2 bg-blue-600 text-white px-2 py-1 rounded-md text-sm font-semibold">
-                  {part.price}
+                  {parseBoldText(part.price)}
                 </div>
               </div>
               
@@ -80,7 +93,7 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
               <div className="md:w-2/3 flex flex-col">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-bold text-gray-800 dark:text-gray-200">
-                    {part.name}
+                    {parseBoldText(part.name)}
                   </CardTitle>
                 </CardHeader>
                 
@@ -91,7 +104,7 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
                       ⚙️ 주요 스펙
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {part.specs}
+                      {parseBoldText(part.specs)}
                     </p>
                   </div>
                   
@@ -101,7 +114,7 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
                       💡 추천 이유
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {part.reason}
+                      {parseBoldText(part.reason)}
                     </p>
                   </div>
                 </CardContent>
@@ -141,7 +154,7 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
         </CardHeader>
         <CardContent>
           <p className="text-purple-700 dark:text-purple-300 leading-relaxed">
-            {data.suggestion}
+            {parseBoldText(data.suggestion)}
           </p>
         </CardContent>
       </Card>

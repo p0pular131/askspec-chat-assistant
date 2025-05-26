@@ -5,7 +5,6 @@ import { Check, X, AlertTriangle, ArrowRight } from 'lucide-react';
 import { CompatibilityData } from '../../modules/responseModules/types';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import LaTexRenderer from '../LaTexRenderer';
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +16,19 @@ interface CompatibilityCheckRendererProps {
   content: string;
   compatibilityData?: CompatibilityData;
 }
+
+// Helper function to parse markdown-style bold text
+const parseBoldText = (text: string): React.ReactNode => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2);
+      return <strong key={index}>{boldText}</strong>;
+    }
+    return part;
+  });
+};
 
 // Helper function to extract compatibility links from the data format
 const extractCompatibilityLinks = (data: CompatibilityData) => {
@@ -112,7 +124,7 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
               return (
                 <tr key={`compatibility-row-${i}`} className="hover:bg-gray-50 group">
                   <td className="px-4 py-2 border font-medium">
-                    <LaTexRenderer>{link.source}</LaTexRenderer>
+                    {parseBoldText(link.source)}
                   </td>
                   <td className={`px-4 py-2 border text-center ${statusClass}`}>
                     <TooltipProvider>
@@ -122,16 +134,14 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
                         </TooltipTrigger>
                         <TooltipContent>
                           <p className="max-w-xs text-sm">
-                            <LaTexRenderer>
-                              {link.reason || (link.status ? "호환됩니다" : "호환되지 않습니다")}
-                            </LaTexRenderer>
+                            {link.reason ? parseBoldText(link.reason) : (link.status ? "호환됩니다" : "호환되지 않습니다")}
                           </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </td>
                   <td className="px-4 py-2 border font-medium">
-                    <LaTexRenderer>{link.target}</LaTexRenderer>
+                    {parseBoldText(link.target)}
                   </td>
                 </tr>
               );
@@ -155,8 +165,8 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
             {incompatibleLinks.map((link, i) => (
               <li key={`incompatible-${i}`} className="text-red-700">
                 <span className="font-medium">
-                  <LaTexRenderer>{link.source}</LaTexRenderer>와 <LaTexRenderer>{link.target}</LaTexRenderer>
-                </span>: <LaTexRenderer>{link.reason}</LaTexRenderer>
+                  {parseBoldText(link.source)}와 {parseBoldText(link.target)}
+                </span>: {link.reason ? parseBoldText(link.reason) : '호환되지 않습니다'}
               </li>
             ))}
           </ul>
@@ -169,7 +179,7 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
           <AlertTriangle className="h-4 w-4 text-yellow-600" />
           <AlertTitle className="text-yellow-800">주의사항</AlertTitle>
           <AlertDescription className="text-yellow-700">
-            <LaTexRenderer>{edgeReason}</LaTexRenderer>
+            {parseBoldText(edgeReason)}
           </AlertDescription>
         </Alert>
       )}
@@ -185,7 +195,7 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
           </CardHeader>
           <CardContent>
             <p className="text-blue-700">
-              <LaTexRenderer>{suggestion}</LaTexRenderer>
+              {parseBoldText(suggestion)}
             </p>
           </CardContent>
         </Card>

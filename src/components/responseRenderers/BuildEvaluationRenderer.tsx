@@ -5,12 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Star, ArrowRight } from 'lucide-react';
 import { sampleBuildEvaluationData } from '../../data/sampleData';
-import LaTexRenderer from '../LaTexRenderer';
 
 interface BuildEvaluationRendererProps {
   content: string;
   evaluationData?: typeof sampleBuildEvaluationData;
 }
+
+// Helper function to parse markdown-style bold text
+const parseBoldText = (text: string): React.ReactNode => {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2);
+      return <strong key={index}>{boldText}</strong>;
+    }
+    return part;
+  });
+};
 
 // Helper function to convert category keys to Korean display names
 const getCategoryName = (category: string): string => {
@@ -82,7 +94,7 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
               <CardContent>
                 <Progress value={item.score} className={`h-2 ${getScoreColor(item.score)}`} />
                 <p className="mt-3 text-sm text-gray-600">
-                  <LaTexRenderer>{item.comment}</LaTexRenderer>
+                  {parseBoldText(item.comment)}
                 </p>
               </CardContent>
             </Card>
@@ -108,7 +120,7 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
           </CardHeader>
           <CardContent>
             <p className="text-blue-700">
-              <LaTexRenderer>{suggestion}</LaTexRenderer>
+              {parseBoldText(suggestion)}
             </p>
           </CardContent>
         </Card>
