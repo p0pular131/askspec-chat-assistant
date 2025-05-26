@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Star } from 'lucide-react';
 import { sampleBuildEvaluationData } from '../../data/sampleData';
+import LaTexRenderer from '../LaTexRenderer';
 
 interface BuildEvaluationRendererProps {
   content: string;
@@ -50,6 +51,9 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
   const categoryOrder = ["performance", "price_performance", "expandability", "noise"];
   const categories = categoryOrder.filter(cat => Object.keys(evaluationData).includes(cat));
 
+  // Check for suggestion
+  const suggestion = (evaluationData as any).suggestion;
+
   return (
     <div className="build-evaluation-response space-y-6">
       <h2 className="text-2xl font-bold mb-4">
@@ -77,7 +81,9 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
               </CardHeader>
               <CardContent>
                 <Progress value={item.score} className={`h-2 ${getScoreColor(item.score)}`} />
-                <p className="mt-3 text-sm text-gray-600">{item.comment}</p>
+                <p className="mt-3 text-sm text-gray-600">
+                  <LaTexRenderer>{item.comment}</LaTexRenderer>
+                </p>
               </CardContent>
             </Card>
           );
@@ -89,6 +95,20 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
         <div className="mt-6">
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
+      )}
+
+      {/* Suggestion Card */}
+      {suggestion && (
+        <Card className="mt-6 border-blue-200 bg-blue-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg text-blue-800">다음단계</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-blue-700">
+              <LaTexRenderer>{suggestion}</LaTexRenderer>
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

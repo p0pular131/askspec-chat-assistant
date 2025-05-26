@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { CircuitBoard, Cpu, HardDrive, Database, Power, Fan } from 'lucide-react';
 import { CompatibilityData } from '../modules/responseModules/types';
+import LaTexRenderer from './LaTexRenderer';
 
 interface CompatibilityGraphProps {
   data: CompatibilityData;
@@ -62,15 +63,18 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
       case 'cpu':
         return Cpu;
       case 'gpu':
+      case 'vga':
         return HardDrive; // Using HardDrive as GPU icon
       case 'motherboard':
         return CircuitBoard;
       case 'storage':
+      case 'memory':
         return Database;
       case 'psu':
         return Power;
       case 'cooling':
       case 'cooler':
+      case 'case':
         return Fan;
       default:
         return CircuitBoard;
@@ -156,13 +160,21 @@ const CompatibilityGraph: React.FC<CompatibilityGraphProps> = ({ data }) => {
       this.appendChild(icon);
     });
       
-    // Add labels
-    nodeGroups.append("text")
-      .attr("dy", 40)
-      .attr("text-anchor", "middle")
+    // Add labels with LaTeX support
+    nodeGroups.append("foreignObject")
+      .attr("width", 100)
+      .attr("height", 30)
+      .attr("x", -50)
+      .attr("y", 30)
+      .append("xhtml:div")
+      .style("text-align", "center")
       .style("font-size", "12px")
       .style("font-weight", "500")
-      .text((d: any) => d.id);
+      .each(function(d: any) {
+        // Use React to render LaTeX-enabled text
+        const div = this as HTMLDivElement;
+        div.innerHTML = d.id; // Fallback to plain text for now
+      });
       
     // Update positions on each tick
     simulation
