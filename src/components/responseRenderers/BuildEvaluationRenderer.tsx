@@ -3,7 +3,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Star } from 'lucide-react';
+import { Star, ArrowRight } from 'lucide-react';
 import { sampleBuildEvaluationData } from '../../data/sampleData';
 import LaTexRenderer from '../LaTexRenderer';
 
