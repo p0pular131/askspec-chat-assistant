@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Json } from '../integrations/supabase/types';
 import { toast } from '../components/ui/use-toast';
+import { isValidId, fetchWithRetry } from '../utils/fetchUtils';
 
 export interface Component {
   name: string;
@@ -50,23 +51,6 @@ interface RawBuild {
   user_id: number | null;
 }
 
-// Retry function with exponential backoff
-const fetchWithRetry = async <T,>(
-  fn: () => Promise<T>,
-  retries = 3,
-  delay = 1000,
-  backoffFactor = 1.5
-): Promise<T> => {
-  try {
-    return await fn();
-  } catch (err) {
-    if (retries <= 0) throw err;
-    console.log(`Retrying after ${delay}ms...`);
-    await new Promise(resolve => setTimeout(resolve, delay));
-    return fetchWithRetry(fn, retries - 1, Math.floor(delay * backoffFactor), backoffFactor);
-  }
-};
-
 export function useBuilds() {
   const [builds, setBuilds] = useState<Build[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +60,25 @@ export function useBuilds() {
   const [lastBuildId, setLastBuildId] = useState<number | null>(null);
   const [lastCheckTime, setLastCheckTime] = useState(Date.now());
   const [consecutiveErrors, setConsecutiveErrors] = useState(0);
+
+  // Function to check if an ID is a local build (large timestamp) vs database build (small integer)
+  const isLocalBuildId = (id: string | number): boolean => {
+    const numId = typeof id === 'string' ? parseInt(id) : id;
+    // Local builds use timestamp IDs which are much larger than database IDs
+    // Database IDs are typically small integers, timestamp IDs are 13+ digits
+    return numId > 1000000000000; // 13 digits or more = timestamp
+  };
+
+  // Function to get local builds from localStorage
+  const getLocalBuilds = (): Build[] => {
+    try {
+      const savedBuilds = JSON.parse(localStorage.getItem('savedBuilds') || '[]');
+      return savedBuilds;
+    } catch (error) {
+      console.error('Error loading local builds:', error);
+      return [];
+    }
+  };
 
   // Function to convert raw build data to our Build interface
   const convertRawBuild = (rawBuild: RawBuild): Build => {
@@ -223,8 +226,30 @@ export function useBuilds() {
       setLoading(true);
       setError(null);
       
+      console.log('Getting build with ID:', id);
+      
+      // Check if this is a local build first
+      if (isLocalBuildId(id)) {
+        console.log('This is a local build ID, checking localStorage');
+        const localBuilds = getLocalBuilds();
+        const localBuild = localBuilds.find(build => String(build.id) === id);
+        
+        if (localBuild) {
+          console.log("Found local build:", localBuild);
+          setSelectedBuild(localBuild);
+          setLoading(false);
+          return localBuild;
+        } else {
+          // Local build not found
+          setError('견적을 찾을 수 없습니다.');
+          setLoading(false);
+          return null;
+        }
+      }
+      
+      // This is a database build - validate the ID is a reasonable integer
       const buildId = parseInt(id);
-      if (isNaN(buildId)) {
+      if (isNaN(buildId) || !isValidId(id)) {
         throw new Error('Invalid build ID format');
       }
       
@@ -362,8 +387,27 @@ export function useBuilds() {
 
   const deleteBuild = async (id: string) => {
     try {
+      // Check if this is a local build
+      if (isLocalBuildId(id)) {
+        // Delete from localStorage
+        const localBuilds = getLocalBuilds();
+        const updatedBuilds = localBuilds.filter(build => String(build.id) !== id);
+        localStorage.setItem('savedBuilds', JSON.stringify(updatedBuilds));
+        
+        // Trigger builds updated event
+        window.dispatchEvent(new CustomEvent('buildsUpdated'));
+        
+        toast({
+          title: "견적 삭제 완료",
+          description: "견적이 성공적으로 삭제되었습니다.",
+        });
+        
+        return true;
+      }
+      
+      // This is a database build
       const buildId = parseInt(id);
-      if (isNaN(buildId)) {
+      if (isNaN(buildId) || !isValidId(id)) {
         throw new Error('Invalid build ID format');
       }
       

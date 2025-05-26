@@ -1,10 +1,12 @@
 
 /**
- * Helper function to validate if a string is a valid number
+ * Helper function to validate if a string is a valid database ID (not a timestamp)
  */
 export const isValidId = (str: string | null): boolean => {
   if (!str) return false;
-  return !isNaN(parseInt(str));
+  const num = parseInt(str);
+  // Check if it's a valid number and not a timestamp (less than 1 billion)
+  return !isNaN(num) && num > 0 && num < 1000000000;
 };
 
 /**
