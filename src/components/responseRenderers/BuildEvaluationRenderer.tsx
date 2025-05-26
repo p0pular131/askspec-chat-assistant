@@ -101,7 +101,10 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
       {suggestion && (
         <Card className="mt-6 border-blue-200 bg-blue-50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-blue-800">다음단계</CardTitle>
+            <CardTitle className="text-lg font-bold text-purple-800 dark:text-purple-200 flex items-center gap-2">
+              <ArrowRight size={20} />
+              다음 단계
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-blue-700">
