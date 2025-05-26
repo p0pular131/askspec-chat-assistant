@@ -73,7 +73,32 @@ export function useBuilds() {
   const getLocalBuilds = (): Build[] => {
     try {
       const savedBuilds = JSON.parse(localStorage.getItem('savedBuilds') || '[]');
-      return savedBuilds;
+      
+      // Transform local builds to match the Build interface
+      return savedBuilds.map((localBuild: any) => {
+        // Convert parts array to components array if it exists
+        const components: Component[] = localBuild.parts ? localBuild.parts.map((part: any) => ({
+          name: part.name || '',
+          type: part.type || 'Unknown',
+          image: part.image || '',
+          specs: part.specs || '',
+          reason: part.reason || '',
+          purchase_link: part.link || '',
+          price: part.price ? parseInt(part.price.replace(/[₩,]/g, '')) : 0,
+          alternatives: []
+        })) : [];
+
+        return {
+          id: localBuild.id,
+          name: localBuild.name || 'Unnamed Build',
+          session_id: localBuild.session_id || 0,
+          components,
+          total_price: localBuild.total_price || 0,
+          recommendation: localBuild.total_reason || 'No recommendation available',
+          created_at: localBuild.created_at || new Date().toISOString(),
+          rating: localBuild.rating || {}
+        };
+      });
     } catch (error) {
       console.error('Error loading local builds:', error);
       return [];
