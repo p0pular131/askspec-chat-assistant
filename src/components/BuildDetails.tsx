@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Build, Component } from '@/hooks/useBuilds';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,11 +39,14 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
   const expandability = hasRatings && build.rating.expandability !== undefined ? build.rating.expandability : null;
   const noise = hasRatings && build.rating.noise !== undefined ? build.rating.noise : null;
 
-  // Function to get proper component type from name if type is generic
+  // Function to get proper component type from name using sample data keys
   const getProperComponentType = (component: Component): string => {
     if (component.type && component.type !== 'Unknown' && component.type !== 'Component') {
       return component.type;
     }
+    
+    // Valid component types from sample data structure
+    const validTypes = ['VGA', 'CPU', 'Motherboard', 'Memory', 'Storage', 'PSU', 'Case', 'Cooler'];
     
     // Derive type from component name
     const name = component.name.toLowerCase();
