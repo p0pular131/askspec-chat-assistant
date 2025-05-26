@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { Json } from '../integrations/supabase/types';
@@ -29,9 +28,10 @@ export interface Build {
   recommendation: string;
   created_at: string;
   rating: {
-    valueForMoney?: number;
-    noise?: number;
     performance?: number;
+    price_performance?: number;
+    expandability?: number;
+    noise?: number;
     [key: string]: number | undefined;
   };
 }
@@ -131,13 +131,14 @@ export function useBuilds() {
       }
     });
     
-    // Create ratings data from compatibility_json
+    // Create ratings data from compatibility_json with new structure
     const ratingData: Build['rating'] = {};
     if (rawBuild.compatibility_json) {
       const compatData = rawBuild.compatibility_json as any;
-      if (compatData.valueForMoney) ratingData.valueForMoney = compatData.valueForMoney;
-      if (compatData.noise) ratingData.noise = compatData.noise;
       if (compatData.performance) ratingData.performance = compatData.performance;
+      if (compatData.price_performance) ratingData.price_performance = compatData.price_performance;
+      if (compatData.expandability) ratingData.expandability = compatData.expandability;
+      if (compatData.noise) ratingData.noise = compatData.noise;
     }
     
     return {

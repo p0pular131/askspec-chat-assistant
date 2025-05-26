@@ -14,8 +14,8 @@ interface BuildEvaluationRendererProps {
 // Helper function to convert category keys to Korean display names
 const getCategoryName = (category: string): string => {
   const categoryNames: Record<string, string> = {
-    "price_performance": "가격 대비 성능",
     "performance": "절대 성능",
+    "price_performance": "가격 대비 성능",
     "expandability": "확장성",
     "noise": "소음",
     "average_score": "종합 평가"
@@ -46,8 +46,7 @@ const BuildEvaluationRenderer: React.FC<BuildEvaluationRendererProps> = ({ conte
   
   const averageScore = getScoreValue(evaluationData.average_score);
   
-  // Extract categories for rendering (exclude average_score)
-  // Reorder to put "performance" before "price_performance"
+  // Extract categories for rendering (exclude average_score) in specific order
   const categoryOrder = ["performance", "price_performance", "expandability", "noise"];
   const categories = categoryOrder.filter(cat => Object.keys(evaluationData).includes(cat));
 

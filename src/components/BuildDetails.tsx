@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Build, Component } from '@/hooks/useBuilds';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,9 +33,47 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
 
   // Extract rating scores if they exist, otherwise use placeholders
   const hasRatings = build.rating && typeof build.rating === 'object';
-  const valueForMoney = hasRatings && build.rating.valueForMoney !== undefined ? build.rating.valueForMoney : null;
-  const noise = hasRatings && build.rating.noise !== undefined ? build.rating.noise : null;
   const performance = hasRatings && build.rating.performance !== undefined ? build.rating.performance : null;
+  const pricePerformance = hasRatings && build.rating.price_performance !== undefined ? build.rating.price_performance : null;
+  const expandability = hasRatings && build.rating.expandability !== undefined ? build.rating.expandability : null;
+  const noise = hasRatings && build.rating.noise !== undefined ? build.rating.noise : null;
+
+  // Function to get proper component type from name if type is generic
+  const getProperComponentType = (component: Component): string => {
+    if (component.type && component.type !== 'Unknown' && component.type !== 'Component') {
+      return component.type;
+    }
+    
+    // Derive type from component name
+    const name = component.name.toLowerCase();
+    
+    if (name.includes('rtx') || name.includes('gtx') || name.includes('radeon') || name.includes('graphics')) {
+      return 'VGA';
+    }
+    if (name.includes('cpu') || name.includes('processor') || name.includes('intel') || name.includes('amd ryzen')) {
+      return 'CPU';
+    }
+    if (name.includes('motherboard') || name.includes('mainboard')) {
+      return 'Motherboard';
+    }
+    if (name.includes('ram') || name.includes('memory') || name.includes('ddr')) {
+      return 'Memory';
+    }
+    if (name.includes('ssd') || name.includes('hdd') || name.includes('storage') || name.includes('nvme')) {
+      return 'Storage';
+    }
+    if (name.includes('psu') || name.includes('power') || name.includes('supply')) {
+      return 'PSU';
+    }
+    if (name.includes('case') || name.includes('tower')) {
+      return 'Case';
+    }
+    if (name.includes('cooler') || name.includes('fan')) {
+      return 'Cooler';
+    }
+    
+    return component.type || 'Unknown';
+  };
 
   // Function to export the build details as PDF
   const exportAsPDF = async () => {
@@ -76,11 +113,13 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
       yPos += 10;
 
       pdf.setFontSize(12);
-      pdf.text(`가성비: ${valueForMoney !== null ? `${valueForMoney}/10` : "평가 없음"}`, 20, yPos);
+      pdf.text(`절대 성능: ${performance !== null ? `${performance}/10` : "평가 없음"}`, 20, yPos);
+      yPos += 7;
+      pdf.text(`가격 대비 성능: ${pricePerformance !== null ? `${pricePerformance}/10` : "평가 없음"}`, 20, yPos);
+      yPos += 7;
+      pdf.text(`확장성: ${expandability !== null ? `${expandability}/10` : "평가 없음"}`, 20, yPos);
       yPos += 7;
       pdf.text(`소음: ${noise !== null ? `${noise}/10` : "평가 없음"}`, 20, yPos);
-      yPos += 7;
-      pdf.text(`성능: ${performance !== null ? `${performance}/10` : "평가 없음"}`, 20, yPos);
       yPos += 15;
       
       // Add components table
@@ -91,7 +130,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
       // Create a table for components
       const componentRows = build.components.map(component => [
         component.name,
-        component.type,
+        getProperComponentType(component),
         component.specs,
         formatCurrency(component.price || 0)
       ]);
@@ -160,11 +199,25 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
             {/* Circular rating indicators in horizontal layout */}
             <div className="flex flex-row flex-wrap justify-around gap-4">
               <RatingIndicator 
-                label="가성비" 
-                value={valueForMoney} 
+                label="절대 성능" 
+                value={performance} 
+                maxValue={10} 
+                icon={<Zap className="h-4 w-4" />}
+                color="#F97316" 
+              />
+              <RatingIndicator 
+                label="가격 대비 성능" 
+                value={pricePerformance} 
                 maxValue={10} 
                 icon={<DollarSign className="h-4 w-4" />} 
                 color="#9b87f5"
+              />
+              <RatingIndicator 
+                label="확장성" 
+                value={expandability} 
+                maxValue={10} 
+                icon={<Zap className="h-4 w-4" />}
+                color="#10B981" 
               />
               <RatingIndicator 
                 label="소음" 
@@ -173,15 +226,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
                 icon={<VolumeX className="h-4 w-4" />}
                 color="#0EA5E9" 
               />
-              <RatingIndicator 
-                label="성능" 
-                value={performance} 
-                maxValue={10} 
-                icon={<Zap className="h-4 w-4" />}
-                color="#F97316" 
-              />
             </div>
-            {/* Description text */}
           </div>
         </CardContent>
       </Card>
@@ -209,7 +254,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
               {build.components.map((component, idx) => (
                 <TableRow key={idx}>
                   <TableCell className="font-medium">{component.name}</TableCell>
-                  <TableCell>{component.type}</TableCell>
+                  <TableCell>{getProperComponentType(component)}</TableCell>
                   <TableCell>
                     {component.image && (
                       <img 

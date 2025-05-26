@@ -174,23 +174,23 @@ export const sampleSpecUpgradeData = {
 
 // Sample data for build evaluations
 export const sampleBuildEvaluationData = {
-  "price_performance": {
-    "score": 85,
-    "comment": "이 시스템은 인텔 코어 i5-13600K와 RTX 4070을 조합하여 우수한 성능을 제공하며, 가격 대비 성능이 뛰어납니다. 특히 최신 게임에서도 높은 프레임을 유지할 수 있습니다."
-  },
   "performance": {
-    "score": 90,
-    "comment": "i5-13600K는 멀티코어 성능이 향상되어 다양한 작업에서 우수한 성능을 발휘합니다. RTX 4070과의 조합으로 대부분의 게임과 작업에서 높은 성능을 기대할 수 있습니다."
+    "score": 85,
+    "comment": "최신 게임을 고사양으로 구동할 수 있는 우수한 성능을 제공합니다."
+  },
+  "price_performance": {
+    "score": 78,
+    "comment": "성능 대비 가격이 합리적이며, 동급 제품 중 경쟁력 있는 가성비를 보여줍니다."
   },
   "expandability": {
-    "score": 75,
-    "comment": "ASRock B860M-X 메인보드는 M.2 슬롯과 SATA 포트가 제한적일 수 있어 확장성에 일부 제약이 있습니다. 그러나 PSU 용량이 충분하여 향후 더 높은 성능의 GPU로 업그레이드가 가능합니다."
+    "score": 72,
+    "comment": "향후 업그레이드를 위한 충분한 확장 슬롯과 포트를 제공합니다."
   },
   "noise": {
-    "score": 80,
-    "comment": "NOCTUA NH-U12S 쿨러와 NZXT H9 Flow 케이스의 조합으로 효과적인 쿨링과 저소음을 기대할 수 있습니다. 그러나 고성능 부품 사용으로 부하 시 소음이 증가할 수 있습니다."
+    "score": 68,
+    "comment": "일반적인 사용 환경에서 적절한 소음 수준을 유지합니다."
   },
-  "average_score": 83
+  "average_score": 75.75
 };
 
 // Sample data for general search responses by expertise level
