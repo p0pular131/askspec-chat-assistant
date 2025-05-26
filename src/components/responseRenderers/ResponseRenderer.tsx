@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Message } from '../types';
 import GeneralSearchRenderer from './GeneralSearchRenderer';
@@ -8,8 +9,10 @@ import BuildEvaluationRenderer from './BuildEvaluationRenderer';
 import SpecUpgradeRenderer from './SpecUpgradeRenderer';
 
 interface ResponseRendererProps {
-  message: Message;
+  content: string;
   chatMode?: string;
+  isCompatibilityRequest?: boolean;
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
 
 const sampleCompatibilityData = {
@@ -28,39 +31,44 @@ const sampleCompatibilityData = {
   Power_Total: true,
   Power_Total_Reason: "Sufficient total power",
   suggestion: "All components are compatible",
-  components: [] // Add the missing components property
+  components: [] // Required components property
 };
 
-const ResponseRenderer: React.FC<ResponseRendererProps> = ({ message, chatMode = '범용 검색' }) => {
+const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
+  content, 
+  chatMode = '범용 검색',
+  isCompatibilityRequest = false,
+  expertiseLevel = 'beginner'
+}) => {
   let parsedData;
   try {
-    parsedData = JSON.parse(message.text);
+    parsedData = JSON.parse(content);
   } catch (e) {
-    console.warn("Failed to parse message content as JSON", message.text);
+    console.warn("Failed to parse message content as JSON", content);
   }
 
   // Handle different chat modes
   switch (chatMode) {
     case '범용 검색':
-      return <GeneralSearchRenderer content={message.text} />;
+      return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;
     
     case '부품 추천':
-      return <PartRecommendationRenderer data={parsedData || sampleCompatibilityData} />;
+      return <PartRecommendationRenderer content={content} partData={parsedData || undefined} />;
     
     case 'PC 견적':
-      return <BuildRecommendationRenderer data={parsedData || { parts: [], total_price: "0", suggestion: "" }} />;
+      return <BuildRecommendationRenderer content={content} recommendationData={parsedData || undefined} />;
     
     case '호환성 검사':
-      return <CompatibilityCheckRenderer data={parsedData || sampleCompatibilityData} />;
+      return <CompatibilityCheckRenderer content={content} compatibilityData={parsedData || sampleCompatibilityData} />;
     
     case '견적 평가':
-      return <BuildEvaluationRenderer data={parsedData || sampleCompatibilityData} />;
+      return <BuildEvaluationRenderer content={content} evaluationData={parsedData || undefined} />;
     
     case '스펙 업그레이드':
-      return <SpecUpgradeRenderer data={parsedData || { parts: [], total_price: "0", suggestion: "" }} />;
+      return <SpecUpgradeRenderer content={content} upgradeData={parsedData || undefined} />;
     
     default:
-      return <GeneralSearchRenderer content={message.text} />;
+      return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;
   }
 };
 
