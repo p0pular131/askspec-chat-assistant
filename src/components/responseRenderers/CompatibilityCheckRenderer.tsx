@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Check, X, AlertTriangle } from 'lucide-react';
+import { Check, X, AlertTriangle, ArrowRight } from 'lucide-react';
 import { CompatibilityData } from '../../modules/responseModules/types';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
