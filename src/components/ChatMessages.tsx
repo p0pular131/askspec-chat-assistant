@@ -17,13 +17,13 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading, chatMo
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, isLoading]); // Add isLoading to dependencies to ensure scroll after loading
 
   return (
     <div className="flex overflow-y-auto flex-col flex-1 gap-4 mb-20">
       {messages.map((message, index) => (
         <ChatMessage 
-          key={`message-${index}-${message.text.substring(0, 10)}`} 
+          key={`message-${index}-${message.text.substring(0, 10)}-${Date.now()}`} 
           message={message} 
           // Use the current chat mode
           chatMode={chatMode}
