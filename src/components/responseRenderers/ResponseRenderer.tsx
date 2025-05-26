@@ -24,7 +24,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
   // Add components property to compatibility data if missing
   const compatibilityDataWithComponents = {
     ...sampleCompatibilityData,
-    components: sampleCompatibilityData.components || ['CPU', 'Memory', 'Motherboard', 'VGA', 'PSU', 'Case', 'Cooler', 'Storage']
+    components: ['CPU', 'Memory', 'Motherboard', 'VGA', 'PSU', 'Case', 'Cooler', 'Storage']
   };
 
   // Select the appropriate renderer based on chat mode
