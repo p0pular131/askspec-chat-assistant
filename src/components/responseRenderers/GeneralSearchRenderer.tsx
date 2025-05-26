@@ -49,27 +49,9 @@ const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({
       <Card>
         <CardContent className="pt-6">
           <div className="prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown
-              components={{
-                p: ({ children }) => (
-                  <p className="mb-4 last:mb-0">
-                    {parseBoldText(String(children))}
-                  </p>
-                ),
-                li: ({ children }) => (
-                  <li>
-                    {parseBoldText(String(children))}
-                  </li>
-                ),
-                span: ({ children }) => (
-                  <span>
-                    {parseBoldText(String(children))}
-                  </span>
-                )
-              }}
-            >
-              {content}
-            </ReactMarkdown>
+            <div className="mb-4 last:mb-0">
+              {parseBoldText(content)}
+            </div>
           </div>
         </CardContent>
       </Card>
