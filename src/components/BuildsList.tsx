@@ -1,4 +1,5 @@
-import React, { useState, useCallback, memo } from 'react';
+
+import React, { useState, useCallback, memo, useEffect } from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
 import { 
@@ -33,6 +34,33 @@ const BuildsList: React.FC<BuildsListProps> = ({
 }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [buildToDelete, setBuildToDelete] = useState<string | null>(null);
+  const [localBuilds, setLocalBuilds] = useState<any[]>([]);
+
+  // Load builds from localStorage on component mount
+  useEffect(() => {
+    const loadLocalBuilds = () => {
+      try {
+        const savedBuilds = JSON.parse(localStorage.getItem('savedBuilds') || '[]');
+        setLocalBuilds(savedBuilds);
+      } catch (error) {
+        console.error('Error loading builds from localStorage:', error);
+        setLocalBuilds([]);
+      }
+    };
+
+    loadLocalBuilds();
+
+    // Listen for builds updates
+    const handleBuildsUpdated = () => {
+      loadLocalBuilds();
+    };
+
+    window.addEventListener('buildsUpdated', handleBuildsUpdated);
+    
+    return () => {
+      window.removeEventListener('buildsUpdated', handleBuildsUpdated);
+    };
+  }, []);
 
   const handleDelete = useCallback((e: React.MouseEvent, buildId: number | string) => {
     e.stopPropagation();
@@ -42,16 +70,36 @@ const BuildsList: React.FC<BuildsListProps> = ({
 
   const confirmDelete = useCallback(() => {
     if (buildToDelete) {
-      onDelete(buildToDelete);
+      // Check if it's a local build or database build
+      const isLocalBuild = localBuilds.some(build => String(build.id) === buildToDelete);
+      
+      if (isLocalBuild) {
+        // Delete from localStorage
+        const updatedBuilds = localBuilds.filter(build => String(build.id) !== buildToDelete);
+        localStorage.setItem('savedBuilds', JSON.stringify(updatedBuilds));
+        setLocalBuilds(updatedBuilds);
+        
+        toast({
+          title: "견적 삭제 완료",
+          description: "견적이 성공적으로 삭제되었습니다.",
+        });
+      } else {
+        // Delete from database
+        onDelete(buildToDelete);
+      }
+      
       setDialogOpen(false);
       setBuildToDelete(null);
     }
-  }, [buildToDelete, onDelete]);
+  }, [buildToDelete, localBuilds, onDelete]);
 
   const cancelDelete = useCallback(() => {
     setBuildToDelete(null);
     setDialogOpen(false);
   }, []);
+
+  // Combine local builds with database builds
+  const allBuilds = [...localBuilds, ...builds];
 
   const renderContent = useCallback(() => {
     if (error) {
@@ -87,7 +135,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       return <div className="p-2 text-sm text-center">로딩 중...</div>;
     }
     
-    if (builds.length === 0) {
+    if (allBuilds.length === 0) {
       return (
         <div className="p-2 text-sm text-center text-gray-500">
           <p>저장된 견적이 없습니다.</p>
@@ -98,7 +146,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       );
     }
     
-    return builds.map((build) => (
+    return allBuilds.map((build) => (
       <div key={build.id} className="flex items-center gap-2">
         <button
           className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100"
@@ -127,7 +175,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
         </button>
       </div>
     ));
-  }, [builds, error, loading, onRefresh, handleDelete, onViewBuild]);
+  }, [allBuilds, error, loading, onRefresh, handleDelete, onViewBuild]);
 
   return (
     <div className="flex flex-col gap-2">

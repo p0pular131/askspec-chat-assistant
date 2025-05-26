@@ -11,6 +11,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Save } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import { sampleBuildRecommendation } from '../../data/sampleData';
 
 // Define the interface for Build Recommendation data
@@ -37,10 +38,45 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   // Use provided data or fall back to sample data to ensure consistency
   const buildData = recommendationData || sampleBuildRecommendation;
   
-  // Function to handle saving the estimate (placeholder for future implementation)
+  // Function to save the estimate to local storage and show feedback
   const handleSaveEstimate = () => {
-    console.log('Saving estimate:', buildData);
-    // This will be implemented later to save the build to the database
+    try {
+      // Create a build object from the current recommendation data
+      const newBuild = {
+        id: Date.now(), // Simple ID generation for local storage
+        name: buildData.title,
+        total_price: parseInt(buildData.total_price.replace(/[₩,]/g, '')), // Parse price
+        created_at: new Date().toISOString(),
+        parts: buildData.parts,
+        total_reason: buildData.total_reason
+      };
+
+      // Get existing builds from localStorage
+      const existingBuilds = JSON.parse(localStorage.getItem('savedBuilds') || '[]');
+      
+      // Add the new build
+      const updatedBuilds = [newBuild, ...existingBuilds];
+      
+      // Save back to localStorage
+      localStorage.setItem('savedBuilds', JSON.stringify(updatedBuilds));
+      
+      // Show success toast
+      toast({
+        title: "견적 저장 완료",
+        description: "견적이 성공적으로 저장되었습니다.",
+      });
+
+      // Trigger a custom event to notify other components of the update
+      window.dispatchEvent(new CustomEvent('buildsUpdated'));
+      
+    } catch (error) {
+      console.error('Error saving estimate:', error);
+      toast({
+        title: "저장 실패",
+        description: "견적 저장 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
