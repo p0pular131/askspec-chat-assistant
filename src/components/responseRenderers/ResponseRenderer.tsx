@@ -21,6 +21,12 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
   isCompatibilityRequest,
   expertiseLevel = 'beginner'
 }) => {
+  // Add components property to compatibility data if missing
+  const compatibilityDataWithComponents = {
+    ...sampleCompatibilityData,
+    components: sampleCompatibilityData.components || ['CPU', 'Memory', 'Motherboard', 'VGA', 'PSU', 'Case', 'Cooler', 'Storage']
+  };
+
   // Select the appropriate renderer based on chat mode
   switch (chatMode) {
     case '범용 검색':
@@ -28,7 +34,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
     case '부품 추천':
       return <PartRecommendationRenderer content={content} />;
     case '호환성 검사':
-      return <CompatibilityCheckRenderer content={content} compatibilityData={sampleCompatibilityData} />;
+      return <CompatibilityCheckRenderer content={content} compatibilityData={compatibilityDataWithComponents} />;
     case '견적 추천':
       return <BuildRecommendationRenderer content={content} recommendationData={sampleBuildRecommendation} />;
     case '스펙 업그레이드':
@@ -38,7 +44,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
     default:
       // For compatibility checks detected in other modes
       if (isCompatibilityRequest) {
-        return <CompatibilityCheckRenderer content={content} compatibilityData={sampleCompatibilityData} />;
+        return <CompatibilityCheckRenderer content={content} compatibilityData={compatibilityDataWithComponents} />;
       }
       // Default to general search renderer
       return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;

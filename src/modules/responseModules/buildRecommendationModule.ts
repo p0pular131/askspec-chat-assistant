@@ -8,14 +8,16 @@ export interface PartDetail {
   specs: string;
   reason: string;
   link: string;
-  image: string;
+  image?: string;
+  image_url?: string;
 }
 
 export interface EstimateResponse {
-  title: string;  // Added title property to ensure interface matches the data
-  parts: PartDetail[];
+  title: string;
+  parts: PartDetail[] | Record<string, PartDetail>;
   total_price: string;
   total_reason: string;
+  suggestion?: string;
 }
 
 // Use the centralized sample data

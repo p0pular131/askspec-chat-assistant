@@ -1,6 +1,6 @@
 
 import { ResponseModule } from './types';
-import { sampleBuildEvaluationData } from '../../data/sampleData';
+import { sampleSpecUpgradeData } from '../../data/sampleData';
 
 export const specUpgradeModule: ResponseModule = {
   name: 'specUpgrade',

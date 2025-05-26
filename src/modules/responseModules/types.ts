@@ -6,6 +6,6 @@ export type ResponseModule = {
 };
 
 export interface CompatibilityData {
-  components: string[];
-  [key: string]: string[] | boolean | string | null; // Allow for dynamic key-value pairs for compatibility relationships
+  components?: string[];
+  [key: string]: string[] | boolean | string | null | undefined; // Allow for dynamic key-value pairs for compatibility relationships
 }

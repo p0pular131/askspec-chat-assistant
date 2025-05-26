@@ -15,18 +15,22 @@ import { toast } from '@/hooks/use-toast';
 import { sampleBuildRecommendation } from '../../data/sampleData';
 
 // Define the interface for Build Recommendation data
+export interface PartDetail {
+  name: string;
+  price: string;
+  specs: string;
+  reason: string;
+  link: string;
+  image?: string;
+  image_url?: string;
+}
+
 export interface EstimateResponse {
-  title: string;  // Added title property to the interface
-  parts: Array<{
-    name: string;
-    price: string;
-    specs: string;
-    reason: string;
-    link: string;
-    image: string;
-  }>;
+  title: string;
+  parts: PartDetail[] | Record<string, PartDetail>;
   total_price: string;
   total_reason: string;
+  suggestion?: string;
 }
 
 interface BuildRecommendationRendererProps {
@@ -38,6 +42,11 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   // Use provided data or fall back to sample data to ensure consistency
   const buildData = recommendationData || sampleBuildRecommendation;
   
+  // Convert parts to array format for consistent rendering
+  const partsArray = Array.isArray(buildData.parts) 
+    ? buildData.parts 
+    : Object.values(buildData.parts);
+  
   // Function to save the estimate to local storage and show feedback
   const handleSaveEstimate = () => {
     try {
@@ -47,7 +56,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         name: buildData.title,
         total_price: parseInt(buildData.total_price.replace(/[₩,]/g, '')), // Parse price
         created_at: new Date().toISOString(),
-        parts: buildData.parts,
+        parts: partsArray,
         total_reason: buildData.total_reason
       };
 
@@ -109,12 +118,12 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
 
       {/* Components Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {buildData.parts.map((part, index) => (
+        {partsArray.map((part, index) => (
           <Card key={index} className="overflow-hidden h-full flex flex-col">
             <div className="h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
-              {part.image && (
+              {(part.image || part.image_url) && (
                 <img 
-                  src={part.image} 
+                  src={part.image || part.image_url} 
                   alt={part.name}
                   className="w-full h-full object-contain"
                   onError={(e) => {
@@ -166,19 +175,21 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
       </div>
       
       {/* Suggestion Card */}
-      <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold text-blue-800 dark:text-blue-200 flex items-center gap-2">
-            <ArrowRight size={20} />
-            다음 단계
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-blue-700 dark:text-blue-300 leading-relaxed">
-            {buildData.suggestion}
-          </p>
-        </CardContent>
-      </Card>
+      {buildData.suggestion && (
+        <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold text-blue-800 dark:text-blue-200 flex items-center gap-2">
+              <ArrowRight size={20} />
+              다음 단계
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-blue-700 dark:text-blue-300 leading-relaxed">
+              {buildData.suggestion}
+            </p>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Footer Notes */}
       <Card>
