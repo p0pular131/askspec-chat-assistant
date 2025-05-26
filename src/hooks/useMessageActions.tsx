@@ -24,13 +24,9 @@ export function useMessageActions(currentSession: Session | null) {
     try {
       // Add user message with the current chatMode
       if (currentSession) {
-        const userMessage = await addMessage(text, 'user', currentSession.id.toString(), chatMode, expertiseLevel);
+        await addMessage(text, 'user', currentSession.id.toString(), chatMode, expertiseLevel);
         
-        if (!userMessage) {
-          throw new Error('Failed to add user message');
-        }
-
-        // Create messages array from existing messages plus the new user message
+        // Create messages array from existing messages
         const apiMessages = dbMessages.map(msg => ({
           role: msg.role,
           content: msg.input_text
@@ -45,13 +41,11 @@ export function useMessageActions(currentSession: Session | null) {
           
           // Add assistant response to database with the current chatMode and expertiseLevel
           if (response) {
-            const assistantMessage = await addMessage(response, 'assistant', currentSession.id.toString(), chatMode, expertiseLevel);
+            await addMessage(response, 'assistant', currentSession.id.toString(), chatMode, expertiseLevel);
             
-            if (assistantMessage) {
-              // Call the onSuccess callback if provided
-              if (onSuccess) {
-                onSuccess();
-              }
+            // Call the onSuccess callback if provided
+            if (onSuccess) {
+              onSuccess();
             }
           } else {
             console.error("Empty response received");

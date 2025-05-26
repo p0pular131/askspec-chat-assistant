@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, memo, useEffect } from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
@@ -78,9 +77,6 @@ const BuildsList: React.FC<BuildsListProps> = ({
         const updatedBuilds = localBuilds.filter(build => String(build.id) !== buildToDelete);
         localStorage.setItem('savedBuilds', JSON.stringify(updatedBuilds));
         setLocalBuilds(updatedBuilds);
-        
-        // Trigger builds updated event
-        window.dispatchEvent(new CustomEvent('buildsUpdated'));
         
         toast({
           title: "견적 삭제 완료",

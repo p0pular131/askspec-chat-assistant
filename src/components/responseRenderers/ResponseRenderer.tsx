@@ -1,73 +1,52 @@
 
 import React from 'react';
-import { Message } from '../types';
 import GeneralSearchRenderer from './GeneralSearchRenderer';
 import PartRecommendationRenderer from './PartRecommendationRenderer';
-import BuildRecommendationRenderer from './BuildRecommendationRenderer';
 import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
-import BuildEvaluationRenderer from './BuildEvaluationRenderer';
+import BuildRecommendationRenderer from './BuildRecommendationRenderer';
 import SpecUpgradeRenderer from './SpecUpgradeRenderer';
+import BuildEvaluationRenderer from './BuildEvaluationRenderer';
+import { sampleBuildRecommendation, sampleCompatibilityData, sampleBuildEvaluationData } from '../../data/sampleData';
 
 interface ResponseRendererProps {
   content: string;
-  chatMode?: string;
+  chatMode: string;
   isCompatibilityRequest?: boolean;
   expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
 
-const sampleCompatibilityData = {
-  CPU_Memory: true,
-  CPU_Memory_Reason: "Compatible",
-  CPU_Motherboard: true,
-  CPU_Motherboard_Reason: "Compatible",
-  Memory_Motherboard: true,
-  Memory_Motherboard_Reason: "Compatible",
-  Motherboard_Case: true,
-  Motherboard_Case_Reason: "Compatible",
-  Power_CPU: true,
-  Power_CPU_Reason: "Sufficient power",
-  Power_GPU: true,
-  Power_GPU_Reason: "Sufficient power",
-  Power_Total: true,
-  Power_Total_Reason: "Sufficient total power",
-  suggestion: "All components are compatible",
-  components: [] // Required components property
-};
-
 const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
   content, 
-  chatMode = '범용 검색',
-  isCompatibilityRequest = false,
+  chatMode, 
+  isCompatibilityRequest,
   expertiseLevel = 'beginner'
 }) => {
-  let parsedData;
-  try {
-    parsedData = JSON.parse(content);
-  } catch (e) {
-    console.warn("Failed to parse message content as JSON", content);
-  }
+  // Add components property to compatibility data if missing
+  const compatibilityDataWithComponents = {
+    ...sampleCompatibilityData,
+    components: sampleCompatibilityData.components || ['CPU', 'Memory', 'Motherboard', 'VGA', 'PSU', 'Case', 'Cooler', 'Storage']
+  };
 
-  // Handle different chat modes
+  // Select the appropriate renderer based on chat mode
   switch (chatMode) {
     case '범용 검색':
       return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;
-    
     case '부품 추천':
-      return <PartRecommendationRenderer content={content} partData={parsedData || undefined} />;
-    
-    case 'PC 견적':
-      return <BuildRecommendationRenderer content={content} recommendationData={parsedData || undefined} />;
-    
+      return <PartRecommendationRenderer content={content} />;
     case '호환성 검사':
-      return <CompatibilityCheckRenderer content={content} compatibilityData={parsedData || sampleCompatibilityData} />;
-    
-    case '견적 평가':
-      return <BuildEvaluationRenderer content={content} evaluationData={parsedData || undefined} />;
-    
+      return <CompatibilityCheckRenderer content={content} compatibilityData={compatibilityDataWithComponents} />;
+    case '견적 추천':
+      return <BuildRecommendationRenderer content={content} recommendationData={sampleBuildRecommendation} />;
     case '스펙 업그레이드':
-      return <SpecUpgradeRenderer content={content} upgradeData={parsedData || undefined} />;
-    
+      return <SpecUpgradeRenderer content={content} />;
+    case '견적 평가':
+      return <BuildEvaluationRenderer content={content} evaluationData={sampleBuildEvaluationData} />;
     default:
+      // For compatibility checks detected in other modes
+      if (isCompatibilityRequest) {
+        return <CompatibilityCheckRenderer content={content} compatibilityData={compatibilityDataWithComponents} />;
+      }
+      // Default to general search renderer
       return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;
   }
 };
