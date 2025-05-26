@@ -1,62 +1,75 @@
-
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { BookOpen, Cpu, InfoIcon } from 'lucide-react';
+import { Badge } from '../ui/badge';
+
 
 interface GeneralSearchRendererProps {
   content: string;
-  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert' | null;
 }
-
-// Helper function to parse markdown-style bold text
-const parseBoldText = (text: string): React.ReactNode => {
-  const parts = text.split(/(\*\*.*?\*\*)/g);
-  
-  return parts.map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      const boldText = part.slice(2, -2);
-      return <strong key={index}>{boldText}</strong>;
-    }
-    return part;
-  });
-};
 
 const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({ 
   content, 
   expertiseLevel = 'beginner' 
 }) => {
-  const levelColors = {
-    beginner: 'bg-green-100 text-green-700',
-    intermediate: 'bg-yellow-100 text-yellow-700',
-    expert: 'bg-red-100 text-red-700'
-  };
-
-  const levelLabels = {
-    beginner: '초보자',
-    intermediate: '중급자',
-    expert: '전문가'
-  };
-
   return (
-    <div className="general-search-response space-y-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Badge className={levelColors[expertiseLevel]}>
-          {levelLabels[expertiseLevel]} 수준
+    <div className="general-search-response relative">
+      <div className="mb-2 flex justify-start">
+        <Badge 
+          variant="outline" 
+          className={`${getBadgeClass(expertiseLevel)} flex items-center px-2 py-0.5 text-xs`}
+        >
+          {getExpertiseLevelIcon(expertiseLevel)}
+          <span className="ml-1">{getExpertiseLevelLabel(expertiseLevel)}</span>
         </Badge>
       </div>
-      
-      <Card>
-        <CardContent className="pt-6">
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <div className="mb-4 last:mb-0">
-              {parseBoldText(content)}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
+      <div className="prose prose-zinc prose-sm max-w-none">
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
     </div>
   );
+};
+
+// Helper functions for styling based on expertise level
+const getBadgeClass = (level: string | null): string => {
+  switch (level) {
+    case 'beginner':
+      return 'bg-blue-100 text-blue-700 border-blue-300';
+    case 'expert':
+      return 'bg-red-100 text-red-700 border-red-300';
+    case 'intermediate':
+      return 'bg-green-100 text-green-700 border-green-300';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-300';
+  }
+};
+
+const getExpertiseLevelLabel = (level: string | null): string => {
+  switch (level) {
+    case 'beginner':
+      return '입문자';
+    case 'expert':
+      return '전문가';
+    case 'intermediate':
+      return '중급자';
+    default:
+      return '선택되지 않음';
+  }
+};
+
+const getExpertiseLevelIcon = (level: string | null) => {
+  switch (level) {
+    case 'beginner':
+      return <BookOpen className="h-3 w-3" />;
+    case 'expert':
+      return <Cpu className="h-3 w-3" />;
+    case 'intermediate':
+      return <InfoIcon className="h-3 w-3" />;
+    default:
+      return <InfoIcon className="h-3 w-3" />;
+  }
 };
 
 export default GeneralSearchRenderer;
