@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, memo, useEffect } from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
@@ -152,8 +151,15 @@ const BuildsList: React.FC<BuildsListProps> = ({
           className="p-2 w-full text-sm text-left rounded text-neutral-700 hover:bg-neutral-100"
           onClick={() => onViewBuild(String(build.id))}
         >
-          <div className="flex justify-between">
-            <span>{build.name}</span>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span>{build.name}</span>
+              {build.type === 'spec_upgrade' && (
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                  업그레이드
+                </span>
+              )}
+            </div>
             <span className="text-xs text-gray-500">
               {new Date(build.created_at).toLocaleDateString()}
             </span>
