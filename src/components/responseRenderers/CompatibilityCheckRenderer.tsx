@@ -178,7 +178,7 @@ const CompatibilityCheckRenderer: React.FC<CompatibilityCheckRendererProps> = ({
       {suggestion && (
         <Card className="mt-6 border-blue-200 bg-blue-50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-blue-800">
+            <CardTitle className="text-lg font-bold text-blue-800 dark:text-blue-200 flex items-center gap-">
               <ArrowRight size={20} />
               다음 단계
             </CardTitle>
