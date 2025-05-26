@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Build, Component } from '@/hooks/useBuilds';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,36 +21,20 @@ interface BuildDetailsProps {
 }
 
 export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
-  // Group components by type
-  const groupedComponents = build.components.reduce((acc, component) => {
-    const type = component.type;
-    if (!acc[type]) {
-      acc[type] = [];
-    }
-    acc[type].push(component);
-    return acc;
-  }, {} as Record<string, Component[]>);
+  // Fixed order for component types
+  const COMPONENT_ORDER = ["VGA", "CPU", "Motherboard", "Memory", "Storage", "PSU", "Case", "Cooler"];
 
-  // Extract rating scores if they exist, otherwise use placeholders
-  const hasRatings = build.rating && typeof build.rating === 'object';
-  const performance = hasRatings && build.rating.performance !== undefined ? build.rating.performance : null;
-  const pricePerformance = hasRatings && build.rating.price_performance !== undefined ? build.rating.price_performance : null;
-  const expandability = hasRatings && build.rating.expandability !== undefined ? build.rating.expandability : null;
-  const noise = hasRatings && build.rating.noise !== undefined ? build.rating.noise : null;
-
-  // Function to get proper component type from name using sample data keys
-  const getProperComponentType = (component: Component): string => {
-    if (component.type && component.type !== 'Unknown' && component.type !== 'Component') {
+  // Function to get standardized component type
+  const getStandardizedComponentType = (component: Component): string => {
+    // First check if the component already has a valid type from the standard order
+    if (COMPONENT_ORDER.includes(component.type)) {
       return component.type;
     }
     
-    // Valid component types from sample data structure
-    const validTypes = ['VGA', 'CPU', 'Motherboard', 'Memory', 'Storage', 'PSU', 'Case', 'Cooler'];
-    
-    // Derive type from component name
+    // If not, derive type from component name using the standard mapping
     const name = component.name.toLowerCase();
     
-    if (name.includes('rtx') || name.includes('gtx') || name.includes('radeon') || name.includes('graphics')) {
+    if (name.includes('rtx') || name.includes('gtx') || name.includes('radeon') || name.includes('graphics') || name.includes('vga')) {
       return 'VGA';
     }
     if (name.includes('cpu') || name.includes('processor') || name.includes('intel') || name.includes('amd ryzen')) {
@@ -76,8 +59,61 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
       return 'Cooler';
     }
     
-    return component.type || 'Unknown';
+    return 'Unknown';
   };
+
+  // Sort components according to the fixed order
+  const getSortedComponents = (components: Component[]): Component[] => {
+    // Create a map of components by their standardized type
+    const componentsByType: Record<string, Component[]> = {};
+    
+    components.forEach(component => {
+      const standardizedType = getStandardizedComponentType(component);
+      if (!componentsByType[standardizedType]) {
+        componentsByType[standardizedType] = [];
+      }
+      componentsByType[standardizedType].push(component);
+    });
+
+    // Return components sorted by the fixed order
+    const sortedComponents: Component[] = [];
+    
+    COMPONENT_ORDER.forEach(type => {
+      if (componentsByType[type]) {
+        sortedComponents.push(...componentsByType[type]);
+      }
+    });
+    
+    // Add any unknown types at the end
+    if (componentsByType['Unknown']) {
+      sortedComponents.push(...componentsByType['Unknown']);
+    }
+    
+    return sortedComponents;
+  };
+
+  // Get sorted components for display
+  const sortedComponents = getSortedComponents(build.components);
+
+  // Group components by type for tabs (also sorted)
+  const groupedComponents = sortedComponents.reduce((acc, component) => {
+    const type = getStandardizedComponentType(component);
+    if (!acc[type]) {
+      acc[type] = [];
+    }
+    acc[type].push(component);
+    return acc;
+  }, {} as Record<string, Component[]>);
+
+  // Create ordered tabs based on the fixed order
+  const orderedTabTypes = COMPONENT_ORDER.filter(type => groupedComponents[type]);
+
+  // Extract rating scores if they exist, otherwise use placeholders
+  const hasRatings = build.rating && typeof build.rating === 'object';
+  const performance = hasRatings && build.rating.performance !== undefined ? build.rating.performance : null;
+  const pricePerformance = hasRatings && build.rating.price_performance !== undefined ? build.rating.price_performance : null;
+  const expandability = hasRatings && build.rating.expandability !== undefined ? build.rating.expandability : null;
+  const noise = hasRatings && build.rating.noise !== undefined ? build.rating.noise : null;
 
   // Function to export the build details as PDF
   const exportAsPDF = async () => {
@@ -87,21 +123,17 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
         description: "PDF를 생성 중입니다. 잠시만 기다려주세요.",
       });
 
-      // Create a new PDF document
       const pdf = new jsPDF();
       let yPos = 20;
 
-      // Add title
       pdf.setFontSize(20);
       pdf.text(build.name, 20, yPos);
       yPos += 10;
       
-      // Add price
       pdf.setFontSize(12);
       pdf.text(`총 가격: ${formatCurrency(build.total_price)}`, 20, yPos);
       yPos += 15;
       
-      // Add recommendation section
       pdf.setFontSize(16);
       pdf.text('견적 추천 설명', 20, yPos);
       yPos += 10;
@@ -111,7 +143,6 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
       pdf.text(recommendationLines, 20, yPos);
       yPos += recommendationLines.length * 7 + 10;
       
-      // Add evaluation section
       pdf.setFontSize(16);
       pdf.text('견적 평가', 20, yPos);
       yPos += 10;
@@ -126,15 +157,13 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
       pdf.text(`소음: ${noise !== null ? `${noise}/10` : "평가 없음"}`, 20, yPos);
       yPos += 15;
       
-      // Add components table
       pdf.setFontSize(16);
       pdf.text('구성 요소', 20, yPos);
       yPos += 10;
 
-      // Create a table for components
-      const componentRows = build.components.map(component => [
+      const componentRows = sortedComponents.map(component => [
         component.name,
-        getProperComponentType(component),
+        getStandardizedComponentType(component),
         component.specs,
         formatCurrency(component.price || 0)
       ]);
@@ -153,7 +182,6 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
         }
       });
       
-      // Save the PDF
       pdf.save(`${build.name} - PC Build.pdf`);
 
       toast({
@@ -200,7 +228,6 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-6">
-            {/* Circular rating indicators in horizontal layout */}
             <div className="flex flex-row flex-wrap justify-around gap-4">
               <RatingIndicator 
                 label="절대 성능" 
@@ -238,7 +265,7 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
           <TabsTrigger value="all">All Components</TabsTrigger>
-          {Object.keys(groupedComponents).map(type => (
+          {orderedTabTypes.map(type => (
             <TabsTrigger key={type} value={type}>{type}</TabsTrigger>
           ))}
         </TabsList>
@@ -255,10 +282,10 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {build.components.map((component, idx) => (
+              {sortedComponents.map((component, idx) => (
                 <TableRow key={idx}>
                   <TableCell className="font-medium">{component.name}</TableCell>
-                  <TableCell>{getProperComponentType(component)}</TableCell>
+                  <TableCell>{getStandardizedComponentType(component)}</TableCell>
                   <TableCell>
                     {component.image && (
                       <img 
@@ -283,14 +310,14 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
           </Table>
         </TabsContent>
 
-        {/* Content for component type tabs */}
-        {Object.entries(groupedComponents).map(([type, components]) => (
+        {/* Content for component type tabs in fixed order */}
+        {orderedTabTypes.map((type) => (
           <TabsContent key={type} value={type} className="space-y-4 mt-4">
-            {components.map((component, idx) => (
+            {groupedComponents[type].map((component, idx) => (
               <Card key={idx}>
                 <CardHeader>
                   <CardTitle>{component.name}</CardTitle>
-                  <CardDescription>{component.type}</CardDescription>
+                  <CardDescription>{getStandardizedComponentType(component)}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

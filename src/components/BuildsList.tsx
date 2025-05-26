@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, memo, useEffect } from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
@@ -13,6 +14,9 @@ import {
 } from "./ui/alert-dialog";
 import { AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
+
+// Fixed order for component types
+const COMPONENT_ORDER = ["VGA", "CPU", "Motherboard", "Memory", "Storage", "PSU", "Case", "Cooler"];
 
 interface BuildsListProps {
   builds: Build[];
@@ -35,12 +39,83 @@ const BuildsList: React.FC<BuildsListProps> = ({
   const [buildToDelete, setBuildToDelete] = useState<string | null>(null);
   const [localBuilds, setLocalBuilds] = useState<any[]>([]);
 
+  // Function to standardize part type from localStorage build data
+  const getStandardizedPartType = (partName: string): string => {
+    const name = partName.toLowerCase();
+    
+    if (name.includes('rtx') || name.includes('gtx') || name.includes('radeon') || name.includes('graphics') || name.includes('vga')) {
+      return 'VGA';
+    }
+    if (name.includes('cpu') || name.includes('processor') || name.includes('intel') || name.includes('amd ryzen')) {
+      return 'CPU';
+    }
+    if (name.includes('motherboard') || name.includes('mainboard')) {
+      return 'Motherboard';
+    }
+    if (name.includes('ram') || name.includes('memory') || name.includes('ddr')) {
+      return 'Memory';
+    }
+    if (name.includes('ssd') || name.includes('hdd') || name.includes('storage') || name.includes('nvme')) {
+      return 'Storage';
+    }
+    if (name.includes('psu') || name.includes('power') || name.includes('supply')) {
+      return 'PSU';
+    }
+    if (name.includes('case') || name.includes('tower')) {
+      return 'Case';
+    }
+    if (name.includes('cooler') || name.includes('fan')) {
+      return 'Cooler';
+    }
+    
+    return 'Unknown';
+  };
+
+  // Function to sort local build parts according to fixed order
+  const sortLocalBuildParts = (build: any) => {
+    if (!build.parts || !Array.isArray(build.parts)) {
+      return build;
+    }
+
+    // Group parts by their standardized type
+    const partsByType: Record<string, any[]> = {};
+    
+    build.parts.forEach((part: any) => {
+      const standardizedType = getStandardizedPartType(part.name);
+      if (!partsByType[standardizedType]) {
+        partsByType[standardizedType] = [];
+      }
+      partsByType[standardizedType].push(part);
+    });
+
+    // Return parts sorted by the fixed order
+    const sortedParts: any[] = [];
+    
+    COMPONENT_ORDER.forEach(type => {
+      if (partsByType[type]) {
+        sortedParts.push(...partsByType[type]);
+      }
+    });
+    
+    // Add any unknown types at the end
+    if (partsByType['Unknown']) {
+      sortedParts.push(...partsByType['Unknown']);
+    }
+    
+    return {
+      ...build,
+      parts: sortedParts
+    };
+  };
+
   // Load builds from localStorage on component mount
   useEffect(() => {
     const loadLocalBuilds = () => {
       try {
         const savedBuilds = JSON.parse(localStorage.getItem('savedBuilds') || '[]');
-        setLocalBuilds(savedBuilds);
+        // Sort parts in each local build according to the fixed order
+        const sortedBuilds = savedBuilds.map((build: any) => sortLocalBuildParts(build));
+        setLocalBuilds(sortedBuilds);
       } catch (error) {
         console.error('Error loading builds from localStorage:', error);
         setLocalBuilds([]);
