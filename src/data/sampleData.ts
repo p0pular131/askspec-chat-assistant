@@ -6,98 +6,105 @@
 
 // Sample data for build recommendations
 export const sampleBuildRecommendation = {
-  "title": "150만원대 게이밍 컴퓨터 견적",
-  "parts": [
-    {
+  "title": "150만 게이밍 PC",
+  "parts": {
+    "VGA": {
+      "name": "EVGA 지포스 RTX 3060 XC GAMING D6 12GB LHR",
+      "reason": "150만원 예산의 게이밍 PC에 적합하며 요청한 550,000~650,000원 VGA 가격 조건(₩499,900)에 부합하고, 요청하신 RTX 3060 급 성능과 12GB VRAM으로 최근 게임에도 충분한 그래픽 성능을 제공합니다.",
+      "price": "₩499,900",
+      "specs": "메모리: 12GB GDDR6, 부스트클럭: 1882MHz, 스트림프로세서: 3584개, 출력포트: HDMI2.1/DP1.4, 길이 201.8mm, 권장파워 550W, PCIe 4.0 x16 지원, 3DMark: 8997, 1080p 고옵션 평균 FPS: 100",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/852/753/img/14753852_1.jpg"
+    },
+    "CPU": {
       "name": "AMD 라이젠5 5600X",
-      "price": "₩250,000",
-      "specs": "6코어 12스레드, 기본 클럭 3.7GHz, 최대 부스트 클럭 4.6GHz",
-      "reason": "게임 성능이 우수한 6코어 12스레드의 프로세서입니다.",
-      "link": "https://www.amd.com/ko/products/cpu/amd-ryzen-5-5600x",
-      "image": "https://media.istockphoto.com/id/1397047877/ko/%EC%82%AC%EC%A7%84/%EB%A7%88%EB%8D%94%EB%B3%B4%EB%93%9C%EC%9D%98-%EB%A9%94%EC%9D%B8-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%B9%A9.jpg?s=612x612&w=0&k=20&c=aOkQm6fZ6ApeaYu983FGI8f9KbURequCJJgyYPYUniQ="
-    },
-    {
-      "name": "ASUS TUF Gaming B550-PLUS",
+      "reason": "150만원 예산의 게이밍 PC 구성에 적합하며, 사용자가 요청한 180,000~230,000원 가격대에 부합하는 검색 결과입니다. 6코어 12스레드와 높은 게이밍 성능, 그리고 쿨러 기본 제공으로 가성비가 매우 뛰어남. 경쟁 인텔 i5 (LGA1700) 대비 가격이 낮으면서도 게임 성능에서 강점을 보여 추천드립니다.",
       "price": "₩180,000",
-      "specs": "ATX 폼팩터, AM4 소켓, DDR4 메모리 지원",
-      "reason": "안정성과 확장성이 뛰어난 메인보드입니다.",
-      "link": "https://www.asus.com/kr/Motherboards-Components/Motherboards/TUF-Gaming/TUF-GAMING-B550-PLUS/",
-      "image": "https://media.istockphoto.com/id/958956392/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%B3%B4%EB%93%9C-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EB%A7%88%EB%8D%94%EB%B3%B4%EB%93%9C-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C-%EC%84%9C%EB%B2%84-cpu-%EC%B9%A9-%EB%B0%98%EB%8F%84%EC%B2%B4-%ED%9A%8C%EB%A1%9C-%EB%B8%94%EB%A3%A8-%EC%BD%94%EC%96%B4-%EA%B8%B0%EC%88%A0-%EB%B0%B0%EA%B2%BD%EC%9D%B4-%EB%82%98-%EB%B8%94%EB%A3%A8-%ED%85%8D%EC%8A%A4%EC%B2%98-%ED%94%84%EB%A1%9C%EC%84%B8%EC%84%9C-%EA%B0%9C%EB%85%90-%EC%A0%84%EC%9E%90-%EC%9E%A5%EC%B9%98.jpg?s=612x612&w=0&k=20&c=YODzWyYGg0ZH3C3XtrUEaxSfyojF4PXyPmOzgssJDws="
+      "specs": "6코어 12스레드 / AM4 소켓 / DDR4 지원 / 베이스 3.7GHz, 최대 4.6GHz / L3 캐시 32MB / TDP 65W / Wraith Stealth 쿨러 포함 / PCIe 4.0",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/265/625/img/12625265_1.jpg"
     },
-    {
-      "name": "삼성전자 DDR4-3200 16GB (8GB x2)",
-      "price": "₩100,000",
-      "specs": "DDR4, 3200MHz, 16GB (8GB x2)",
-      "reason": "빠른 속도와 안정성을 제공하는 메모리입니다.",
-      "link": "https://www.samsung.com/semiconductor/dram/module/consumer-ddr4/",
-      "image": "https://media.istockphoto.com/id/1365598557/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%9E%A8-%EC%9E%A5%EC%B9%98-%EC%B9%A9-%EC%BB%B4%ED%93%A8%ED%84%B0-%EB%A9%94%EB%AA%A8%EB%A6%AC-%EB%B3%B4%EB%93%9C-%EC%A0%84%EC%9E%90-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EA%B8%B0%EC%88%A0-ram-%EB%B3%B4%EB%93%9C-%EC%9D%B4%EB%AF%B8%EC%A7%80.jpg?s=612x612&w=0&k=20&c=kBe1gi3c7cDaLagLGXERLb9NDPZIbBaEJsNLGZZgOD4="
+    "Motherboard": {
+      "name": "ASUS PRIME B550-PLUS 대원CTS",
+      "reason": "120,000~160,000원 예산에 맞는 AM4 소켓, DDR4 메모리 지원, ATX 규격의 제품으로 게이밍 PC의 안정성과 확장성을 갖춘 메인보드입니다. 라이젠 5000 시리즈 CPU 호환 및 게이밍에 필요한 기본 확장성을 모두 제공합니다.",
+      "price": "₩142,000",
+      "specs": "AMD B550 칩셋 / ATX / 소켓 AM4 / DDR4 메모리 지원 / PCIe 4.0 / 4개의 메모리 슬롯(최대 128GB) / M.2 슬롯 2개 / USB 3.2 / 2.5GbE LAN / HDMI, DP / 다채로운 확장성 및 게이밍용 기본기 제공",
+      "link": "https://prod.danawa.com/info/?pcode=11461747",
+      "image_url": "https://img.danawa.com/prod_img/500000/747/461/img/11461747_1.jpg"
     },
-    {
-      "name": "삼성전자 970 EVO Plus M.2 NVMe 1TB",
-      "price": "₩150,000",
-      "specs": "M.2 NVMe, 1TB, 최대 읽기 속도 3,500MB/s",
-      "reason": "빠른 읽기/쓰기 속도를 제공하는 SSD입니다.",
-      "link": "https://www.samsung.com/semiconductor/minisite/ssd/product/consumer/970evoplus/",
-      "image": "https://media.istockphoto.com/id/1330486154/ko/%EC%82%AC%EC%A7%84/ssd-%EC%86%94%EB%A6%AC%EB%93%9C-%EC%8A%A4%ED%85%8C%EC%9D%B4%ED%8A%B8-%EB%B0%95%EB%B6%80-%ED%95%98%EB%93%9C-%EB%93%9C%EB%9D%BC%EC%9D%B4%EB%B8%8C-%EC%BB%B4%ED%93%A8%ED%84%B0%EC%9A%A9-%EC%BB%B4%ED%93%A8%ED%84%B0-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EB%B0%8F-%EC%BB%B4%ED%93%A8%ED%84%B0-%EC%97%85%EA%B7%B8%EB%A0%88%EC%9D%B4%EB%93%9C-%EA%B0%9C%EB%85%90.jpg?s=612x612&w=0&k=20&c=IYylyFVn4aNcFZBnVQcCxEIAOpypUevdRbZXTgMKZ8E="
+    "Memory": {
+      "name": "G.SKILL DDR4-4000 CL18 TRIDENT Z RGB 패키지 (16GB(8Gx2))",
+      "reason": "예산 80,000~120,000원 내에서 16GB(8GBx2) 구성, 3000MHz 이상 게이밍에 적합한 고클럭 메모리로 RGB 디자인까지 갖추어 가성비와 성능 모두 충족합니다.",
+      "price": "₩72,290",
+      "specs": "DDR4, 16GB (8GBx2), 4000MHz, CL18-22-22-42, RGB, 게이밍 전용",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/896/792/img/15792896_1.jpg"
     },
-    {
-      "name": "NVIDIA 지포스 RTX 4060 Ti",
-      "price": "₩500,000",
-      "specs": "8GB GDDR6, 레이 트레이싱 및 DLSS 지원",
-      "reason": "최신 게임을 원활하게 실행할 수 있는 그래픽 카드입니다.",
-      "link": "https://www.nvidia.com/ko-kr/geforce/graphics-cards/40-series/rtx-4060-ti/",
-      "image": "https://www.nvidia.com/content/dam/en-zz/Solutions/geforce/graphics-cards/40-series/rtx-4060-ti/gallery/geforce-rtx-4060-ti-1-1200-p@2x.jpg"
+    "Storage": {
+      "name": "이메이션 Q831 M.2 NVMe",
+      "reason": "1TB 용량에, 읽기 2,300MB/s 및 쓰기 1,700MB/s로 빠른 속도를 제공하며, 요청하신 예산(8만원~12만원) 내에 해당되는 최고의 가성비 제품입니다. 게이밍 PC 저장장치로 적합합니다.",
+      "price": "₩77,900",
+      "specs": "M.2 (2280) NVMe, 1TB, 순차 읽기 2,300MB/s, 순차 쓰기 1,700MB/s, MTBF 150만시간, 두께 2.15mm",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/613/808/img/15808613_1.jpg"
     },
-    {
-      "name": "마이크로닉스 Classic II 700W 80PLUS Bronze",
-      "price": "₩80,000",
-      "specs": "700W, 80PLUS Bronze 인증",
-      "reason": "안정적인 전력 공급을 위한 파워 서플라이입니다.",
-      "link": "https://www.micronics.co.kr/power/classic-ii-700w-80plus-bronze/",
-      "image": "https://media.istockphoto.com/id/622847180/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EC%A0%84%EC%9B%90-%EA%B3%B5%EA%B8%89-%EC%9E%A5%EC%B9%98.jpg?s=612x612&w=0&k=20&c=K9imPdgnVoRGZ_VuNKX-Pl80PLq2sDXg0chcpIWOl1U="
+    "PSU": {
+      "name": "DEEPCOOL PN750M 80PLUS골드 풀모듈러 ATX3.1",
+      "reason": "요청하신 60,000~100,000원 예산에서는 750W, 80PLUS Bronze 이상의 인증, 높은 안정성, 그리고 최근 시스템 호환성이 뛰어난 제품 선택이 중요합니다. DEEPCOOL PN750M 80PLUS골드 풀모듈러는 80PLUS 골드 인증, 풀모듈러 구성, 750W 출력, 12V 싱글레일 등으로 안전성과 확장성을 보장하며, 최신 ATX3.1 지원을 통해 추후 업그레이드도 용이합니다. 예산 상한을 소폭 초과하나, 더욱 신뢰성 있는 선택이라 우선 추천합니다.",
+      "price": "₩134000.0",
+      "specs": "풀모듈러, 80PLUS 골드, ATX3.1, 750W, 24핀(20+4) 메인, 8핀(4+4) 2개, PCIe 16핀(12V2x6) 1개, PCIe 8핀 3개, SATA 8개, +12V 싱글레일",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/603/035/img/63035603_1.jpg"
     },
-    {
-      "name": "ABKO NCORE 식스팬 강화유리",
-      "price": "₩60,000",
-      "specs": "미들 타워, 강화유리, 6개의 쿨링 팬 포함",
-      "reason": "효율적인 쿨링과 디자인을 갖춘 케이스입니다.",
-      "link": "https://www.abko.co.kr/product/ncore-sixfan/",
-      "image": "https://media.istockphoto.com/id/1419050553/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%EC%9E%90%EC%84%B8%ED%95%9C-%EC%BB%B4%ED%93%A8%ED%84%B0-%ED%95%98%EB%93%9C%EC%9B%A8%EC%96%B4-%ED%85%8C%EB%A7%88-%EA%B0%80%EA%B9%8C%EC%9A%B4-%EA%B2%80%EC%9D%80-%EB%B0%B0%EA%B2%BD.jpg?s=612x612&w=0&k=20&c=Rig4MuWqkO1pdP_GXhnFZ9DxrkXTjO14gcofOYO5j0o="
+    "Case": {
+      "name": "CORSAIR 4000D RGB AIRFLOW (트루 화이트)",
+      "reason": "40,000~80,000원 예산을 고려한 미들타워 ATX 지원 케이스 중 내부 쿨링 성능과 선정리 구성이 우수하고, RGB 팬이 기본 제공되어 가성비와 감성을 동시에 만족합니다.",
+      "price": "₩180,000",
+      "specs": "폼팩터: E-ATX, ATX, M-ATX, M-ITX / 최대 GPU 길이: 360mm / 최대 CPU 쿨러 높이: 170mm / 폭: 230mm, 깊이: 453mm, 높이: 466mm / 파워서플라이 최대 길이: 180mm / 미들타워",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/650/918/img/18918650_1.jpg"
     },
-    {
-      "name": "잘만 CNPS10X PERFORMA BLACK",
-      "price": "₩50,000",
-      "specs": "120mm 팬, 4개의 히트파이프",
-      "reason": "효율적인 CPU 쿨링을 위한 공랭 쿨러입니다.",
-      "link": "https://www.zalman.com/kr/product/cnps10x-performa-black/",
-      "image": "https://media.istockphoto.com/id/175195279/ko/%EC%82%AC%EC%A7%84/%EC%BB%B4%ED%93%A8%ED%84%B0-%EC%BF%A8%EB%9F%AC.jpg?s=612x612&w=0&k=20&c=LJcbNpQSacHkuMWms0Rs8n9srQijX6nRJjpQa9X0_Dg="
+    "Cooler": {
+      "name": "PCCOOLER CPS RC400-53",
+      "reason": "Intel LGA1700 및 AMD AM4 소켓 모두 완벽히 지원하며, 30,000~40,000원 예산에 근접한 제품 중 정숙성(최대 31.2dBA)과 준수한 쿨링 성능(43 CFM)이 균형을 이루고 있는 공랭 쿨러입니다. 슬림한 크기로 호환성과 조립 편의성도 우수합니다.",
+      "price": "₩42,900",
+      "specs": "소켓: Intel LGA1700, AMD AM4/AM5 지원, 최대 풍량: 43CFM, 소음도: 31.2dBA, 높이: 53.5mm, 공랭 방식, 4핀 커넥터",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/096/560/img/63560096_1.jpg"
     }
-  ],
-  "total_price": "₩1,370,000",
-  "total_reason": "150만원 예산 내에서 최신 게임을 원활하게 실행할 수 있는 성능을 제공하는 부품들로 구성하였습니다."
+  },
+  "total_price": "₩1,328,990",
+  "total_reason": "150만원 예산 안에서 최신 게임을 부드럽게 즐길 수 있도록 그래픽카드와 CPU를 중심으로 구성했습니다. 다양한 게임 플레이와 원활한 컴퓨터 사용을 위한 성능과 확장성을 고려했습니다. 입문자도 사용하기 쉽도록 호환성과 안정성에 신경 썼습니다.",
+  "suggestion": "견적이 마음에 들었다면, 견적을 저장해 나중에도 볼 수 있습니다. **견적 호환성 검사**에서 견적 호환 여부를 받아볼 수 있습니다. 또한, **견적 평가 기능**을 통해 추천된 견적의 성능과 가성비를 확인해보세요."
 };
-
+  
 // Sample data for compatibility checks
 export const sampleCompatibilityData = {
-  components: ["CPU", "GPU", "RAM", "Motherboard", "Storage", "PSU", "Case", "Cooler"],
   "CPU_Memory": true,
-  "CPU_Memory_Reason": "인텔 코어 i5-13600K 프로세서는 DDR5-5600 메모리를 지원합니다. 따라서 SK하이닉스 DDR5-5600 (16GB) 메모리와 호환됩니다.",
-  "CPU_Motherboard": false,
-  "CPU_Motherboard_Reason": "인텔 코어 i5-13600K 프로세서는 LGA 1700 소켓을 사용하며, ASRock B860M-X 메인보드는 해당 소켓을 지원하지 않습니다. 따라서 두 부품은 호환되지 않습니다.",
+  "CPU_Memory_Reason": "AMD 라이젠5 5600X는 DDR4 메모리를 지원하며, G.SKILL DDR4-4000 CL18 TRIDENT Z RGB 패키지도 DDR4 타입이므로 호환됩니다.",
+  "CPU_Motherboard": true,
+  "CPU_Motherboard_Reason": "AMD 라이젠5 5600X는 AM4 소켓과 DDR4 메모리를 사용하며, ASUS PRIME B550-PLUS 메인보드는 AM4 소켓과 DDR4를 지원하므로 호환됩니다. PCIe 4.0도 양쪽 모두 지원하여 문제없이 사용할 수 있습니다.",
   "Memory_Motherboard": true,
-  "Memory_Motherboard_Reason": "ASRock B860M-X 메인보드는 DDR5 메모리를 지원하며, SK하이닉스 DDR5-5600 16GB 메모리는 데스크탑용 DDR5 메모리로 호환됩니다.",
+  "Memory_Motherboard_Reason": "G.SKILL DDR4-4000 CL18 TRIDENT Z RGB 패키지는 DDR4 타입이며, ASUS PRIME B550-PLUS는 DDR4 메모리(최대 4800MHz OC)를 지원하므로 호환됩니다. 슬롯 수도 4개로 2개 메모리 장착에 문제 없습니다.",
   "Motherboard_Case": true,
-  "Motherboard_Case_Reason": "NZXT H9 Flow 케이스는 Micro-ATX 폼팩터를 지원하며, ASRock B860M-X 메인보드는 Micro-ATX 폼팩터로 두 부품은 호환됩니다.",
+  "Motherboard_Case_Reason": "ASUS PRIME B550-PLUS는 ATX 폼팩터이며, CORSAIR 4000D RGB AIRFLOW는 ATX 메인보드를 지원하므로 호환됩니다.",
   "Case_PSU": true,
-  "Case_PSU_Reason": "NZXT H9 Flow 케이스는 ATX 규격의 파워서플라이를 지원하며, 시소닉 NEW FOCUS V4 GX-750 GOLD는 ATX 규격으로 호환됩니다. 또한, 파워서플라이의 깊이(140mm)는 케이스 내부 공간에 적합합니다.",
-  "Case_GPU": true,
-  "Case_GPU_Reason": "NZXT H9 Flow 케이스는 최대 435mm 길이의 그래픽카드를 지원하며, ASUS DUAL 지포스 RTX 4070 O12G EVO OC D6X 12GB의 길이는 227.2mm로 호환됩니다.",
-  "Cooler_CPU": false,
-  "Cooler_CPU_Reason": "NOCTUA NH-U12S는 인텔 코어 i5-13600K와 물리적으로 호환되지만, 고부하 시 온도 관리에 한계가 있을 수 있습니다. 더 나은 냉각 성능을 위해 NH-U14S와 같은 상위 모델을 고려하는 것이 좋습니다.",
+  "Case_PSU_Reason": "CORSAIR 4000D RGB AIRFLOW 케이스의 파워서플라이 최대 길이는 180mm이고, DEEPCOOL PN750M의 길이는 140mm로 호환됩니다.",
+  "Case_VGA": true,
+  "Case_VGA_Reason": "EVGA 지포스 RTX 3060 XC GAMING D6 12GB LHR의 길이(201.8mm)는 CORSAIR 4000D RGB AIRFLOW (트루 화이트)의 최대 GPU 길이(360mm)보다 짧아 호환됩니다.",
+  "Cooler_CPU": true,
+  "Cooler_CPU_Reason": "PCCOOLER CPS RC400-53는 AM4 소켓을 지원하며, AMD 라이젠5 5600X도 AM4 소켓을 사용합니다. 또한 5600X의 TDP(65W)는 쿨러의 일반적인 지원 범위 내에 있어 호환됩니다.",
   "Cooler_Motherboard": true,
-  "Cooler_Motherboard_Reason": "NOCTUA NH-U12S는 LGA1851 소켓을 지원하며, ASRock B860M-X 메인보드는 LGA1851 소켓을 사용하므로 호환됩니다.",
-  "EdgeCase": null,
-  "Replace": null
+  "Cooler_Motherboard_Reason": "PCCOOLER CPS RC400-53는 AM4 소켓을 지원하며, ASUS PRIME B550-PLUS는 AMD AM4 소켓 메인보드입니다. 따라서 두 부품은 호환됩니다.",
+  "Storage_Motherboard": true,
+  "Storage_Motherboard_Reason": "이메이션 Q831 M.2 NVMe(2280 폼팩터)는 ASUS PRIME B550-PLUS의 M.2 슬롯(2280 지원)에 장착 가능합니다. 폼팩터 및 인터페이스 모두 호환됩니다.",
+  "VGA_PSU": true,
+  "VGA_PSU_Reason": "EVGA 지포스 RTX 3060 XC GAMING D6 12GB LHR는 8핀 x1 보조전원이 필요하며, DEEPCOOL PN750M 80PLUS골드 풀모듈러 ATX3.1는 PCIe 8핀 커넥터 3개와 750W 정격출력을 제공해 호환됩니다.",
+  "Cooler_Case": true,
+  "Cooler_Case_Reason": "PCCOOLER CPS RC400-53의 높이(53.5mm)는 CORSAIR 4000D RGB AIRFLOW의 최대 CPU 쿨러 높이(170mm)보다 작으므로 호환됩니다.",
+  "EdgeCase": true,
+  "EdgeCase_Reason": "PSU 출력 부족 가능성: 시스템의 총 소비 전력이 PSU의 최대 출력인 750W에 근접하거나 초과할 수 있습니다. 특히, 고성능 작업이나 오버클럭 시 전력 소모가 증가할 수 있으므로 주의가 필요합니다.",
+  "suggestion": "**견적 평가 기능**에서 견적 점수를 받아볼 수 있습니다."
 };
 
 // Sample data for part recommendations (new format)
@@ -133,64 +140,98 @@ export const samplePartRecommendations = {
 
 // Sample data for spec upgrades (placeholder for future implementation)
 export const sampleSpecUpgradeData = {
-  currentSpecs: {
-    cpu: "Intel Core i5-9600K",
-    gpu: "NVIDIA GeForce GTX 1660",
-    ram: "16GB DDR4-2666",
-    motherboard: "MSI Z390-A PRO",
-    storage: "Samsung 860 EVO 500GB",
-    psu: "Corsair CX550M",
-    case: "NZXT H510"
-  },
-  recommendedUpgrades: [
-    {
-      component: "GPU",
-      currentPart: "NVIDIA GeForce GTX 1660",
-      recommendedPart: "NVIDIA GeForce RTX 3070",
-      price: "₩799,000",
-      reason: "Significant performance increase for modern games at 1440p with ray tracing support",
-      priority: "High"
+  "title": "게이밍 100만원 업글 견적",
+  "parts": {
+    "Cooler": {
+      "name": "PCCOOLER CPS RC400-53",
+      "price": "₩42,900.0",
+      "specs": "intel_sockets: LGA1851, LGA1700, LGA1200, LGA115x; amd_sockets: AM5, AM4; width: 93mm; depth: 95mm; height: 53.5mm; max_airflow: 43 CFM; static_pressure: 2.2mmH₂O; max_noise: 31.2dBA; cooling_method: 공랭; tower_design: 일반형; connector: 4핀",
+      "reason": "게이밍 성능 향상을 위한 업그레이드된 쿨러로, 기존 쿨러 대비 향상된 냉각 성능을 제공합니다.",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/096/560/img/63560096_1.jpg"
     },
-    {
-      component: "CPU",
-      currentPart: "Intel Core i5-9600K",
-      recommendedPart: "Intel Core i7-12700K",
-      price: "₩499,000",
-      reason: "Much better multi-threaded performance for streaming and productivity tasks",
-      priority: "Medium"
+    "Case": {
+      "name": "CORSAIR 4000D RGB AIRFLOW (트루 화이트)",
+      "price": "₩180,000.0",
+      "specs": "form_factor: E-ATX, ATX, M-ATX, M-ITX; max_gpu_length: 360mm; max_cpu_cooler_height: 170mm; width: 230mm; depth: 453mm; height: 466mm; power_supply_max_length: 180mm; case_size_category: 미들타워",
+      "reason": "뛰어난 확장성과 쿨링 성능을 제공하는 미들타워 케이스로 업그레이드를 위한 최적의 선택입니다.",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/650/918/img/18918650_1.jpg"
     },
-    {
-      component: "RAM",
-      currentPart: "16GB DDR4-2666",
-      recommendedPart: "32GB DDR4-3600",
-      price: "₩189,000",
-      reason: "Faster memory and larger capacity for improved multitasking",
-      priority: "Low"
+    "Storage": {
+      "name": "이메이션 Q971 M.2 NVMe",
+      "price": "₩92,900.0",
+      "specs": "capacity: 1TB; mtbf: 150만시간; thickness: 2.15mm; form_factor: M.2 (2280); sequential_read: 5,000Mbs; sequential_write: 3,400Mbs; category: SSD",
+      "reason": "기존 대비 2배 큰 용량과 5배 빠른 속도로 게임 로딩 시간을 대폭 단축시킵니다.",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/611/313/img/20313611_1.jpg"
+    },
+    "VGA": {
+      "name": "XFX 라데온 RX 6800 SWFT 319 CORE D6 16GB",
+      "price": "₩545530.0",
+      "specs": "memory_capacity: 16GB; power_ports: 8핀 x2; length: 340mm; boost_clock: 2105MHz; stream_processors: 3840개; chipset: RX 6800; pcie_interface: PCIe4.0x16; psu_requirement: 650W 이상; 3d_mark: 14601; geekbench6_opencl: 135060; blender_gpu: 1887; average_fps_by_1080p_high: 157; average_fps_by_1080p_ultra: 129; average_fps_by_1440p_ultra: 96; average_fps_by_4k_high: 55",
+      "reason": "현세대 고성능 그래픽카드로 업그레이드하여 4K 게이밍과 고사양 게임에서 뛰어난 성능을 발휘합니다.",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/225/545/img/15545225_1.jpg"
+    },
+    "PSU": {
+      "name": "DEEPCOOL PN750M 80PLUS골드 풀모듈러 ATX3.1",
+      "price": "₩134,000.0",
+      "specs": "modular_type: 풀모듈러; eta_certification: GOLD; depth: 140mm; main_power_connectors: 24핀(20+4); aux_power_connectors: 8핀(4+4) 2개; pcie_16pin_connectors: 12V2x6 1개; pcie_8pin_connectors: 3개; sata_connectors: 8개; ide_4pin_connectors: 2개; wattage: 750W; efficiency: 80 PLUS 골드; rail_info: +12V 싱글레일",
+      "reason": "업그레이드된 고성능 부품들을 안정적으로 지원할 수 있는 충분한 전력 공급 장치입니다.",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/603/035/img/63035603_1.jpg"
+    },
+    "Memory": {
+      "name": "G.SKILL DDR4-4000 CL18 TRIDENT Z RGB 패키지 (16GB(8Gx2))",
+      "price": "₩72,290.0",
+      "specs": "timings: CL18-22-22-42; ram_count: 2개; memory_type: DDR4; frequency: 4000MHz (PC4-32000)",
+      "reason": "고클럭 메모리로 업그레이드하여 시스템 전체 성능을 향상시킵니다.",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/896/792/img/15792896_1.jpg"
+    },
+    "CPU": {
+      "name": "AMD 라이젠9 5950X",
+      "price": "₩610000.0",
+      "specs": "memory_type: DDR4; integrated_graphics: 미탑재; base_clock: 3.4GHz; boost_clock: 4.9GHz; l2_cache: 8MB; l3_cache: 64MB; tdp: 105W; supported_features: SMT(하이퍼스레딩), StoreMI, AMD Ryzen Master, VR Ready 프리미엄; cooler: 미포함; manufacturer: AMD; socket: AM4; cores: 16; threads: 32; pcie_versions: 4.0; max_memory_clock: 3200MHz; cinebench_r23_single: 1614; cinebench_r23_multi: 26017; geekbench6_single: 2276; geekbench6_multi: 12728; blender_cpu: 413",
+      "reason": "16코어 32스레드의 플래그십 CPU로 업그레이드하여 게이밍과 멀티태스킹에서 최고 성능을 발휘합니다.",
+      "link": "",
+      "image_url": "https://img.danawa.com/prod_img/500000/722/630/img/18630722_1.jpg"
+    },
+    "Motherboard": {
+      "name": "ASUS PRIME B550-PLUS 대원CTS",
+      "price": "₩142,000",
+      "specs": "ASUS PRIME B550-PLUS는 AMD B550 칩셋 기반의 ATX 메인보드로, AMD AM4 소켓을 지원하여 3세대 AMD Ryzen™ 프로세서와 호환됩니다. 듀얼 M.2 슬롯을 제공하며, PCIe 4.0을 지원하여 빠른 데이터 전송이 가능합니다.",
+      "reason": "업그레이드된 CPU와 완벽한 호환성을 제공하며 확장성이 뛰어난 메인보드입니다.",
+      "link": "https://search.danawa.com/dsearch.php?query=ASUS%20PRIME%20B550-PLUS%20%EB%8C%80%EC%9B%90CTS",
+      "image_url": "https://dlcdnwebimgs.asus.com/gain/8B3A0A3A-0A3A-4A3A-8A3A-0A3A0A3A0A3A/w1000/h732"
     }
-  ],
-  totalCost: "₩1,487,000",
-  performanceGain: "Approximately 85% increase in gaming performance and 70% in productivity tasks"
+  },
+  "total_price": "₩1,677,620",
+  "total_reason": "그래픽카드와 CPU 모두 한 단계 이상 성능이 높은 부품으로 바꿔, 게임이 훨씬 더 부드럽고 빠르게 실행됩니다. 저장장치도 2배 더 크고 최대 5배 빠른 모델로 업그레이드되어, 게임 설치 및 로딩 속도도 크게 향상됩니다. 기존과 같은 케이스, 쿨러, 메모리는 그대로 사용해 안정성과 조립 편의성도 유지됩니다.",
+  "suggestion": "업그레이드된 견적을 확인하셨습니다! 이제 '업그레이드 결과를 저장'하여 나중에 참고할 수 있도록 하세요. 또한, '호환성 검사'를 통해 모든 부품이 잘 맞는지 확인하거나, '견적 평가'를 통해 업그레이드된 견적의 성능을 평가해보세요."
 };
 
 // Sample data for build evaluations
 export const sampleBuildEvaluationData = {
-  "performance": {
-    "score": 85,
-    "comment": "최신 게임을 고사양으로 구동할 수 있는 우수한 성능을 제공합니다."
-  },
   "price_performance": {
-    "score": 78,
-    "comment": "성능 대비 가격이 합리적이며, 동급 제품 중 경쟁력 있는 가성비를 보여줍니다."
+    "score": 85,
+    "comment": "이 구성은 성능 대비 가격이 우수하여, 예산을 고려하는 사용자에게 적합합니다. 특히, AMD 라이젠 5 5600X와 RTX 3060의 조합은 가성비가 뛰어납니다."
+  },
+  "performance": {
+    "score": 75,
+    "comment": "이 시스템은 최신 게임과 멀티태스킹 작업을 원활하게 수행할 수 있는 성능을 제공합니다. 그러나 최고 사양의 게임이나 전문적인 작업에서는 약간의 성능 한계가 있을 수 있습니다."
   },
   "expandability": {
-    "score": 72,
-    "comment": "향후 업그레이드를 위한 충분한 확장 슬롯과 포트를 제공합니다."
+    "score": 74,
+    "comment": "제안하신 PC 구성은 확장성 측면에서 우수한 편입니다. 추후 메모리, 저장장치, 그래픽 카드 등의 업그레이드에 충분한 여유가 있습니다."
   },
   "noise": {
-    "score": 68,
-    "comment": "일반적인 사용 환경에서 적절한 소음 수준을 유지합니다."
+    "score": 90,
+    "comment": "이 PC 구성은 비교적 조용하게 동작하여, 소음에 민감한 사용자에게 적합합니다."
   },
-  "average_score": 75.75
+  "average_score": 81,
+  "suggestion": "현재 구성은 성능, 소음, 확장성 측면에서 전반적으로 우수한 평가를 받았습니다. 특히, 소음에 민감한 사용자에게 적합한 조용한 시스템입니다. 평균 점수도 높으므로, 이 견적을 저장해두는 것을 추천드립니다. 만약 성능을 더 향상시키고 싶다면, 그래픽 카드 업그레이드를 고려해보실 수 있습니다. 추가적인 부품 검색이나 업그레이드가 필요하다면, 관련 기능을 활용해보세요."
 };
 
 // Sample data for general search responses by expertise level
