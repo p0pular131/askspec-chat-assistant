@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Message } from '../components/types';
 import { useSessionManagement } from './useSessionManagement';
@@ -67,6 +68,8 @@ export function useConversationState() {
     setIsLoading(true);
     
     try {
+      let sessionToUse = currentSession;
+      
       // Create a new conversation if none exists
       if (!currentSession) {
         const newSession = await startNewConversation();
@@ -75,29 +78,20 @@ export function useConversationState() {
           throw new Error('Failed to create session');
         }
         
-        // Add user message with the current chatMode and expertiseLevel
-        await sendMessageAction(text, expertiseLevel, chatMode, () => {
-          // Reset the auto-refresh flag
-          setAutoRefreshTriggered(false);
-          
-          // Schedule multiple build refreshes after receiving a response
-          setTimeout(() => loadBuilds(), 1000);
-          setTimeout(() => loadBuilds(), 3000);
-          setTimeout(() => {
-            loadBuilds();
-            setAutoRefreshTriggered(true);
-          }, 6000);
-        });
+        sessionToUse = newSession;
         
-        // Update the title based on the first message
+        // Update the title based on the first message immediately
         await updateSession(newSession.id, text.substring(0, 50));
       } else {
-        // If this is the first message, update the title
+        // If this is the first message in an existing session, update the title
         if (dbMessages.length === 0) {
           await updateSession(currentSession.id, text.substring(0, 50));
         }
-        
-        // Send the message with the current session, including expertiseLevel
+      }
+      
+      // Always send the message with the session we're using
+      if (sessionToUse) {
+        console.log('Sending message to session:', sessionToUse.id);
         await sendMessageAction(text, expertiseLevel, chatMode, () => {
           // Reset the auto-refresh flag
           setAutoRefreshTriggered(false);

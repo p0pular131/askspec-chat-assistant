@@ -22,26 +22,43 @@ export function useMessageActions(currentSession: Session | null) {
     if (!text.trim()) return;
     
     try {
+      console.log('sendMessage called with session:', currentSession?.id);
+      
       // Add user message with the current chatMode
       if (currentSession) {
-        await addMessage(text, 'user', currentSession.id.toString(), chatMode, expertiseLevel);
+        console.log('Adding user message to database...');
+        const userMessage = await addMessage(text, 'user', currentSession.id.toString(), chatMode, expertiseLevel);
         
-        // Create messages array from existing messages
-        const apiMessages = dbMessages.map(msg => ({
+        if (!userMessage) {
+          throw new Error('Failed to add user message');
+        }
+        
+        console.log('User message added, preparing API call...');
+        
+        // Create messages array from existing messages plus the new one
+        const apiMessages = [...dbMessages, userMessage].map(msg => ({
           role: msg.role,
           content: msg.input_text
         }));
         
-        // Add the new user message
-        apiMessages.push({ role: 'user', content: text });
+        console.log('API messages prepared:', apiMessages.length, 'messages');
         
         try {
-          // Get response using sample data
+          console.log('Calling OpenAI with messages and chatMode:', chatMode);
+          // Get response using the API
           const response = await callOpenAI(apiMessages, chatMode, expertiseLevel);
+          
+          console.log('Response received:', response ? 'success' : 'empty');
           
           // Add assistant response to database with the current chatMode and expertiseLevel
           if (response) {
-            await addMessage(response, 'assistant', currentSession.id.toString(), chatMode, expertiseLevel);
+            const assistantMessage = await addMessage(response, 'assistant', currentSession.id.toString(), chatMode, expertiseLevel);
+            
+            if (!assistantMessage) {
+              throw new Error('Failed to add assistant message');
+            }
+            
+            console.log('Assistant message added successfully');
             
             // Call the onSuccess callback if provided
             if (onSuccess) {
@@ -63,6 +80,13 @@ export function useMessageActions(currentSession: Session | null) {
             variant: "destructive",
           });
         }
+      } else {
+        console.error('No current session available');
+        toast({
+          title: "오류",
+          description: "세션이 없습니다. 새 대화를 시작해주세요.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error sending message:', error);
