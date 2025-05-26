@@ -105,7 +105,6 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({ content, upgr
         <CardHeader className="bg-green-50 dark:bg-green-950/30">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
               <CardTitle className="text-2xl font-bold">{specData.title}</CardTitle>
             </div>
             <Button 
