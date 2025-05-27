@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useConversationState as useConversations } from './useConversations';
 import { Session } from './useConversations';
@@ -17,14 +16,8 @@ export function useSessionManagement() {
     loadConversations: fetchSessions,
   } = useConversations();
 
-  // Auto-select the most recent session on load if sessions exist
-  useEffect(() => {
-    if (!currentSession && sessions.length > 0 && !sessionsLoading) {
-      console.log('Auto-selecting most recent session:', sessions[0].id);
-      setCurrentSession(sessions[0]);
-      setShowExample(false);
-    }
-  }, [sessions, sessionsLoading, currentSession]);
+  // Do NOT auto-select any session on load - keep screen empty
+  // This effect has been removed to implement the empty screen requirement
 
   const startNewConversation = useCallback(async () => {
     try {
@@ -72,7 +65,7 @@ export function useSessionManagement() {
       // Delete the session from the database
       await deleteSession(id);
       
-      // If the deleted session was the current one, reset the current session
+      // If the deleted session was the current one, reset to empty screen
       if (currentSession?.id?.toString() === id) {
         setCurrentSession(null);
         setShowExample(true);

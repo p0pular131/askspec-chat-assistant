@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
@@ -46,7 +45,7 @@ export const ChatLayout: React.FC = () => {
     disableAutoSwitch
   } = useConversationState();
 
-  // Load messages when conversation changes
+  // Only load messages when a conversation is explicitly selected
   useEffect(() => {
     if (currentConversation?.id) {
       loadMessages(String(currentConversation.id));
@@ -56,7 +55,7 @@ export const ChatLayout: React.FC = () => {
   // Refresh conversations list when the active tab changes to chat
   useEffect(() => {
     if (activeTab === 'chat') {
-      // This will ensure we always have the latest conversations when switching to the chat tab
+      // Only reload messages if there's an active conversation
       const fetchConversations = async () => {
         try {
           if (currentConversation?.id) {
@@ -101,14 +100,14 @@ export const ChatLayout: React.FC = () => {
       case 3:
         return 'beginner';
       default:
-        return 'beginner'; // Default to beginner for internal logic
+        return 'beginner';
     }
   }, [selectedAnswer]);
 
   // Get the display expertise level (what will be shown in the UI)
   const getDisplayExpertiseLevel = useCallback(() => {
     if (selectedAnswer === null) {
-      return null; // This will show as "선택되지 않음" in the UI
+      return null;
     }
     return getExpertiseLevel();
   }, [selectedAnswer, getExpertiseLevel]);
@@ -116,14 +115,11 @@ export const ChatLayout: React.FC = () => {
   const handleSendMessage = useCallback((text: string) => {
     // Reset auto-switch disabled flag when sending a new message
     disableAutoSwitch();
-    sendMessage(text, getExpertiseLevel(), chatMode); // Always use beginner as default
+    sendMessage(text, getExpertiseLevel(), chatMode);
   }, [sendMessage, getExpertiseLevel, chatMode, disableAutoSwitch]);
 
   // Use type assertion to make sure the builds property is compatible with the BuildsList component
   const buildsList = builds as any[];
-
-  // Get the current expertise level
-  const currentExpertiseLevel = getExpertiseLevel();
 
   // Get the display expertise level for UI
   const displayExpertiseLevel = getDisplayExpertiseLevel();
@@ -161,7 +157,6 @@ export const ChatLayout: React.FC = () => {
             }`}
             onClick={() => {
               setActiveTab('builds');
-              // Reset auto-switch flag when user manually goes to builds tab
               disableAutoSwitch();
             }}
           >

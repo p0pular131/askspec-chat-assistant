@@ -40,6 +40,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   };
 
+  // Determine placeholder text based on whether we're showing examples
+  const placeholderText = showExample ? exampleText : "컴퓨터 견적 관련 질문을 입력하세요...";
+
   return (
     <div className="absolute bottom-6 left-6 right-6 bg-white border border-gray-200 rounded-lg shadow-sm">
       <div className="flex items-center px-3 h-10 border-b border-gray-200 overflow-x-auto">
@@ -66,7 +69,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={showExample ? exampleText : "컴퓨터 견적 관련 질문을 입력하세요..."}
+          placeholder={placeholderText}
           disabled={isDisabled}
           className={`py-3 pl-4 pr-12 w-full max-h-[150px] min-h-[48px] text-sm resize-none bg-transparent focus:outline-none ${
             isDisabled ? 'text-gray-400 cursor-not-allowed' : ''

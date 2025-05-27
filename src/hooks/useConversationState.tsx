@@ -61,7 +61,7 @@ export function useConversationState() {
     }
   }, []);
 
-  // Enhanced sendMessage function with session creation only when needed
+  // Enhanced sendMessage function with lazy session creation
   const sendMessage = useCallback(async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
@@ -72,7 +72,7 @@ export function useConversationState() {
     try {
       let sessionToUse = currentSession;
       
-      // Only create a session if one doesn't exist AND the user is sending a message
+      // Always create a new session for the first message if none exists
       if (!currentSession) {
         console.log('No current session, creating new one for first message...');
         const newSession = await startNewConversation();
@@ -127,10 +127,15 @@ export function useConversationState() {
     setShowExample
   ]);
 
-  // Sync messages from database when dbMessages change
+  // Only sync messages when we have a current session
   useEffect(() => {
-    syncMessagesFromDB(dbMessages);
-  }, [dbMessages, syncMessagesFromDB]);
+    if (currentSession) {
+      syncMessagesFromDB(dbMessages);
+    } else {
+      // Clear messages when no session is selected (empty screen)
+      setMessages([]);
+    }
+  }, [dbMessages, syncMessagesFromDB, currentSession]);
 
   return {
     currentConversation: currentSession,

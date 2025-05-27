@@ -44,8 +44,27 @@ const ChatMain: React.FC<ChatMainProps> = ({
         />
 
         {showExample && messages.length === 0 && (
-          <div className="absolute top-2/4 left-2/4 px-5 py-0 text-base italic text-center -translate-x-2/4 -translate-y-2/4 pointer-events-none max-w-[600px] text-neutral-400">
-            {exampleText}
+          <div className="flex flex-col items-center justify-center flex-1 space-y-6">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl font-semibold text-gray-800">
+                컴퓨터 견적 AI 어시스턴트
+              </h2>
+              <p className="text-gray-600 max-w-md">
+                원하는 용도에 맞는 컴퓨터 견적을 추천받아보세요
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="font-medium text-gray-800 mb-2">💡 예시 질문</h3>
+                <p className="text-sm text-gray-600">"{exampleText}"</p>
+              </div>
+              
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-medium text-blue-800 mb-2">🎯 현재 모드</h3>
+                <p className="text-sm text-blue-600 font-medium">{chatMode}</p>
+              </div>
+            </div>
           </div>
         )}
 
