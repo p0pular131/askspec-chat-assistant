@@ -17,13 +17,17 @@ export function useMessageActions(currentSession: Session | null) {
     text: string, 
     expertiseLevel: string = 'intermediate',
     chatMode: string = '범용 검색',
+    sessionToUse?: Session,
     onSuccess?: () => void
   ) => {
     if (!text.trim()) return;
     
+    // Use passed session or current session
+    const session = sessionToUse || currentSession;
+    
     // Validate session before proceeding
-    if (!currentSession || !currentSession.id) {
-      console.error('sendMessage called without valid session:', currentSession);
+    if (!session || !session.id) {
+      console.error('sendMessage called without valid session:', session);
       toast({
         title: "오류",
         description: "세션이 없습니다. 페이지를 새로고침해주세요.",
@@ -33,11 +37,11 @@ export function useMessageActions(currentSession: Session | null) {
     }
     
     try {
-      console.log('sendMessage called with session:', currentSession.id);
+      console.log('sendMessage called with session:', session.id);
       
       // Add user message with the current chatMode
       console.log('Adding user message to database...');
-      const userMessage = await addMessage(text, 'user', currentSession.id.toString(), chatMode, expertiseLevel);
+      const userMessage = await addMessage(text, 'user', session.id.toString(), chatMode, expertiseLevel);
       
       if (!userMessage) {
         throw new Error('Failed to add user message');
@@ -62,7 +66,7 @@ export function useMessageActions(currentSession: Session | null) {
         
         // Add assistant response to database with the current chatMode and expertiseLevel
         if (response) {
-          const assistantMessage = await addMessage(response, 'assistant', currentSession.id.toString(), chatMode, expertiseLevel);
+          const assistantMessage = await addMessage(response, 'assistant', session.id.toString(), chatMode, expertiseLevel);
           
           if (!assistantMessage) {
             throw new Error('Failed to add assistant message');
@@ -98,7 +102,7 @@ export function useMessageActions(currentSession: Session | null) {
         variant: "destructive",
       });
     }
-  }, [currentSession, addMessage, callOpenAI, dbMessages]);
+  }, [addMessage, callOpenAI, dbMessages]);
 
   return {
     dbMessages,

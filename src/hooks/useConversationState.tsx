@@ -97,8 +97,8 @@ export function useConversationState() {
         await updateSession(sessionToUse.id, text.substring(0, 50));
       }
       
-      // Send the message with the confirmed session
-      await sendMessageAction(text, expertiseLevel, chatMode, () => {
+      // Send the message with the confirmed session - pass the session directly
+      await sendMessageAction(text, expertiseLevel, chatMode, sessionToUse, () => {
         // Reset the auto-refresh flag
         setAutoRefreshTriggered(false);
         
