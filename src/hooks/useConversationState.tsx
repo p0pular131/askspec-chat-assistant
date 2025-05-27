@@ -10,7 +10,6 @@ export function useConversationState() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [autoRefreshTriggered, setAutoRefreshTriggered] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
   
   const {
     currentSession,
@@ -49,25 +48,6 @@ export function useConversationState() {
     getExamplePrompt
   } = useChatMode();
 
-  // Initialize the app and ensure we have a session ready
-  useEffect(() => {
-    const initializeApp = async () => {
-      console.log('Initializing app, current session:', currentSession?.id);
-      
-      // If we don't have a current session and sessions have loaded, create one
-      if (!currentSession && !sessionsLoading && sessions.length === 0) {
-        console.log('No session found, creating new one...');
-        await startNewConversation();
-      }
-      
-      setIsInitialized(true);
-    };
-
-    if (!isInitialized) {
-      initializeApp();
-    }
-  }, [currentSession, sessionsLoading, sessions.length, startNewConversation, isInitialized]);
-
   // Convert database messages to UI messages
   const syncMessagesFromDB = useCallback((dbMsgs: any[]) => {
     if (dbMsgs) {
@@ -81,7 +61,7 @@ export function useConversationState() {
     }
   }, []);
 
-  // Enhanced sendMessage function with automatic session creation
+  // Enhanced sendMessage function with session creation only when needed
   const sendMessage = useCallback(async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
@@ -92,9 +72,9 @@ export function useConversationState() {
     try {
       let sessionToUse = currentSession;
       
-      // If no session exists, create one first
+      // Only create a session if one doesn't exist AND the user is sending a message
       if (!currentSession) {
-        console.log('No current session, creating new one...');
+        console.log('No current session, creating new one for first message...');
         const newSession = await startNewConversation();
         
         if (!newSession || !newSession.id) {
@@ -102,7 +82,7 @@ export function useConversationState() {
         }
         
         sessionToUse = newSession;
-        console.log('New session created:', sessionToUse.id);
+        console.log('New session created for first message:', sessionToUse.id);
       }
       
       // Ensure we have a valid session before proceeding
@@ -113,7 +93,7 @@ export function useConversationState() {
       console.log('Using session for message:', sessionToUse.id);
       
       // Update the title based on the first message immediately
-      if (!currentSession || dbMessages.length === 0) {
+      if (dbMessages.length === 0) {
         await updateSession(sessionToUse.id, text.substring(0, 50));
       }
       
@@ -143,7 +123,8 @@ export function useConversationState() {
     sendMessageAction, 
     updateSession, 
     dbMessages,
-    loadBuilds
+    loadBuilds,
+    setShowExample
   ]);
 
   // Sync messages from database when dbMessages change

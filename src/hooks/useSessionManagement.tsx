@@ -17,12 +17,12 @@ export function useSessionManagement() {
     loadConversations: fetchSessions,
   } = useConversations();
 
-  // Auto-select the most recent session on load if none is selected
+  // Auto-select the most recent session on load if sessions exist
   useEffect(() => {
     if (!currentSession && sessions.length > 0 && !sessionsLoading) {
       console.log('Auto-selecting most recent session:', sessions[0].id);
       setCurrentSession(sessions[0]);
-      setShowExample(sessions[0] ? false : true);
+      setShowExample(false);
     }
   }, [sessions, sessionsLoading, currentSession]);
 
@@ -37,7 +37,7 @@ export function useSessionManagement() {
       
       console.log('Session created successfully:', session.id);
       setCurrentSession(session);
-      setShowExample(true);
+      setShowExample(false);
       return session;
     } catch (error) {
       console.error('Error in startNewConversation:', error);
@@ -53,6 +53,7 @@ export function useSessionManagement() {
   const selectConversation = useCallback(async (session: Session) => {
     console.log('Selecting conversation:', session.id);
     setCurrentSession(session);
+    setShowExample(false);
   }, []);
 
   const handleDeleteConversation = useCallback(async (id: string) => {
