@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useConversationState as useConversations } from './useConversations';
 import { Session } from './useConversations';
 import { toast } from '../components/ui/use-toast';
@@ -17,13 +17,30 @@ export function useSessionManagement() {
     loadConversations: fetchSessions,
   } = useConversations();
 
+  // Auto-select the most recent session on load if none is selected
+  useEffect(() => {
+    if (!currentSession && sessions.length > 0 && !sessionsLoading) {
+      console.log('Auto-selecting most recent session:', sessions[0].id);
+      setCurrentSession(sessions[0]);
+      setShowExample(sessions[0] ? false : true);
+    }
+  }, [sessions, sessionsLoading, currentSession]);
+
   const startNewConversation = useCallback(async () => {
     try {
+      console.log('Creating new session...');
       const session = await createSession();
+      
+      if (!session) {
+        throw new Error('Session creation returned null');
+      }
+      
+      console.log('Session created successfully:', session.id);
       setCurrentSession(session);
       setShowExample(true);
       return session;
     } catch (error) {
+      console.error('Error in startNewConversation:', error);
       toast({
         title: "오류",
         description: "새 세션을 시작하는데 실패했습니다.",
@@ -34,6 +51,7 @@ export function useSessionManagement() {
   }, [createSession]);
 
   const selectConversation = useCallback(async (session: Session) => {
+    console.log('Selecting conversation:', session.id);
     setCurrentSession(session);
   }, []);
 
