@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Card, 
   CardHeader, 
@@ -8,29 +8,15 @@ import {
   CardFooter 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, ArrowRight } from 'lucide-react';
+import { ExternalLink, ArrowRight, Loader2 } from 'lucide-react';
+import { callPartRecommendationAPI } from '../../services/apiService';
+import { PartRecommendationResponse } from '../../types/apiTypes';
 import { samplePartRecommendations } from '../../data/sampleData';
-
-// Define the interface for Part Recommendation data
-interface PartDetail {
-  name: string;
-  reason: string;
-  price: string;
-  specs: string;
-  link: string;
-  image_url: string;
-}
-
-interface PartsResponse {
-  parts: {
-    [key: string]: PartDetail;
-  };
-  suggestion: string;
-}
 
 interface PartRecommendationRendererProps {
   content: string;
-  partData?: PartsResponse;
+  sessionId?: string;
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
 
 // Helper function to parse markdown-style bold text
@@ -48,13 +34,64 @@ const parseBoldText = (text: string): React.ReactNode => {
 
 const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({ 
   content, 
-  partData 
+  sessionId,
+  expertiseLevel = 'beginner'
 }) => {
-  // Use provided data or fall back to sample data to ensure consistency
-  const data = partData || samplePartRecommendations;
-  
+  const [partData, setPartData] = useState<PartRecommendationResponse>(samplePartRecommendations);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPartRecommendation = async () => {
+      if (!sessionId || !content.trim()) {
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const apiResponse = await callPartRecommendationAPI({
+          sessionId,
+          userPrompt: content,
+          userLevel: expertiseLevel
+        });
+
+        // JSON 파싱 시도
+        try {
+          const parsed = typeof apiResponse === 'string'
+            ? JSON.parse(apiResponse)
+            : apiResponse;
+
+          console.log('[✅ 부품 추천 파싱된 응답]');
+          console.dir(parsed, { depth: null });
+          
+          if (parsed.parts && parsed.suggestion) {
+            setPartData(parsed);
+          }
+        } catch (parseError) {
+          console.warn('[⚠️ 부품 추천 응답이 JSON 형식이 아님]');
+        }
+      } catch (error) {
+        console.error('[❌ 부품 추천 API 호출 실패]:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPartRecommendation();
+  }, [content, sessionId, expertiseLevel]);
+
+  if (loading) {
+    return (
+      <div className="part-recommendation-response space-y-6">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>부품 추천 데이터를 가져오는 중...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Convert parts object to array for easier rendering
-  const partsArray = Object.values(data.parts);
+  const partsArray = Object.values(partData.parts);
 
   return (
     <div className="part-recommendation-response space-y-6">
@@ -154,7 +191,7 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
         </CardHeader>
         <CardContent>
           <p className="text-purple-700 dark:text-purple-300 leading-relaxed">
-            {parseBoldText(data.suggestion)}
+            {parseBoldText(partData.suggestion)}
           </p>
         </CardContent>
       </Card>

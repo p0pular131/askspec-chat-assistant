@@ -13,6 +13,7 @@ interface ChatMainProps {
   sendMessage: (text: string) => void;
   getExamplePrompt: () => string;
   expertiseLevel?: string | null;
+  sessionId?: string;
 }
 
 const ChatMain: React.FC<ChatMainProps> = ({
@@ -23,7 +24,8 @@ const ChatMain: React.FC<ChatMainProps> = ({
   setChatMode,
   sendMessage,
   getExamplePrompt,
-  expertiseLevel
+  expertiseLevel,
+  sessionId
 }) => {
   const exampleText = getExamplePrompt();
 
@@ -42,6 +44,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
 
         <ChatMessages 
           messages={messages} 
+          sessionId={sessionId}
           isLoading={isLoading}
           chatMode={chatMode}
         />

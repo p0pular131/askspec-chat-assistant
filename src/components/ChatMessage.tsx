@@ -18,10 +18,15 @@ const isCompatibilityCheckRequest = (text: string): boolean => {
 
 interface ChatMessageProps {
   message: Message;
+  sessionId?: string;
   chatMode?: string;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '범용 검색' }) => {
+export const ChatMessage: React.FC<ChatMessageProps> = ({ 
+  message, 
+  sessionId,
+  chatMode = '범용 검색' 
+}) => {
   const isCompatibilityRequest = !message.isUser && isCompatibilityCheckRequest(message.text);
   
   // Use the message's stored chatMode and expertiseLevel if available
@@ -55,6 +60,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, chatMode = '�
         <ResponseRenderer 
           content={message.text} 
           chatMode={effectiveChatMode} 
+          sessionId={sessionId}
           isCompatibilityRequest={isCompatibilityRequest}
           expertiseLevel={expertiseLevel as 'beginner' | 'intermediate' | 'expert'}
         />

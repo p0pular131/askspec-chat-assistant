@@ -6,11 +6,11 @@ import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
 import BuildRecommendationRenderer from './BuildRecommendationRenderer';
 import SpecUpgradeRenderer from './SpecUpgradeRenderer';
 import BuildEvaluationRenderer from './BuildEvaluationRenderer';
-import { sampleBuildRecommendation, sampleCompatibilityData, sampleBuildEvaluationData } from '../../data/sampleData';
 
 interface ResponseRendererProps {
   content: string;
   chatMode: string;
+  sessionId?: string;
   isCompatibilityRequest?: boolean;
   expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
@@ -18,36 +18,79 @@ interface ResponseRendererProps {
 const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
   content, 
   chatMode, 
+  sessionId,
   isCompatibilityRequest,
   expertiseLevel = 'beginner'
 }) => {
-  // Add components property to compatibility data if missing
-  const compatibilityDataWithComponents = {
-    ...sampleCompatibilityData,
-    components: ['CPU', 'Memory', 'Motherboard', 'VGA', 'PSU', 'Case', 'Cooler', 'Storage']
-  };
-
   // Select the appropriate renderer based on chat mode
   switch (chatMode) {
     case '범용 검색':
-      return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;
+      return (
+        <GeneralSearchRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={expertiseLevel} 
+        />
+      );
     case '부품 추천':
-      return <PartRecommendationRenderer content={content} />;
+      return (
+        <PartRecommendationRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={expertiseLevel}
+        />
+      );
     case '호환성 검사':
-      return <CompatibilityCheckRenderer content={content} compatibilityData={compatibilityDataWithComponents} />;
+      return (
+        <CompatibilityCheckRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={expertiseLevel}
+        />
+      );
     case '견적 추천':
-      return <BuildRecommendationRenderer content={content} recommendationData={sampleBuildRecommendation} />;
+      return (
+        <BuildRecommendationRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={expertiseLevel}
+        />
+      );
     case '스펙 업그레이드':
-      return <SpecUpgradeRenderer content={content} />;
+      return (
+        <SpecUpgradeRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={expertiseLevel}
+        />
+      );
     case '견적 평가':
-      return <BuildEvaluationRenderer content={content} evaluationData={sampleBuildEvaluationData} />;
+      return (
+        <BuildEvaluationRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={expertiseLevel}
+        />
+      );
     default:
       // For compatibility checks detected in other modes
       if (isCompatibilityRequest) {
-        return <CompatibilityCheckRenderer content={content} compatibilityData={compatibilityDataWithComponents} />;
+        return (
+          <CompatibilityCheckRenderer 
+            content={content} 
+            sessionId={sessionId}
+            expertiseLevel={expertiseLevel}
+          />
+        );
       }
       // Default to general search renderer
-      return <GeneralSearchRenderer content={content} expertiseLevel={expertiseLevel} />;
+      return (
+        <GeneralSearchRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={expertiseLevel} 
+        />
+      );
   }
 };
 

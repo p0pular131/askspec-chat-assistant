@@ -1,44 +1,48 @@
 
-import React, { useRef, useEffect, memo } from 'react';
+import React from 'react';
 import { ChatMessage } from './ChatMessage';
 import { Message } from './types';
+import { Loader2 } from 'lucide-react';
 
 interface ChatMessagesProps {
   messages: Message[];
-  isLoading: boolean;
-  chatMode?: string; // This is now just the current active mode
+  sessionId?: string;
+  isLoading?: boolean;
+  chatMode?: string;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading, chatMode = '범용 검색' }) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Auto-scroll to bottom when new messages are added
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
-
+const ChatMessages: React.FC<ChatMessagesProps> = ({ 
+  messages, 
+  sessionId,
+  isLoading = false, 
+  chatMode = '범용 검색' 
+}) => {
   return (
-    <div className="flex overflow-y-auto flex-col flex-1 gap-4 mb-20">
-      {/* Render messages when they exist */}
+    <div className="flex-1 overflow-y-auto space-y-4 mb-4">
       {messages.map((message, index) => (
         <ChatMessage 
-          key={`message-${index}-${message.text.substring(0, 10)}`} 
+          key={index} 
           message={message} 
-          // Use the current chat mode
-          chatMode={chatMode}
+          sessionId={sessionId}
+          chatMode={chatMode} 
         />
       ))}
       
       {isLoading && (
-        <div className="self-start max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
-          <p className="text-sm">생각 중...</p>
+        <div className="flex gap-3 justify-start items-start">
+          <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs">PC봇</span>
+          </div>
+          <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>답변을 생성하고 있습니다...</span>
+            </div>
+          </div>
         </div>
       )}
-      <div ref={messagesEndRef} />
     </div>
   );
 };
 
-export default memo(ChatMessages);
+export default ChatMessages;

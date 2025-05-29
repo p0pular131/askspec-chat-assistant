@@ -165,6 +165,7 @@ export function useConversationState() {
     setIsGeneratingBuilds,
     autoSwitchDisabled,
     checkForNewBuilds,
-    disableAutoSwitch
+    disableAutoSwitch,
+    sessionId: currentSession?.id?.toString() // sessionId 추가
   };
 }
