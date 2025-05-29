@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { 
   Card, 
   CardHeader, 
@@ -9,43 +10,80 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Save, ArrowRight } from 'lucide-react';
+import { ExternalLink, Save, ArrowRight, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { callSpecUpgradeAPI } from '../../services/apiService';
+import { SpecUpgradeResponse } from '../../types/apiTypes';
 import { sampleSpecUpgradeData } from '../../data/sampleData';
-
-// Define the interface for Spec Upgrade data
-export interface SpecUpgradeResponse {
-  title: string;
-  parts: Record<string, {
-    name: string;
-    price: string;
-    specs: string;
-    reason: string;
-    link: string;
-    image_url: string;
-  }>;
-  total_price: string;
-  total_reason: string;
-  suggestion: string;
-}
 
 interface SpecUpgradeRendererProps {
   content: string;
+  sessionId?: string;
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
   upgradeData?: SpecUpgradeResponse;
 }
 
-const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({ content, upgradeData }) => {
-  // Parse content if it's JSON, otherwise use provided data or fall back to sample data
-  let specData = upgradeData || sampleSpecUpgradeData;
-  
-  try {
-    if (content && content.trim().startsWith('{')) {
-      specData = JSON.parse(content);
-    }
-  } catch (error) {
-    console.error('Error parsing spec upgrade content:', error);
-    // Fall back to sample data
+const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({ 
+  content, 
+  sessionId,
+  expertiseLevel = 'beginner',
+  upgradeData 
+}) => {
+  const [apiData, setApiData] = useState<SpecUpgradeResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchSpecUpgrade = async () => {
+      if (!sessionId || !content.trim()) {
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const apiResponse = await callSpecUpgradeAPI({
+          sessionId,
+          userPrompt: content,
+          userLevel: expertiseLevel
+        });
+
+        // JSON 파싱 시도
+        try {
+          const parsed = typeof apiResponse === 'string'
+            ? JSON.parse(apiResponse)
+            : apiResponse;
+
+          console.log('[✅ 스펙 업그레이드 파싱된 응답]');
+          console.dir(parsed, { depth: null });
+          
+          if (parsed.title && parsed.parts) {
+            setApiData(parsed);
+          }
+        } catch (parseError) {
+          console.warn('[⚠️ 스펙 업그레이드 응답이 JSON 형식이 아님]');
+        }
+      } catch (error) {
+        console.error('[❌ 스펙 업그레이드 API 호출 실패]:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSpecUpgrade();
+  }, [content, sessionId, expertiseLevel]);
+
+  if (loading) {
+    return (
+      <div className="spec-upgrade-response space-y-6">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>스펙 업그레이드 데이터를 가져오는 중...</span>
+        </div>
+      </div>
+    );
   }
+
+  // Use API data if available, otherwise fall back to provided upgradeData or sample data
+  const specData = apiData || upgradeData || sampleSpecUpgradeData;
   
   // Convert parts object to array for easier rendering
   const partsArray = Object.entries(specData.parts).map(([type, part]) => ({
