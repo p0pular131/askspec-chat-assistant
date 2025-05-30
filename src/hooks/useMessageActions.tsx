@@ -19,7 +19,13 @@ export function useMessageActions(currentSession: Session | null) {
       const numericId = parseInt(sessionId, 10);
       const messages = await getSessionMessages(numericId);
       console.log('[✅ 메시지 로드] API 응답 성공:', messages.length, '개 메시지');
-      setDbMessages(messages);
+      
+      // 메시지를 생성 시간 순으로 정렬 (오래된 것부터 최신 순)
+      const sortedMessages = messages.sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      
+      setDbMessages(sortedMessages);
     } catch (error) {
       console.error('[❌ 메시지 로드] 실패:', error);
       toast({
