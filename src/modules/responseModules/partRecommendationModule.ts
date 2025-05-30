@@ -1,21 +1,36 @@
 
 import { ResponseModule } from './types';
-import { samplePartRecommendations } from '../../data/sampleData';
+import { callPartRecommendationAPI } from '../../services/apiService';
 
 export const partRecommendationModule: ResponseModule = {
   name: 'partRecommendation',
   moduleType: '부품 추천',
-  process: async (message: string, expertiseLevel?: string) => {
-    // For now, return a simple acknowledgment message
-    // The actual UI rendering will be handled by the PartRecommendationRenderer component
-    return `
-요청하신 부품 추천을 준비했습니다. 
+  process: async (message: string, expertiseLevel?: string, sessionId?: string) => {
+    if (!sessionId) {
+      console.warn('[⚠️ 부품 추천] sessionId가 없어 샘플 응답 반환');
+      return `부품 추천을 위해 세션이 필요합니다.`;
+    }
 
-**요청 내용:** ${message}
+    try {
+      console.log('[🔄 부품 추천] API 호출 시작:', { message, expertiseLevel, sessionId });
+      
+      const apiResponse = await callPartRecommendationAPI({
+        sessionId,
+        userPrompt: message,
+        userLevel: expertiseLevel as 'beginner' | 'intermediate' | 'expert' || 'beginner'
+      });
 
-아래에서 추천 부품들을 확인하실 수 있습니다. 각 부품의 상세 정보와 구매 링크도 함께 제공됩니다.
-
-추가 질문이나 다른 부품에 대한 정보가 필요하시면 언제든 말씀해 주세요.
-    `.trim();
+      console.log('[✅ 부품 추천] API 응답 성공');
+      
+      // API 응답이 JSON 형태인지 확인
+      if (typeof apiResponse === 'object') {
+        return JSON.stringify(apiResponse);
+      }
+      
+      return apiResponse;
+    } catch (error) {
+      console.error('[❌ 부품 추천] API 호출 실패:', error);
+      return `부품 추천 중 오류가 발생했습니다: ${error.message}`;
+    }
   }
 };
