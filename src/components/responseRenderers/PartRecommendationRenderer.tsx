@@ -3,19 +3,14 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '../ui/badge';
-import { Star, ExternalLink, BookOpen, Cpu, InfoIcon } from 'lucide-react';
-import { samplePartRecommendationData } from '../../data/sampleData';
+import { ArrowRight, Zap, BookOpen, Cpu, InfoIcon } from 'lucide-react';
+import { samplePartRecommendations } from '../../data/sampleData';
 
 interface PartRecommendationRendererProps {
   content: string;
   sessionId?: string;
   expertiseLevel?: 'low' | 'middle' | 'high' | null;
 }
-
-// Type-safe property access helper
-const getProperty = (obj: any, property: string, defaultValue: any = '') => {
-  return obj && typeof obj === 'object' && property in obj ? obj[property] : defaultValue;
-};
 
 const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({ 
   content, 
@@ -32,7 +27,7 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
     }
   } catch (error) {
     console.warn('Failed to parse part recommendation data, using sample data');
-    dataToUse = samplePartRecommendationData;
+    dataToUse = samplePartRecommendations;
   }
 
   const recommendations = dataToUse.recommendations || [];
@@ -49,71 +44,36 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
         </Badge>
       </div>
 
-      <h2 className="text-2xl font-bold mb-4">부품 추천 결과</h2>
+      <h2 className="text-2xl font-bold mb-4">부품 추천</h2>
       
-      {/* Part recommendations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {recommendations.map((item: any, index: number) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  {getProperty(item, 'image_url') && (
-                    <img 
-                      src={getProperty(item, 'image_url')}
-                      alt={getProperty(item, 'name')}
-                      className="w-full h-48 object-cover rounded-lg mb-3"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <CardTitle className="text-lg">
-                    {getProperty(item, 'name', '제품명 없음')}
-                  </CardTitle>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-2xl font-bold text-blue-600">
-                      ₩{getProperty(item, 'price', 0).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
+      {/* Recommendations */}
+      <div className="space-y-6">
+        {recommendations.map((rec: any, index: number) => (
+          <Card key={index} className="border-l-4 border-l-blue-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-500" />
+                {rec?.category || '카테고리 없음'}
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div>
-                  <h4 className="font-semibold text-sm text-gray-700 mb-1">주요 사양</h4>
-                  <div className="text-sm text-gray-600">
-                    {getProperty(item, 'specs') ? (
-                      <ul className="list-disc list-inside space-y-1">
-                        {Object.entries(getProperty(item, 'specs', {})).map(([key, value]) => (
-                          <li key={key}>{key}: {String(value)}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span>사양 정보 없음</span>
-                    )}
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                {rec?.options?.map((option: any, optionIndex: number) => (
+                  <div key={optionIndex} className="space-y-2">
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <p className="font-medium text-blue-800">{option?.name || '제품명 없음'}</p>
+                      <p className="text-sm text-blue-600">{option?.specs || '사양 정보 없음'}</p>
+                      <p className="text-sm font-semibold text-blue-800 mt-1">
+                        ₩{(option?.price || 0).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-semibold text-sm text-gray-700 mb-1">추천 이유</h4>
-                  <p className="text-sm text-gray-600">
-                    {getProperty(item, 'reason', '추천 이유 없음')}
-                  </p>
-                </div>
-                
-                {getProperty(item, 'link') && (
-                  <a 
-                    href={getProperty(item, 'link')}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    구매 링크
-                  </a>
-                )}
+                )) || []}
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-semibold text-gray-700">추천 이유</h4>
+                <p className="text-gray-600">{rec?.reason || '추천 이유 없음'}</p>
               </div>
             </CardContent>
           </Card>

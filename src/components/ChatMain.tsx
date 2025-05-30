@@ -39,18 +39,13 @@ const ChatMain: React.FC<ChatMainProps> = ({
 
   return (
     <main className="flex-1 p-6">
-      <div className="flex relative flex-col p-6 bg-white rounded-xl border border-gray-200 shadow-sm size-full h-full">
-        <ChatHeader expertiseLevel={expertiseLevel} />
+      <div className="flex relative flex-col bg-white rounded-xl border border-gray-200 shadow-sm h-full">
+        <div className="p-6 pb-0">
+          <ChatHeader expertiseLevel={expertiseLevel} />
+        </div>
 
-        <ChatMessages 
-          messages={messages} 
-          sessionId={sessionId}
-          isLoading={isLoading}
-          chatMode={chatMode}
-        />
-
-        {shouldShowInitialUI && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+        {shouldShowInitialUI ? (
+          <div className="flex-1 flex items-center justify-center p-6">
             <div className="flex flex-col items-center justify-center space-y-6">
               <div className="text-center space-y-4">
                 <h2 className="text-2xl font-semibold text-gray-800">
@@ -74,16 +69,27 @@ const ChatMain: React.FC<ChatMainProps> = ({
               </div>
             </div>
           </div>
+        ) : (
+          <div className="flex-1 px-6 min-h-0">
+            <ChatMessages 
+              messages={messages} 
+              sessionId={sessionId}
+              isLoading={isLoading}
+              chatMode={chatMode}
+            />
+          </div>
         )}
 
-        <MessageInput
-          onSendMessage={handleSendMessage}
-          chatMode={chatMode}
-          setChatMode={setChatMode}
-          showExample={shouldShowInitialUI}
-          exampleText={exampleText}
-          isDisabled={isLoading}
-        />
+        <div className="p-6 pt-4">
+          <MessageInput
+            onSendMessage={handleSendMessage}
+            chatMode={chatMode}
+            setChatMode={setChatMode}
+            showExample={shouldShowInitialUI}
+            exampleText={exampleText}
+            isDisabled={isLoading}
+          />
+        </div>
       </div>
     </main>
   );
