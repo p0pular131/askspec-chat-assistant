@@ -44,7 +44,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const placeholderText = showExample ? exampleText : "컴퓨터 견적 관련 질문을 입력하세요...";
 
   return (
-    <div className="absolute bottom-6 left-6 right-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
       <div className="flex items-center px-3 h-10 border-b border-gray-200 overflow-x-auto">
         <div className="flex items-center gap-2">
           {modes.map((mode) => (

@@ -15,7 +15,7 @@ interface ResponseRendererProps {
   expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
 
-// Helper function to map expertise levels
+// Helper function to map expertise levels for internal use
 const mapExpertiseLevel = (level: 'beginner' | 'intermediate' | 'expert'): 'low' | 'middle' | 'high' => {
   switch (level) {
     case 'beginner':

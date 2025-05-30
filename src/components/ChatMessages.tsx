@@ -40,7 +40,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 
   return (
     <ScrollArea className="flex-1 h-full w-full pr-4" ref={scrollAreaRef}>
-      <div className="space-y-4 pb-4">
+      <div className="space-y-4 pb-32">
         {messages.map((message, index) => (
           <ChatMessage 
             key={index} 

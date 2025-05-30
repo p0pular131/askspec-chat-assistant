@@ -38,14 +38,14 @@ const ChatMain: React.FC<ChatMainProps> = ({
   const shouldShowInitialUI = messages.length === 0;
 
   return (
-    <main className="flex-1 p-6">
+    <main className="flex-1 p-6 relative">
       <div className="flex relative flex-col bg-white rounded-xl border border-gray-200 shadow-sm h-full">
         <div className="p-6 pb-0">
           <ChatHeader expertiseLevel={expertiseLevel} />
         </div>
 
         {shouldShowInitialUI ? (
-          <div className="flex-1 flex items-center justify-center p-6">
+          <div className="flex-1 flex items-center justify-center p-6 mb-24">
             <div className="flex flex-col items-center justify-center space-y-6">
               <div className="text-center space-y-4">
                 <h2 className="text-2xl font-semibold text-gray-800">
@@ -70,7 +70,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex-1 px-6 min-h-0">
+          <div className="flex-1 px-6 min-h-0 mb-24">
             <ChatMessages 
               messages={messages} 
               sessionId={sessionId}
@@ -80,7 +80,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
           </div>
         )}
 
-        <div className="p-6 pt-4">
+        <div className="absolute bottom-6 left-6 right-6">
           <MessageInput
             onSendMessage={handleSendMessage}
             chatMode={chatMode}
