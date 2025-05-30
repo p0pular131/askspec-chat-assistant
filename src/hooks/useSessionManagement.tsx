@@ -9,6 +9,7 @@ export function useSessionManagement() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [showExample, setShowExample] = useState(true);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [updatingSessionId, setUpdatingSessionId] = useState<number | null>(null);
 
   // 세션 목록 로드
   const fetchSessions = useCallback(async () => {
@@ -91,37 +92,52 @@ export function useSessionManagement() {
     }
   }, [currentSession]);
 
-  // 세션 업데이트 (제목 변경)
-  const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
-    console.log('[📝 세션 업데이트] 요청:', sessionId, sessionName);
+  // 세션 업데이트 (제목 변경) - 응답에서 title 추출 후 업데이트
+  const updateSessionWithTitle = useCallback(async (sessionId: number, title: string) => {
+    console.log('[📝 세션 제목 업데이트] 요청:', sessionId, title);
+    
+    // 반짝이는 애니메이션을 위한 상태 설정
+    setUpdatingSessionId(sessionId);
     
     // 로컬 상태 즉시 업데이트
     setSessions(prevSessions => 
       prevSessions.map(session => 
         session.id === sessionId 
-          ? { ...session, session_name: sessionName }
+          ? { ...session, session_name: title }
           : session
       )
     );
     
     // 현재 세션도 업데이트
     if (currentSession?.id === sessionId) {
-      setCurrentSession(prev => prev ? { ...prev, session_name: sessionName } : null);
+      setCurrentSession(prev => prev ? { ...prev, session_name: title } : null);
     }
+    
+    // 애니메이션 종료
+    setTimeout(() => {
+      setUpdatingSessionId(null);
+    }, 1000);
     
     return true;
   }, [currentSession]);
+
+  // 기존 업데이트 함수 유지 (호환성을 위해)
+  const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
+    return updateSessionWithTitle(sessionId, sessionName);
+  }, [updateSessionWithTitle]);
 
   return {
     currentSession,
     sessions,
     sessionsLoading,
     showExample,
+    updatingSessionId,
     setShowExample,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
     updateSession,
+    updateSessionWithTitle,
     fetchSessions
   };
 }

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { UIMessage } from '../types/sessionTypes';
 import { useSessionManagement } from './useSessionManagement';
@@ -15,11 +16,13 @@ export function useConversationState() {
     sessions,
     sessionsLoading,
     showExample,
+    updatingSessionId,
     setShowExample,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
     updateSession,
+    updateSessionWithTitle,
     fetchSessions
   } = useSessionManagement();
   
@@ -80,7 +83,15 @@ export function useConversationState() {
     syncMessagesFromDB(dbMessages);
   }, [dbMessages, syncMessagesFromDB]);
 
-  // 메시지 전송 함수
+  // 응답에서 제목을 추출했을 때 세션 제목 업데이트
+  const handleTitleExtracted = useCallback(async (title: string) => {
+    if (currentSession && currentSession.id) {
+      console.log('[📝 제목 추출] 세션 제목 업데이트:', title);
+      await updateSessionWithTitle(currentSession.id, title);
+    }
+  }, [currentSession, updateSessionWithTitle]);
+
+  // 메시지 전송 함수 (제목 추출 로직 제거)
   const sendMessage = useCallback(async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
@@ -110,13 +121,6 @@ export function useConversationState() {
       
       console.log('[📤 메시지 전송] 세션 사용:', sessionToUse.id);
       
-      // 첫 번째 메시지인 경우 세션 제목 즉시 업데이트
-      if (dbMessages.length === 0) {
-        const sessionTitle = text.substring(0, 50);
-        console.log('[📝 세션 제목 업데이트] 즉시 업데이트:', sessionTitle);
-        await updateSession(sessionToUse.id, sessionTitle);
-      }
-      
       // 실제 메시지 전송
       await sendMessageAction(text, expertiseLevel, chatMode, sessionToUse, () => {
         setAutoRefreshTriggered(false);
@@ -138,7 +142,6 @@ export function useConversationState() {
     currentSession, 
     startNewConversation, 
     sendMessageAction, 
-    updateSession, 
     dbMessages,
     loadBuilds,
     setShowExample
@@ -155,6 +158,7 @@ export function useConversationState() {
     dbMessages,
     builds,
     buildsLoading: false,
+    updatingSessionId,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
@@ -173,6 +177,7 @@ export function useConversationState() {
     autoSwitchDisabled,
     checkForNewBuilds,
     disableAutoSwitch,
-    sessionId: currentSession?.id?.toString()
+    sessionId: currentSession?.id?.toString(),
+    handleTitleExtracted
   };
 }
