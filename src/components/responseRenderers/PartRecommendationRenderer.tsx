@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { 
   Card, 
   CardHeader, 
@@ -8,9 +8,7 @@ import {
   CardFooter 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, ArrowRight, Loader2 } from 'lucide-react';
-import { callPartRecommendationAPI } from '../../services/apiService';
-import { PartRecommendationResponse } from '../../types/apiTypes';
+import { ExternalLink, ArrowRight } from 'lucide-react';
 import { samplePartRecommendations } from '../../data/sampleData';
 
 interface PartRecommendationRendererProps {
@@ -37,57 +35,17 @@ const PartRecommendationRenderer: React.FC<PartRecommendationRendererProps> = ({
   sessionId,
   expertiseLevel = 'beginner'
 }) => {
-  const [partData, setPartData] = useState<PartRecommendationResponse>(samplePartRecommendations);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchPartRecommendation = async () => {
-      if (!sessionId || !content.trim()) {
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const apiResponse = await callPartRecommendationAPI({
-          sessionId,
-          userPrompt: content,
-          userLevel: expertiseLevel
-        });
-
-        // JSON 파싱 시도
-        try {
-          const parsed = typeof apiResponse === 'string'
-            ? JSON.parse(apiResponse)
-            : apiResponse;
-
-          console.log('[✅ 부품 추천 파싱된 응답]');
-          console.dir(parsed, { depth: null });
-          
-          if (parsed.parts && parsed.suggestion) {
-            setPartData(parsed);
-          }
-        } catch (parseError) {
-          console.warn('[⚠️ 부품 추천 응답이 JSON 형식이 아님]');
-        }
-      } catch (error) {
-        console.error('[❌ 부품 추천 API 호출 실패]:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPartRecommendation();
-  }, [content, sessionId, expertiseLevel]);
-
-  if (loading) {
-    return (
-      <div className="part-recommendation-response space-y-6">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>부품 추천 데이터를 가져오는 중...</span>
-        </div>
-      </div>
-    );
+  // Try to parse content as JSON, fallback to sample data if parsing fails
+  let partData;
+  try {
+    partData = JSON.parse(content);
+    // Validate that parsed data has the expected structure
+    if (!partData.parts || !partData.suggestion) {
+      throw new Error('Invalid data structure');
+    }
+  } catch (error) {
+    console.warn('Failed to parse part recommendation data, using sample data');
+    partData = samplePartRecommendations;
   }
 
   // Convert parts object to array for easier rendering
