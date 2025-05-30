@@ -20,12 +20,16 @@ interface ChatMessageProps {
   message: Message;
   sessionId?: string;
   chatMode?: string;
+  onTitleExtracted?: (title: string) => void;
+  isFirstAssistantMessage?: boolean;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ 
   message, 
   sessionId,
-  chatMode = '범용 검색' 
+  chatMode = '범용 검색',
+  onTitleExtracted,
+  isFirstAssistantMessage = false
 }) => {
   const isCompatibilityRequest = !message.isUser && isCompatibilityCheckRequest(message.text);
   
@@ -62,7 +66,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           chatMode={effectiveChatMode} 
           sessionId={sessionId}
           isCompatibilityRequest={isCompatibilityRequest}
-          expertiseLevel={expertiseLevel as 'beginner' | 'intermediate' | 'expert'}
+          expertiseLevel={expertiseLevel}
+          onTitleExtracted={isFirstAssistantMessage ? onTitleExtracted : undefined}
         />
       </div>
     </div>

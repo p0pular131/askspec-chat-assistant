@@ -14,6 +14,7 @@ interface ChatMainProps {
   getExamplePrompt: () => string;
   expertiseLevel?: string | null;
   sessionId?: string;
+  onTitleExtracted?: (title: string) => void;
 }
 
 const ChatMain: React.FC<ChatMainProps> = ({
@@ -25,7 +26,8 @@ const ChatMain: React.FC<ChatMainProps> = ({
   sendMessage,
   getExamplePrompt,
   expertiseLevel,
-  sessionId
+  sessionId,
+  onTitleExtracted
 }) => {
   const exampleText = getExamplePrompt();
 
@@ -76,6 +78,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
               sessionId={sessionId}
               isLoading={isLoading}
               chatMode={chatMode}
+              onTitleExtracted={onTitleExtracted}
             />
           </div>
         )}

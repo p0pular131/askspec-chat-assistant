@@ -16,11 +16,13 @@ export function useConversationState() {
     sessions,
     sessionsLoading,
     showExample,
+    titleUpdatingSessionId,
     setShowExample,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
     updateSession,
+    updateSessionTitle,
     fetchSessions
   } = useSessionManagement();
   
@@ -81,6 +83,14 @@ export function useConversationState() {
     syncMessagesFromDB(dbMessages);
   }, [dbMessages, syncMessagesFromDB]);
 
+  // 제목 추출 콜백
+  const handleTitleExtracted = useCallback((title: string) => {
+    if (currentSession?.id && title) {
+      console.log('[📝 제목 추출] 세션 제목 업데이트:', currentSession.id, title);
+      updateSessionTitle(currentSession.id, title);
+    }
+  }, [currentSession, updateSessionTitle]);
+
   // 메시지 전송 함수
   const sendMessage = useCallback(async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
@@ -111,11 +121,6 @@ export function useConversationState() {
       
       console.log('[📤 메시지 전송] 세션 사용:', sessionToUse.id);
       
-      // 첫 번째 메시지인 경우 세션 제목 업데이트
-      if (dbMessages.length === 0) {
-        await updateSession(sessionToUse.id, text.substring(0, 50));
-      }
-      
       // 실제 메시지 전송
       await sendMessageAction(text, expertiseLevel, chatMode, sessionToUse, () => {
         setAutoRefreshTriggered(false);
@@ -137,7 +142,6 @@ export function useConversationState() {
     currentSession, 
     startNewConversation, 
     sendMessageAction, 
-    updateSession, 
     dbMessages,
     loadBuilds,
     setShowExample
@@ -154,6 +158,7 @@ export function useConversationState() {
     dbMessages,
     builds,
     buildsLoading: false,
+    titleUpdatingSessionId,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
@@ -172,6 +177,7 @@ export function useConversationState() {
     autoSwitchDisabled,
     checkForNewBuilds,
     disableAutoSwitch,
-    sessionId: currentSession?.id?.toString()
+    sessionId: currentSession?.id?.toString(),
+    onTitleExtracted: handleTitleExtracted
   };
 }
