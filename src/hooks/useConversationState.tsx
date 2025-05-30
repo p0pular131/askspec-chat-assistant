@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { UIMessage } from '../types/sessionTypes';
 import { useSessionManagement } from './useSessionManagement';
@@ -111,9 +110,11 @@ export function useConversationState() {
       
       console.log('[📤 메시지 전송] 세션 사용:', sessionToUse.id);
       
-      // 첫 번째 메시지인 경우 세션 제목 업데이트
+      // 첫 번째 메시지인 경우 세션 제목 즉시 업데이트
       if (dbMessages.length === 0) {
-        await updateSession(sessionToUse.id, text.substring(0, 50));
+        const sessionTitle = text.substring(0, 50);
+        console.log('[📝 세션 제목 업데이트] 즉시 업데이트:', sessionTitle);
+        await updateSession(sessionToUse.id, sessionTitle);
       }
       
       // 실제 메시지 전송

@@ -15,20 +15,6 @@ interface ResponseRendererProps {
   expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
 
-// Helper function to map expertise levels for internal use
-const mapExpertiseLevel = (level: 'beginner' | 'intermediate' | 'expert'): 'low' | 'middle' | 'high' => {
-  switch (level) {
-    case 'beginner':
-      return 'low';
-    case 'intermediate':
-      return 'middle';
-    case 'expert':
-      return 'high';
-    default:
-      return 'low';
-  }
-};
-
 const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
   content, 
   chatMode, 
@@ -36,8 +22,6 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
   isCompatibilityRequest,
   expertiseLevel = 'beginner'
 }) => {
-  const mappedExpertiseLevel = mapExpertiseLevel(expertiseLevel);
-
   // Select the appropriate renderer based on chat mode
   switch (chatMode) {
     case '범용 검색':
@@ -45,7 +29,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <GeneralSearchRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel} 
+          expertiseLevel={expertiseLevel} 
         />
       );
     case '부품 추천':
@@ -53,7 +37,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <PartRecommendationRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case '호환성 검사':
@@ -61,7 +45,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <CompatibilityCheckRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case '견적 추천':
@@ -69,7 +53,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <BuildRecommendationRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case '스펙 업그레이드':
@@ -77,7 +61,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <SpecUpgradeRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case '견적 평가':
@@ -85,7 +69,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <BuildEvaluationRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     default:
@@ -95,7 +79,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
           <CompatibilityCheckRenderer 
             content={content} 
             sessionId={sessionId}
-            expertiseLevel={mappedExpertiseLevel}
+            expertiseLevel={expertiseLevel}
           />
         );
       }
@@ -104,7 +88,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <GeneralSearchRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel} 
+          expertiseLevel={expertiseLevel} 
         />
       );
   }
