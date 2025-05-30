@@ -1,89 +1,102 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useConversationState as useConversations } from './useConversations';
-import { Session } from './useConversations';
+
+import { useState, useCallback } from 'react';
+import { Session } from '../types/sessionTypes';
+import { createSession, getSessions, deleteSession } from '../services/sessionApiService';
 import { toast } from '../components/ui/use-toast';
 
 export function useSessionManagement() {
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [showExample, setShowExample] = useState(true);
-  
-  const { 
-    conversations: sessions, 
-    convoLoading: sessionsLoading,
-    startNewConversation: createSession, 
-    handleDeleteConversation: deleteSession,
-    updateSession,
-    loadConversations: fetchSessions,
-  } = useConversations();
+  const [sessionsLoading, setSessionsLoading] = useState(false);
 
-  // Do NOT auto-select any session on load - keep screen empty
-  // This effect has been removed to implement the empty screen requirement
-
-  const startNewConversation = useCallback(async () => {
+  // 세션 목록 로드
+  const fetchSessions = useCallback(async () => {
+    setSessionsLoading(true);
     try {
-      console.log('Creating new session...');
-      const session = await createSession();
-      
-      if (!session) {
-        throw new Error('Session creation returned null');
-      }
-      
-      console.log('Session created successfully:', session.id);
-      setCurrentSession(session);
-      setShowExample(false);
-      return session;
+      console.log('[🔄 세션 목록] API 호출 시작');
+      const sessionsData = await getSessions();
+      console.log('[✅ 세션 목록] API 응답 성공:', sessionsData.length, '개 세션');
+      setSessions(sessionsData);
     } catch (error) {
-      console.error('Error in startNewConversation:', error);
+      console.error('[❌ 세션 목록] 로드 실패:', error);
       toast({
         title: "오류",
-        description: "새 세션을 시작하는데 실패했습니다.",
+        description: "세션 목록을 불러오는데 실패했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, []);
+
+  // 새 세션 생성
+  const startNewConversation = useCallback(async () => {
+    try {
+      console.log('[🔄 세션 생성] API 호출 시작');
+      const newSession = await createSession();
+      console.log('[✅ 세션 생성] API 응답 성공:', newSession.id);
+      
+      setCurrentSession(newSession);
+      setSessions(prevSessions => [newSession, ...prevSessions]);
+      setShowExample(false);
+      return newSession;
+    } catch (error) {
+      console.error('[❌ 세션 생성] 실패:', error);
+      toast({
+        title: "오류",
+        description: "새 세션을 생성하는데 실패했습니다.",
         variant: "destructive",
       });
       return null;
     }
-  }, [createSession]);
+  }, []);
 
+  // 세션 선택
   const selectConversation = useCallback(async (session: Session) => {
-    console.log('Selecting conversation:', session.id);
+    console.log('[📋 세션 선택]:', session.id);
     setCurrentSession(session);
     setShowExample(false);
   }, []);
 
-  const handleDeleteConversation = useCallback(async (id: string) => {
+  // 세션 삭제
+  const handleDeleteConversation = useCallback(async (sessionId: string) => {
     try {
-      // Validate ID is a valid number before attempting to delete
-      if (!isValidId(id)) {
-        console.error('Invalid session ID format:', id);
-        toast({
-          title: "오류",
-          description: "유효하지 않은 세션 ID입니다.",
-          variant: "destructive",
-        });
-        return;
-      }
+      const numericId = parseInt(sessionId, 10);
+      console.log('[🔄 세션 삭제] API 호출 시작:', numericId);
       
-      // Delete the session from the database
-      await deleteSession(id);
+      await deleteSession(numericId);
+      console.log('[✅ 세션 삭제] API 응답 성공');
       
-      // If the deleted session was the current one, reset to empty screen
-      if (currentSession?.id?.toString() === id) {
+      // 로컬 상태 업데이트
+      setSessions(prevSessions => prevSessions.filter(session => session.id !== numericId));
+      
+      // 현재 선택된 세션이 삭제된 경우 초기화
+      if (currentSession?.id === numericId) {
         setCurrentSession(null);
         setShowExample(true);
       }
       
-      // Ensure sessions list is refreshed after deletion
-      await fetchSessions();
-      
+      toast({
+        title: "성공",
+        description: "세션이 삭제되었습니다.",
+      });
     } catch (error) {
-      console.error('Error in handleDeleteConversation:', error);
+      console.error('[❌ 세션 삭제] 실패:', error);
+      toast({
+        title: "오류",
+        description: "세션 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
     }
-  }, [currentSession, deleteSession, fetchSessions]);
+  }, [currentSession]);
 
-  // Helper function to validate if a string is a valid number
-  const isValidId = (str: string | null): boolean => {
-    if (!str) return false;
-    return !isNaN(parseInt(str));
-  };
+  // 세션 업데이트 (기존 기능 유지를 위해 더미 함수)
+  const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
+    console.log('[📝 세션 업데이트] 요청:', sessionId, sessionName);
+    // 백엔드에 업데이트 API가 있다면 여기에 구현
+    return true;
+  }, []);
 
   return {
     currentSession,
@@ -94,6 +107,7 @@ export function useSessionManagement() {
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
-    updateSession
+    updateSession,
+    fetchSessions
   };
 }

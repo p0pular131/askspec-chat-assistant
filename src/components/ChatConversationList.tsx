@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, memo } from 'react';
-import { Session } from '../hooks/useConversations';
+import { Session } from '../types/sessionTypes';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +34,7 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   const handleDelete = useCallback((e: React.MouseEvent, id: string) => {
-    e.stopPropagation(); // Prevent clicking the parent conversation item
+    e.stopPropagation();
     setConversationToDelete(id);
     setDialogOpen(true);
   }, []);
@@ -86,7 +86,6 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Conversations Section */}
       <div className="flex items-center justify-between pl-2 mb-2 text-xs text-stone-500">
         <span>대화 목록</span>
         <button 
@@ -101,7 +100,6 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
 
       {renderConversationsList()}
 
-      {/* Confirmation Dialog */}
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

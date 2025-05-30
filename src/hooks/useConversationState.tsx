@@ -1,13 +1,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Message } from '../components/types';
+import { UIMessage } from '../types/sessionTypes';
 import { useSessionManagement } from './useSessionManagement';
 import { useMessageActions } from './useMessageActions';
 import { useBuildActions } from './useBuildActions';
 import { useChatMode } from './useChatMode';
 
 export function useConversationState() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<UIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [autoRefreshTriggered, setAutoRefreshTriggered] = useState(false);
   
@@ -20,7 +20,8 @@ export function useConversationState() {
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
-    updateSession
+    updateSession,
+    fetchSessions
   } = useSessionManagement();
   
   const {
@@ -48,61 +49,76 @@ export function useConversationState() {
     getExamplePrompt
   } = useChatMode();
 
-  // Convert database messages to UI messages
-  const syncMessagesFromDB = useCallback((dbMsgs: any[]) => {
-    if (dbMsgs) {
-      const uiMessages = dbMsgs.map(msg => ({
-        text: msg.input_text,
+  // 초기 세션 목록 로드
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
+
+  // API 메시지를 UI 메시지로 변환
+  const syncMessagesFromDB = useCallback((apiMessages: typeof dbMessages) => {
+    if (apiMessages) {
+      const uiMessages: UIMessage[] = apiMessages.map(msg => ({
+        text: msg.content,
         isUser: msg.role === 'user',
-        chatMode: msg.chat_mode || '범용 검색',
-        expertiseLevel: msg.expertise_level || 'beginner'
+        chatMode: msg.mode || '범용 검색',
+        expertiseLevel: 'beginner' // 기본값
       }));
       setMessages(uiMessages);
     }
   }, []);
 
-  // Enhanced sendMessage function with lazy session creation
+  // 세션이 변경되면 메시지 로드
+  useEffect(() => {
+    if (currentSession?.id) {
+      loadMessages(String(currentSession.id));
+    } else {
+      setMessages([]);
+    }
+  }, [currentSession, loadMessages]);
+
+  // DB 메시지가 변경되면 UI 메시지 동기화
+  useEffect(() => {
+    syncMessagesFromDB(dbMessages);
+  }, [dbMessages, syncMessagesFromDB]);
+
+  // 메시지 전송 함수
   const sendMessage = useCallback(async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
-    console.log('sendMessage called, checking session...', { currentSession: currentSession?.id });
+    console.log('[📤 메시지 전송] 시작:', { currentSession: currentSession?.id });
     
     setIsLoading(true);
     
     try {
       let sessionToUse = currentSession;
       
-      // Always create a new session for the first message if none exists
+      // 세션이 없으면 새로 생성
       if (!currentSession) {
-        console.log('No current session, creating new one for first message...');
+        console.log('[🆕 세션 생성] 첫 메시지를 위한 새 세션 생성');
         const newSession = await startNewConversation();
         
         if (!newSession || !newSession.id) {
-          throw new Error('Failed to create session');
+          throw new Error('세션 생성 실패');
         }
         
         sessionToUse = newSession;
-        console.log('New session created for first message:', sessionToUse.id);
+        console.log('[✅ 세션 생성] 완료:', sessionToUse.id);
       }
       
-      // Ensure we have a valid session before proceeding
       if (!sessionToUse) {
-        throw new Error('No session available and failed to create one');
+        throw new Error('사용할 세션이 없습니다');
       }
       
-      console.log('Using session for message:', sessionToUse.id);
+      console.log('[📤 메시지 전송] 세션 사용:', sessionToUse.id);
       
-      // Update the title based on the first message immediately
+      // 첫 번째 메시지인 경우 세션 제목 업데이트
       if (dbMessages.length === 0) {
         await updateSession(sessionToUse.id, text.substring(0, 50));
       }
       
-      // Send the message with the confirmed session - pass the session directly
+      // 실제 메시지 전송
       await sendMessageAction(text, expertiseLevel, chatMode, sessionToUse, () => {
-        // Reset the auto-refresh flag
         setAutoRefreshTriggered(false);
-        
-        // Schedule multiple build refreshes after receiving a response
         setTimeout(() => loadBuilds(), 1000);
         setTimeout(() => loadBuilds(), 3000);
         setTimeout(() => {
@@ -113,7 +129,7 @@ export function useConversationState() {
       
       setShowExample(false);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('[❌ 메시지 전송] 실패:', error);
     } finally {
       setIsLoading(false);
     }
@@ -126,16 +142,6 @@ export function useConversationState() {
     loadBuilds,
     setShowExample
   ]);
-
-  // Only sync messages when we have a current session
-  useEffect(() => {
-    if (currentSession) {
-      syncMessagesFromDB(dbMessages);
-    } else {
-      // Clear messages when no session is selected (empty screen)
-      setMessages([]);
-    }
-  }, [dbMessages, syncMessagesFromDB, currentSession]);
 
   return {
     currentConversation: currentSession,
@@ -166,6 +172,6 @@ export function useConversationState() {
     autoSwitchDisabled,
     checkForNewBuilds,
     disableAutoSwitch,
-    sessionId: currentSession?.id?.toString() // sessionId 추가
+    sessionId: currentSession?.id?.toString()
   };
 }
