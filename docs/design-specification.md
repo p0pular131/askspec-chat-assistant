@@ -278,24 +278,18 @@ classDiagram
         -leftSidebarOpen: boolean
         -rightSidebarOpen: boolean
         +useConversationState(): ConversationState
-        +useEffect(): void
         +toggleLeftSidebar(): void
         +toggleRightSidebar(): void
-        +loadBuilds(): void
-        +render(): JSX.Element
     }
 
     class ChatMain {
         +messages: UIMessage[]
         +isLoading: boolean
-        +showExample: boolean
         +chatMode: string
         +setChatMode(mode: string): void
         +sendMessage(text: string): Promise~void~
-        +getExamplePrompt(): string
         +sessionId: string
         +onTitleExtracted(title: string): void
-        +render(): JSX.Element
     }
 
     class ChatMessages {
@@ -304,19 +298,14 @@ classDiagram
         +isLoading: boolean
         +chatMode: string
         +onTitleExtracted(title: string): void
-        +useEffect(): void
-        +scrollToBottom(): void
-        +render(): JSX.Element
     }
 
     class ChatMessage {
         +message: UIMessage
         +sessionId: string
         +chatMode: string
-        +onTitleExtracted(title: string): void
         +isFirstAssistantMessage: boolean
         +formatTimestamp(): string
-        +render(): JSX.Element
     }
 
     class Sidebar {
@@ -324,20 +313,15 @@ classDiagram
         +onToggle(): void
         +title: string
         +position: 'left' | 'right'
-        +children: React.ReactNode
         +getToggleIcon(): JSX.Element
-        +render(): JSX.Element
     }
 
     class ResponseRenderer {
         +content: string
         +chatMode: string
         +sessionId: string
-        +isCompatibilityRequest: boolean
         +expertiseLevel: ExpertiseLevel
-        +onTitleExtracted(title: string): void
         +selectRenderer(): JSX.Element
-        +extractTitle(): void
     }
 
     ChatLayout --> ChatMain
