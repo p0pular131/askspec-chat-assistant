@@ -566,13 +566,13 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    User->>ChatUI: 견적 요청 메시지 전송
+    User->>ChatUI: 견적 저장 메시지 전송
     ChatUI->>State: sendMessage()
 
-    State->>BuildAPI: 견적 생성 API 호출
+    State->>BuildAPI: 견적 저장 API 호출
     BuildAPI->>Backend: POST /estimates
-    Backend-->>BuildAPI: 생성된 견적 데이터
-    BuildAPI-->>State: Build 객체 반환
+    Backend-->>BuildAPI: 성공 여부 반환
+    BuildAPI-->>State: 성공 여부 표시
     
     State->>BuildActions: 견적 목록 새로고침
     BuildActions->>BuildAPI: getBuilds()
