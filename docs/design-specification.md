@@ -411,24 +411,12 @@ classDiagram
     class useConversationState {
         -messages: UIMessage[]
         -isLoading: boolean
-        -autoRefreshTriggered: boolean
-        +startNewConversation(): Promise~Session~
-        +selectConversation(session: Session): void
-        +sendMessage(text: string): Promise~void~
-        +handleDeleteConversation(sessionId: string): Promise~void~
-        +handleTitleExtracted(title: string): void
-        +syncMessagesFromDB(apiMessages: ApiMessage[]): void
-        +loadBuilds(): void
-        +handleDeleteBuild(buildId: string): Promise~void~
-        +handleViewBuild(buildId: string): void
     }
 
     class useSessionManagement {
         -currentSession: Session | null
         -sessions: Session[]
-        -showExample: boolean
         -sessionsLoading: boolean
-        -titleUpdatingSessionId: number | null
         +fetchSessions(): Promise~void~
         +startNewConversation(): Promise~Session~
         +selectConversation(session: Session): void
@@ -444,17 +432,6 @@ classDiagram
         +processMessageResponse(response: any): void
     }
 
-    class useBuildActions {
-        -builds: Build[]
-        -isGeneratingBuilds: boolean
-        -autoSwitchDisabled: boolean
-        +loadBuilds(): Promise~void~
-        +handleDeleteBuild(buildId: string): Promise~void~
-        +handleViewBuild(buildId: string): void
-        +checkForNewBuilds(): Promise~void~
-        +disableAutoSwitch(): void
-    }
-
     class useBuilds {
         -builds: Build[]
         -loading: boolean
@@ -462,25 +439,18 @@ classDiagram
         -selectedBuild: Build | null
         +loadBuilds(silent: boolean): Promise~Build[]~
         +getBuild(id: string): Promise~Build~
-        +saveBuild(name: string, sessionId: number, components: Component[], totalPrice: number, recommendation: string): Promise~Build~
         +deleteBuild(id: string): Promise~boolean~
-        +checkForNewBuilds(): Promise~void~
-        +convertRawBuild(rawBuild: RawBuild): Build
-        +getLocalBuilds(): Build[]
     }
 
     class useChatMode {
         -chatMode: string
         +setChatMode(mode: string): void
-        +getExamplePrompt(): string
-        +validateChatMode(mode: string): boolean
     }
 
     useConversationState --> useSessionManagement
     useConversationState --> useMessageActions
-    useConversationState --> useBuildActions
+    useConversationState --> useBuilds
     useConversationState --> useChatMode
-    useBuildActions --> useBuilds
 ```
 
 ### 3.4 Service Layer Class Diagram
