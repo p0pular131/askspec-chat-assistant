@@ -1171,42 +1171,42 @@ interface BuildsListProps {
 
 ```mermaid
 stateDiagram-v2
-    [*] --> AppInit: 앱 초기화<br/>App Init
-    AppInit --> SessionLoading: 세션 로딩<br/>Session Loading
-    SessionLoading --> NoSession: 세션 없음<br/>No Session
-    SessionLoading --> HasSessions: 세션 존재<br/>Has Sessions
+    [*] --> AppInit: 앱 초기화
+    AppInit --> SessionLoading: 세션 로딩
+    SessionLoading --> NoSession: 세션 없음
+    SessionLoading --> HasSessions: 세션 존재
     
-    NoSession --> NewSession : 첫 메시지 전송<br/>First Message Send
-    HasSessions --> SessionSelected : 세션 선택<br/>Session Select
-    HasSessions --> NewSession : 새 대화 시작<br/>Start New Chat
+    NoSession --> NewSession : 첫 메시지 전송
+    HasSessions --> SessionSelected : 세션 선택
+    HasSessions --> NewSession : 새 대화 시작
     
-    NewSession --> MessageSending : 메시지 전송<br/>Message Send
-    SessionSelected --> MessageSending : 메시지 전송<br/>Message Send
+    NewSession --> MessageSending : 메시지 전송
+    SessionSelected --> MessageSending : 메시지 전송
     
-    MessageSending --> ResponseReceived : AI 응답 수신<br/>AI Response Received
-    ResponseReceived --> BuildGeneration : 견적 생성 응답<br/>Build Generation Response
-    ResponseReceived --> TitleExtraction : 첫 응답인 경우<br/>First Response
-    ResponseReceived --> MessageComplete : 일반 응답<br/>General Response
+    MessageSending --> ResponseReceived : AI 응답 수신
+    ResponseReceived --> BuildGeneration : 견적 생성 응답
+    ResponseReceived --> TitleExtraction : 첫 응답인 경우
+    ResponseReceived --> MessageComplete : 일반 응답
     
-    BuildGeneration --> BuildCreated : 견적 생성 완료<br/>Build Created
-    BuildCreated --> BuildListUpdate : 견적 목록 업데이트<br/>Build List Update
+    BuildGeneration --> BuildCreated : 견적 생성 완료
+    BuildCreated --> BuildListUpdate : 견적 목록 업데이트
     
-    TitleExtraction --> TitleUpdating : 제목 추출 성공<br/>Title Extraction Success
-    TitleUpdating --> MessageComplete : 제목 업데이트 완료<br/>Title Update Complete
+    TitleExtraction --> TitleUpdating : 제목 추출 성공
+    TitleUpdating --> MessageComplete : 제목 업데이트 완료
     
-    MessageComplete --> SessionSelected : 대화 계속<br/>Continue Chat
-    BuildListUpdate --> SessionSelected : 견적 생성 후 대화 계속<br/>Continue Chat After Build
+    MessageComplete --> SessionSelected : 대화 계속
+    BuildListUpdate --> SessionSelected : 견적 생성 후 대화 계속
     
-    SessionSelected --> SessionDeleted : 세션 삭제<br/>Session Delete
-    SessionSelected --> BuildViewing : 견적 보기<br/>View Build
+    SessionSelected --> SessionDeleted : 세션 삭제
+    SessionSelected --> BuildViewing : 견적 보기
     
-    BuildViewing --> BuildDetails : 견적 상세 표시<br/>Show Build Details
-    BuildDetails --> BuildDeleted : 견적 삭제<br/>Delete Build
-    BuildDetails --> SessionSelected : 뒤로 가기<br/>Go Back
+    BuildViewing --> BuildDetails : 견적 상세 표시
+    BuildDetails --> BuildDeleted : 견적 삭제
+    BuildDetails --> SessionSelected : 뒤로 가기
     
-    BuildDeleted --> BuildListUpdate : 견적 목록 업데이트<br/>Update Build List
-    SessionDeleted --> NoSession : 현재 세션 삭제된 경우<br/>Current Session Deleted
-    SessionDeleted --> HasSessions : 다른 세션 존재<br/>Other Sessions Exist
+    BuildDeleted --> BuildListUpdate : 견적 목록 업데이트
+    SessionDeleted --> NoSession : 현재 세션 삭제된 경우
+    SessionDeleted --> HasSessions : 다른 세션 존재
 ```
 
 ### 6.2 Hook 의존성 그래프
