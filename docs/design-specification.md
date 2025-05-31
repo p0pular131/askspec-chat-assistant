@@ -30,8 +30,8 @@
 
 ```mermaid
 graph TB
-    subgraph "프론트엔드 애플리케이션 Frontend Application"
-        subgraph "프레젠테이션 계층 Presentation Layer"
+    subgraph "프론트엔드 애플리케이션<br/>Frontend Application"
+        subgraph "프레젠테이션 계층<br/>Presentation Layer"
             ChatLayout["ChatLayout<br/>메인 레이아웃<br/>Main Layout"]
             ChatMain["ChatMain<br/>채팅 영역<br/>Chat Area"]
             SidebarLeft["Sidebar Left<br/>대화 목록<br/>Conversation List"]
@@ -43,7 +43,7 @@ graph TB
             BuildDetails["BuildDetails<br/>견적 상세<br/>Build Details"]
         end
         
-        subgraph "비즈니스 로직 계층 Business Logic Layer"
+        subgraph "비즈니스 로직 계층<br/>Business Logic Layer"
             ConversationState["useConversationState<br/>대화 상태 관리<br/>Conversation State Management"]
             SessionManagement["useSessionManagement<br/>세션 관리<br/>Session Management"]
             MessageActions["useMessageActions<br/>메시지 처리<br/>Message Processing"]
@@ -51,14 +51,14 @@ graph TB
             ChatMode["useChatMode<br/>채팅 모드<br/>Chat Mode"]
         end
         
-        subgraph "서비스 계층 Service Layer"
+        subgraph "서비스 계층<br/>Service Layer"
             SessionAPI["sessionApiService<br/>세션 API<br/>Session API"]
             MessageService["messageService<br/>메시지 API<br/>Message API"]
             BuildService["buildApiService<br/>견적 API<br/>Build API"]
             APIService["apiService<br/>공통 API<br/>Common API"]
         end
         
-        subgraph "데이터 계층 Data Layer"
+        subgraph "데이터 계층<br/>Data Layer"
             SessionTypes["Session Types<br/>세션 타입<br/>Session Types"]
             MessageTypes["Message Types<br/>메시지 타입<br/>Message Types"]
             BuildTypes["Build Types<br/>견적 타입<br/>Build Types"]
@@ -66,7 +66,7 @@ graph TB
         end
     end
     
-    subgraph "백엔드 API Backend API"
+    subgraph "백엔드 API<br/>Backend API"
         SessionEndpoints["Session Endpoints<br/>세션 API<br/>Session API"]
         MessageEndpoints["Message Endpoints<br/>메시지 API<br/>Message API"]
         BuildEndpoints["Build Endpoints<br/>견적 API<br/>Build API"]
@@ -154,25 +154,25 @@ graph TD
 
 ```mermaid
 graph LR
-    subgraph "사용자 인터페이스 User Interface"
+    subgraph "사용자 인터페이스<br/>User Interface"
         BuildListUI["견적 목록 UI<br/>BuildsList<br/>Build List UI"]
         BuildDetailUI["견적 상세 UI<br/>BuildDetails<br/>Build Detail UI"]
         BuildCardUI["견적 카드 UI<br/>BuildCard<br/>Build Card UI"]
     end
     
-    subgraph "상태 관리 State Management"
+    subgraph "상태 관리<br/>State Management"
         BuildState["견적 상태<br/>useBuildActions<br/>Build State"]
         BuildHook["견적 훅<br/>useBuilds<br/>Build Hook"]
         LocalStorage["로컬 저장소<br/>localStorage<br/>Local Storage"]
     end
     
-    subgraph "API 서비스 API Services"
+    subgraph "API 서비스<br/>API Services"
         BuildAPI["견적 API<br/>buildApiService<br/>Build API"]
         EstimateAPI["추정 API<br/>estimateService<br/>Estimate API"]
         ComponentAPI["부품 API<br/>componentService<br/>Component API"]
     end
     
-    subgraph "백엔드 엔드포인트 Backend Endpoints"
+    subgraph "백엔드 엔드포인트<br/>Backend Endpoints"
         GetBuilds["GET /api/builds<br/>견적 목록 조회<br/>Get Build List"]
         GetBuild["GET /api/builds/:id<br/>견적 상세 조회<br/>Get Build Detail"]
         CreateBuild["POST /api/builds<br/>견적 생성<br/>Create Build"]
@@ -204,33 +204,33 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "사용자 상호작용 User Interaction"
+    subgraph "사용자 상호작용<br/>User Interaction"
         UserInput["사용자 입력<br/>User Input"]
         MessageSend["메시지 전송<br/>Message Send"]
         BuildView["견적 보기<br/>Build View"]
     end
     
-    subgraph "상태 관리 State Management"
+    subgraph "상태 관리<br/>State Management"
         ConversationState["대화 상태<br/>useConversationState<br/>Conversation State"]
         SessionState["세션 상태<br/>useSessionManagement<br/>Session State"]
         MessageState["메시지 상태<br/>useMessageActions<br/>Message State"]
         BuildState["견적 상태<br/>useBuildActions<br/>Build State"]
     end
     
-    subgraph "API 서비스 API Services"
+    subgraph "API 서비스<br/>API Services"
         SessionAPI["세션 API<br/>sessionApiService<br/>Session API"]
         MessageAPI["메시지 API<br/>messageService<br/>Message API"]
         BuildAPI["견적 API<br/>buildApiService<br/>Build API"]
     end
     
-    subgraph "백엔드 처리 Backend Processing"
+    subgraph "백엔드 처리<br/>Backend Processing"
         SessionDB["세션 데이터베이스<br/>Session DB"]
         MessageDB["메시지 데이터베이스<br/>Message DB"]
         BuildDB["견적 데이터베이스<br/>Build DB"]
         AIProcessor["AI 처리기<br/>AI Processing"]
     end
     
-    subgraph "응답 처리 Response Processing"
+    subgraph "응답 처리<br/>Response Processing"
         ResponseRender["응답 렌더링<br/>ResponseRenderer<br/>Response Rendering"]
         BuildDisplay["견적 표시<br/>Build Display"]
         UIUpdate["UI 업데이트<br/>UI Update"]
@@ -392,15 +392,25 @@ classDiagram
 
 ```mermaid
 classDiagram
+    direction TB
+    
     class useConversationState {
         -messages: UIMessage[]
         -isLoading: boolean
+        -currentSession: Session
+        -sessions: Session[]
+        +startNewConversation(): Promise~Session~
+        +selectConversation(session: Session): void
+        +sendMessage(text: string): Promise~void~
+        +loadMessages(sessionId: string): Promise~void~
+        +handleDeleteConversation(sessionId: string): Promise~void~
     }
 
     class useSessionManagement {
         -currentSession: Session | null
         -sessions: Session[]
         -sessionsLoading: boolean
+        -titleUpdatingSessionId: number | null
         +fetchSessions(): Promise~void~
         +startNewConversation(): Promise~Session~
         +selectConversation(session: Session): void
@@ -416,25 +426,27 @@ classDiagram
         +processMessageResponse(response: any): void
     }
 
-    class useBuilds {
+    class useBuildActions {
         -builds: Build[]
-        -loading: boolean
-        -error: string | null
-        -selectedBuild: Build | null
-        +loadBuilds(silent: boolean): Promise~Build[]~
-        +getBuild(id: string): Promise~Build~
-        +deleteBuild(id: string): Promise~boolean~
+        -isGeneratingBuilds: boolean
+        -autoSwitchDisabled: boolean
+        +loadBuilds(): Promise~void~
+        +checkForNewBuilds(): Promise~void~
+        +handleDeleteBuild(buildId: string): Promise~void~
+        +handleViewBuild(buildId: string): void
+        +disableAutoSwitch(): void
     }
 
     class useChatMode {
         -chatMode: string
         +setChatMode(mode: string): void
+        +getExamplePrompt(): string
     }
 
-    useConversationState --> useSessionManagement
-    useConversationState --> useMessageActions
-    useConversationState --> useBuilds
-    useConversationState --> useChatMode
+    useConversationState ||--|| useSessionManagement
+    useConversationState ||--|| useMessageActions
+    useConversationState ||--|| useBuildActions
+    useConversationState ||--|| useChatMode
 ```
 
 ### 3.4 Service Layer Class Diagram
@@ -478,14 +490,90 @@ classDiagram
         +retryRequest(config: AxiosRequestConfig, retries: number): Promise~any~
     }
 
-    sessionApiService --> apiService
-    messageService --> apiService
-    buildApiService --> apiService
+    sessionApiService ||--|| apiService
+    messageService ||--|| apiService
+    buildApiService ||--|| apiService
 ```
 
 ## 4. 시퀀스 다이어그램 (Sequence Diagrams)
 
-### 4.1 세션 생성 및 첫 메시지 전송 시퀀스
+### 4.1 메시지 입력부터 응답 렌더링까지 전체 시퀀스 (Complete Message Flow Sequence)
+
+```mermaid
+sequenceDiagram
+    participant User as 사용자<br/>User
+    participant MessageInput as MessageInput<br/>메시지 입력<br/>Message Input
+    participant ChatHeader as ChatHeader<br/>채팅 헤더<br/>Chat Header
+    participant ConversationState as useConversationState<br/>대화 상태 관리<br/>Conversation State
+    participant MessageActions as useMessageActions<br/>메시지 처리<br/>Message Actions
+    participant MessageService as messageService<br/>메시지 API<br/>Message Service
+    participant APIService as apiService<br/>공통 API<br/>API Service
+    participant Backend as Backend API<br/>백엔드 API<br/>Backend API
+    participant AIService as AI Processing<br/>AI 처리<br/>AI Processing
+    participant ChatMessage as ChatMessage<br/>메시지 컴포넌트<br/>Message Component
+    participant ResponseRenderer as ResponseRenderer<br/>응답 렌더러<br/>Response Renderer
+    participant UI as UI Components<br/>UI 컴포넌트<br/>UI Components
+
+    User->>MessageInput: 메시지 텍스트 입력<br/>Enter Message Text
+    User->>ChatHeader: 채팅 모드 선택<br/>Select Chat Mode
+    User->>ChatHeader: 전문성 수준 선택<br/>Select Expertise Level
+    User->>MessageInput: 전송 버튼 클릭<br/>Click Send Button
+    
+    MessageInput->>ConversationState: sendMessage(text, expertiseLevel, chatMode)
+    ConversationState->>ConversationState: UI에 사용자 메시지 즉시 표시<br/>Immediately Show User Message in UI
+    ConversationState->>MessageActions: sendMessage(text, expertiseLevel, chatMode, session)
+    
+    MessageActions->>MessageActions: 사용자 메시지를 로컬 상태에 추가<br/>Add User Message to Local State
+    MessageActions->>MessageService: processMessage(apiMessages, chatMode, sessionId, expertiseLevel)
+    
+    MessageService->>MessageService: 메시지 배열을 API 형식으로 변환<br/>Convert Message Array to API Format
+    MessageService->>APIService: post('/api/chat-completion', requestData)
+    
+    APIService->>Backend: POST /api/chat-completion<br/>{ messages, chatMode, sessionId, expertiseLevel }
+    Backend->>AIService: AI 모델에 요청 전달<br/>Forward Request to AI Model
+    
+    AIService->>AIService: 채팅 모드에 따른 AI 처리<br/>AI Processing Based on Chat Mode
+    AIService->>AIService: 응답 형식 결정 및 생성<br/>Determine Response Format and Generate
+    AIService-->>Backend: AI 응답 데이터 반환<br/>Return AI Response Data
+    
+    Backend-->>APIService: JSON 형식 응답<br/>JSON Format Response
+    APIService-->>MessageService: 응답 데이터<br/>Response Data
+    MessageService-->>MessageActions: 처리된 응답 문자열<br/>Processed Response String
+    
+    MessageActions->>MessageActions: 어시스턴트 메시지를 로컬 상태에 추가<br/>Add Assistant Message to Local State
+    MessageActions-->>ConversationState: 메시지 상태 업데이트<br/>Update Message State
+    
+    ConversationState-->>ChatMessage: 새로운 메시지로 리렌더링<br/>Re-render with New Message
+    ChatMessage->>ResponseRenderer: 응답 렌더링 요청<br/>Request Response Rendering
+    ChatMessage->>ResponseRenderer: render(content, chatMode, sessionId, expertiseLevel, onTitleExtracted)
+    
+    ResponseRenderer->>ResponseRenderer: 채팅 모드에 따른 렌더러 선택<br/>Select Renderer Based on Chat Mode
+    
+    alt 범용 검색 모드<br/>General Search Mode
+        ResponseRenderer->>UI: GeneralSearchRenderer로 렌더링<br/>Render with GeneralSearchRenderer
+    else 부품 추천 모드<br/>Part Recommendation Mode
+        ResponseRenderer->>UI: PartRecommendationRenderer로 렌더링<br/>Render with PartRecommendationRenderer
+    else 호환성 검사 모드<br/>Compatibility Check Mode
+        ResponseRenderer->>UI: CompatibilityCheckRenderer로 렌더링<br/>Render with CompatibilityCheckRenderer
+    else 견적 추천 모드<br/>Build Recommendation Mode
+        ResponseRenderer->>UI: BuildRecommendationRenderer로 렌더링<br/>Render with BuildRecommendationRenderer
+    else 스펙 업그레이드 모드<br/>Spec Upgrade Mode
+        ResponseRenderer->>UI: SpecUpgradeRenderer로 렌더링<br/>Render with SpecUpgradeRenderer
+    else 견적 평가 모드<br/>Build Evaluation Mode
+        ResponseRenderer->>UI: BuildEvaluationRenderer로 렌더링<br/>Render with BuildEvaluationRenderer
+    end
+    
+    ResponseRenderer->>ResponseRenderer: 제목 추출 시도<br/>Attempt Title Extraction
+    
+    alt 제목 추출 성공<br/>Title Extraction Success
+        ResponseRenderer->>ConversationState: onTitleExtracted(title)
+        ConversationState->>ConversationState: 세션 제목 업데이트<br/>Update Session Title
+    end
+    
+    UI-->>User: 완전히 렌더링된 응답 표시<br/>Display Fully Rendered Response
+```
+
+### 4.2 세션 생성 및 첫 메시지 전송 시퀀스 (Session Creation and First Message Sequence)
 
 ```mermaid
 sequenceDiagram
@@ -524,7 +612,7 @@ sequenceDiagram
     UI-->>User: 새 메시지 및 제목 업데이트 표시<br/>Display New Message and Title Update
 ```
 
-### 4.2 견적 생성 및 관리 시퀀스
+### 4.3 견적 생성 및 관리 시퀀스 (Build Creation and Management Sequence)
 
 ```mermaid
 sequenceDiagram
@@ -532,7 +620,7 @@ sequenceDiagram
     participant ChatUI as ChatMain
     participant BuildUI as BuildsList
     participant State as useConversationState
-    participant BuildHook as useBuilds
+    participant BuildActions as useBuildActions
     participant BuildAPI as buildApiService
     participant Backend as Backend API
 
@@ -548,32 +636,32 @@ sequenceDiagram
     Backend-->>BuildAPI: 생성된 견적 데이터<br/>Created Build Data
     BuildAPI-->>State: Build 객체 반환<br/>Return Build Object
     
-    State->>BuildHook: 견적 목록 새로고침<br/>Refresh Build List
-    BuildHook->>BuildAPI: getBuilds()
+    State->>BuildActions: 견적 목록 새로고침<br/>Refresh Build List
+    BuildActions->>BuildAPI: getBuilds()
     BuildAPI->>Backend: GET /api/builds
     Backend-->>BuildAPI: 견적 목록<br/>Build List
-    BuildAPI-->>BuildHook: Build[] 반환<br/>Return Build Array
+    BuildAPI-->>BuildActions: Build[] 반환<br/>Return Build Array
     
-    BuildHook-->>BuildUI: 업데이트된 견적 목록<br/>Updated Build List
+    BuildActions-->>BuildUI: 업데이트된 견적 목록<br/>Updated Build List
     BuildUI-->>User: 새 견적이 목록에 표시<br/>New Build Shown in List
     
     User->>BuildUI: 견적 클릭하여 상세 보기<br/>Click Build for Details
-    BuildUI->>BuildHook: getBuild(buildId)
-    BuildHook->>BuildAPI: getBuild(buildId)
+    BuildUI->>BuildActions: getBuild(buildId)
+    BuildActions->>BuildAPI: getBuild(buildId)
     BuildAPI->>Backend: GET /api/builds/:id
     Backend-->>BuildAPI: 견적 상세 데이터<br/>Build Detail Data
-    BuildAPI-->>BuildHook: Build 객체 반환<br/>Return Build Object
-    BuildHook-->>BuildUI: 견적 상세 정보 표시<br/>Display Build Details
+    BuildAPI-->>BuildActions: Build 객체 반환<br/>Return Build Object
+    BuildActions-->>BuildUI: 견적 상세 정보 표시<br/>Display Build Details
     BuildUI-->>User: 견적 상세 페이지 표시<br/>Show Build Details Page
 ```
 
-### 4.3 견적 삭제 시퀀스
+### 4.4 견적 삭제 시퀀스 (Build Deletion Sequence)
 
 ```mermaid
 sequenceDiagram
     participant User as 사용자<br/>User
     participant BuildsList as BuildsList
-    participant BuildHook as useBuilds
+    participant BuildActions as useBuildActions
     participant BuildAPI as buildApiService
     participant LocalStorage as localStorage
     participant Backend as Backend API
@@ -588,18 +676,18 @@ sequenceDiagram
         BuildsList->>BuildsList: buildsUpdated 이벤트 발생<br/>Emit buildsUpdated Event
         BuildsList-->>User: 삭제 완료 토스트 표시<br/>Show Delete Complete Toast
     else 데이터베이스 견적인 경우<br/>If Database Build
-        BuildsList->>BuildHook: deleteBuild(buildId)
-        BuildHook->>BuildAPI: deleteBuild(buildId)
+        BuildsList->>BuildActions: handleDeleteBuild(buildId)
+        BuildActions->>BuildAPI: deleteBuild(buildId)
         BuildAPI->>Backend: DELETE /api/builds/:id
         Backend-->>BuildAPI: 삭제 완료<br/>Delete Complete
-        BuildAPI-->>BuildHook: 성공 응답<br/>Success Response
-        BuildHook->>BuildHook: 로컬 상태에서 견적 제거<br/>Remove Build from Local State
-        BuildHook-->>BuildsList: 삭제 완료<br/>Delete Complete
+        BuildAPI-->>BuildActions: 성공 응답<br/>Success Response
+        BuildActions->>BuildActions: 로컬 상태에서 견적 제거<br/>Remove Build from Local State
+        BuildActions-->>BuildsList: 삭제 완료<br/>Delete Complete
         BuildsList-->>User: 삭제 완료 토스트 표시<br/>Show Delete Complete Toast
     end
 ```
 
-### 4.4 응답 렌더링 및 제목 추출 시퀀스
+### 4.5 응답 렌더링 및 제목 추출 시퀀스 (Response Rendering and Title Extraction Sequence)
 
 ```mermaid
 sequenceDiagram
@@ -611,7 +699,7 @@ sequenceDiagram
 
     ChatMessage->>Renderer: render(content, chatMode, onTitleExtracted)
     Renderer->>Renderer: useEffect 실행<br/>Execute useEffect
-    Renderer->>ChatMessage: redering 결과 전달후 시각화
+    Renderer->>ChatMessage: rendering 결과 전달 후 시각화<br/>Return rendering result and visualize
     
     Renderer->>Renderer: parsed.title 확인<br/>Check parsed.title
     alt 제목이 존재<br/>If Title Exists
@@ -1039,20 +1127,20 @@ graph TD
 
 ```mermaid
 graph TB
-    subgraph "프론트엔드 서비스 Frontend Services"
+    subgraph "프론트엔드 서비스<br/>Frontend Services"
         SessionAPI["sessionApiService<br/>세션 API 서비스<br/>Session API Service"]
         MessageAPI["messageService<br/>메시지 API 서비스<br/>Message API Service"]
         BuildAPI["buildApiService<br/>견적 API 서비스<br/>Build API Service"]
         CommonAPI["apiService<br/>공통 API 서비스<br/>Common API Service"]
     end
     
-    subgraph "API 엔드포인트 API Endpoints"
+    subgraph "API 엔드포인트<br/>API Endpoints"
         SessionEndpoints["POST /api/sessions/<br/>GET /api/sessions<br/>DELETE /api/sessions/:id<br/>PUT /api/sessions/:id"]
         MessageEndpoints["POST /api/chat-completion<br/>GET /api/sessions/:id/messages"]
         BuildEndpoints["GET /api/builds<br/>GET /api/builds/:id<br/>POST /api/builds<br/>PUT /api/builds/:id<br/>DELETE /api/builds/:id"]
     end
     
-    subgraph "백엔드 서비스 Backend Services"
+    subgraph "백엔드 서비스<br/>Backend Services"
         SessionService["Session Management<br/>세션 관리 서비스<br/>Session Management Service"]
         MessageService["Message Processing<br/>메시지 처리 서비스<br/>Message Processing Service"]
         BuildService["Build Management<br/>견적 관리 서비스<br/>Build Management Service"]
@@ -1086,7 +1174,7 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "견적 API 엔드포인트 Build API Endpoints"
+    subgraph "견적 API 엔드포인트<br/>Build API Endpoints"
         GetBuilds["GET /api/builds<br/>견적 목록 조회<br/>Get Build List<br/>?page=1&limit=10&search=query"]
         GetBuild["GET /api/builds/:id<br/>견적 상세 조회<br/>Get Build Detail"]
         CreateBuild["POST /api/builds<br/>견적 생성<br/>Create Build"]
@@ -1096,7 +1184,7 @@ graph TB
         GetSessionBuilds["GET /api/sessions/:id/builds<br/>세션별 견적 조회<br/>Get Session Builds"]
     end
     
-    subgraph "요청/응답 데이터 Request/Response Data"
+    subgraph "요청/응답 데이터<br/>Request/Response Data"
         GetBuildsRes["PaginatedResponse&lt;Build&gt;<br/>페이지네이션된 견적 목록<br/>Paginated Build List"]
         GetBuildRes["ApiResponse&lt;Build&gt;<br/>견적 상세 정보<br/>Build Detail Info"]
         CreateBuildReq["CreateBuildRequest<br/>견적 생성 데이터<br/>Build Creation Data"]
