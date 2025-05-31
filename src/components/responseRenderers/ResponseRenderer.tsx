@@ -24,22 +24,6 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
   expertiseLevel = 'beginner',
   onTitleExtracted
 }) => {
-  // Map expertise levels to the expected format
-  const mapExpertiseLevel = (level: 'beginner' | 'intermediate' | 'expert'): 'low' | 'middle' | 'high' => {
-    switch (level) {
-      case 'beginner':
-        return 'low';
-      case 'intermediate':
-        return 'middle';
-      case 'expert':
-        return 'high';
-      default:
-        return 'low';
-    }
-  };
-
-  const mappedExpertiseLevel = mapExpertiseLevel(expertiseLevel);
-
   // Extract title from content and call the callback
   React.useEffect(() => {
     if (onTitleExtracted && content) {
@@ -66,7 +50,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <GeneralSearchRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel} 
+          expertiseLevel={expertiseLevel} 
         />
       );
     case '부품 추천':
@@ -74,7 +58,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <PartRecommendationRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case '호환성 검사':
@@ -82,7 +66,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <CompatibilityCheckRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case '견적 추천':
@@ -90,7 +74,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <BuildRecommendationRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case '스펙 업그레이드':
@@ -98,7 +82,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <SpecUpgradeRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case '견적 평가':
@@ -106,7 +90,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <BuildEvaluationRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     default:
@@ -116,7 +100,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
           <CompatibilityCheckRenderer 
             content={content} 
             sessionId={sessionId}
-            expertiseLevel={mappedExpertiseLevel}
+            expertiseLevel={expertiseLevel}
           />
         );
       }
@@ -125,7 +109,7 @@ const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         <GeneralSearchRenderer 
           content={content} 
           sessionId={sessionId}
-          expertiseLevel={mappedExpertiseLevel} 
+          expertiseLevel={expertiseLevel} 
         />
       );
   }

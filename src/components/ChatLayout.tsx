@@ -82,7 +82,9 @@ const ChatLayout: React.FC = () => {
         <BuildsList
           builds={builds.map(build => ({
             ...build,
-            components: build.components || []
+            components: build.components || [],
+            recommendation: build.recommendation || '',
+            rating: build.rating || null
           }))}
           loading={buildsLoading}
           error={null}
