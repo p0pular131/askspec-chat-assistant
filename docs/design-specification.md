@@ -501,19 +501,6 @@ classDiagram
 
 ```mermaid
 sequenceDiagram
-    participant User as 사용자<br/>User
-    participant MessageInput as MessageInput<br/>메시지 입력<br/>Message Input
-    participant ChatHeader as ChatHeader<br/>채팅 헤더<br/>Chat Header
-    participant ConversationState as useConversationState<br/>대화 상태 관리<br/>Conversation State
-    participant MessageActions as useMessageActions<br/>메시지 처리<br/>Message Actions
-    participant MessageService as messageService<br/>메시지 API<br/>Message Service
-    participant APIService as apiService<br/>공통 API<br/>API Service
-    participant Backend as Backend API<br/>백엔드 API<br/>Backend API
-    participant AIService as AI Processing<br/>AI 처리<br/>AI Processing
-    participant ChatMessage as ChatMessage<br/>메시지 컴포넌트<br/>Message Component
-    participant ResponseRenderer as ResponseRenderer<br/>응답 렌더러<br/>Response Renderer
-    participant UI as UI Components<br/>UI 컴포넌트<br/>UI Components
-
     User->>MessageInput: 메시지 텍스트 입력<br/>Enter Message Text
     User->>ChatHeader: 채팅 모드 선택<br/>Select Chat Mode
     User->>ChatHeader: 전문성 수준 선택<br/>Select Expertise Level
@@ -523,27 +510,26 @@ sequenceDiagram
     ConversationState->>ConversationState: UI에 사용자 메시지 즉시 표시<br/>Immediately Show User Message in UI
     ConversationState->>MessageActions: sendMessage(text, expertiseLevel, chatMode, session)
     
-    Backend-->>APIService: JSON 형식 응답
-    APIService-->>MessageService: 응답 데이터
-    MessageService-->>MessageActions: 처리된 응답 문자열
+    MessageActions-->>MessageService: backend에 응답 요청
+    MessageService-->>MessageActions: 응답 데이터 전달
+    MessageActions-->>ConversationState: 처리된 응답 문자열
     
     ConversationState-->>ChatMessage: backend에서 받은 응답으로 <br/> 새로운 메시지 렌더링
     ChatMessage->>ResponseRenderer: 응답 렌더링 요청
-    ChatMessage->>ResponseRenderer: render(content, chatMode, sessionId, expertiseLevel, onTitleExtracted)
     
-    ResponseRenderer->>ResponseRenderer: 채팅 모드에 따른 렌더러 선택<br/>Select Renderer Based on Chat Mode
+    ResponseRenderer->>ResponseRenderer: 채팅 모드에 따른 렌더러 선택
     
-    alt 범용 검색 모드<br/>General Search Mode
+    alt 범용 검색 모드
         ResponseRenderer->>UI: GeneralSearchRenderer로 렌더링
-    else 부품 추천 모드<br/>Part Recommendation Mode
+    else 부품 추천 모드
         ResponseRenderer->>UI: PartRecommendationRenderer로 렌더링
-    else 호환성 검사 모드<br/>Compatibility Check Mode
+    else 호환성 검사 모드
         ResponseRenderer->>UI: CompatibilityCheckRenderer로 렌더링
-    else 견적 추천 모드<br/>Build Recommendation Mode
+    else 견적 제작 모드
         ResponseRenderer->>UI: BuildRecommendationRenderer로 렌더링
-    else 스펙 업그레이드 모드<br/>Spec Upgrade Mode
+    else 스펙 업그레이드 모드
         ResponseRenderer->>UI: SpecUpgradeRenderer로 렌더링
-    else 견적 평가 모드<br/>Build Evaluation Mode
+    else 견적 평가 모드
         ResponseRenderer->>UI: BuildEvaluationRenderer로 렌더링
     end
 ```
