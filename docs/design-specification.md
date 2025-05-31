@@ -341,15 +341,10 @@ classDiagram
         +error: string | null
         +onViewBuild(buildId: string): void
         +onDelete(buildId: string): void
-        +onRefresh(): void
-        -localBuilds: Build[]
         -dialogOpen: boolean
         -buildToDelete: string | null
-        +loadLocalBuilds(): void
         +handleDelete(e: Event, buildId: string): void
         +confirmDelete(): void
-        +sortLocalBuildParts(build: Build): Build
-        +render(): JSX.Element
     }
 
     class BuildDetails {
@@ -361,7 +356,6 @@ classDiagram
         +formatPrice(price: number): string
         +renderComponents(): JSX.Element
         +renderRating(): JSX.Element
-        +render(): JSX.Element
     }
 
     class BuildCard {
@@ -369,8 +363,6 @@ classDiagram
         +onView(): void
         +onDelete(): void
         +formatDate(date: string): string
-        +calculateTotalPrice(): number
-        +render(): JSX.Element
     }
 
     class RatingIndicator {
@@ -380,7 +372,6 @@ classDiagram
         +size: 'sm' | 'md' | 'lg'
         +color: string
         +renderStars(): JSX.Element
-        +render(): JSX.Element
     }
 
     BuildsList --> BuildCard
@@ -453,8 +444,6 @@ classDiagram
 
 ```mermaid
 classDiagram
-    direction TB
-    
     class sessionApiService {
         +createSession(): Promise~Session~
         +getSessions(): Promise~Session[]~
@@ -577,75 +566,53 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant User as 사용자<br/>User
-    participant ChatUI as ChatMain
-    participant BuildUI as BuildsList
-    participant State as useConversationState
-    participant BuildActions as useBuildActions
-    participant BuildAPI as buildApiService
-    participant Backend as Backend API
-
-    User->>ChatUI: 견적 요청 메시지 전송<br/>Send Build Request Message
-    ChatUI->>State: sendMessage("견적 추천해줘")
-    State->>Backend: AI 견적 생성 요청<br/>AI Build Generation Request
-    Backend->>Backend: AI가 견적 데이터 생성<br/>AI Generates Build Data
-    Backend-->>State: 견적 추천 응답<br/>Build Recommendation Response
+    User->>ChatUI: 견적 요청 메시지 전송
+    ChatUI->>State: sendMessage()
+    State->>Backend: AI 견적 생성 요청
+    Backend->>Backend: AI가 견적 데이터 생성
+    Backend-->>State: 견적 추천 응답
     
-    State->>State: 응답에서 견적 데이터 추출<br/>Extract Build Data from Response
+    State->>State: 응답에서 견적 데이터 추출
     State->>BuildAPI: createBuild(buildData)
-    BuildAPI->>Backend: POST /api/builds
-    Backend-->>BuildAPI: 생성된 견적 데이터<br/>Created Build Data
-    BuildAPI-->>State: Build 객체 반환<br/>Return Build Object
+    BuildAPI->>Backend: POST /estimates
+    Backend-->>BuildAPI: 생성된 견적 데이터
+    BuildAPI-->>State: Build 객체 반환
     
-    State->>BuildActions: 견적 목록 새로고침<br/>Refresh Build List
+    State->>BuildActions: 견적 목록 새로고침
     BuildActions->>BuildAPI: getBuilds()
-    BuildAPI->>Backend: GET /api/builds
-    Backend-->>BuildAPI: 견적 목록<br/>Build List
-    BuildAPI-->>BuildActions: Build[] 반환<br/>Return Build Array
+    BuildAPI->>Backend: GET /estimates
+    Backend-->>BuildAPI: 견적 목록
+    BuildAPI-->>BuildActions: Build[] 반환
     
-    BuildActions-->>BuildUI: 업데이트된 견적 목록<br/>Updated Build List
-    BuildUI-->>User: 새 견적이 목록에 표시<br/>New Build Shown in List
+    BuildActions-->>BuildUI: 업데이트된 견적 목록
+    BuildUI-->>User: 새 견적이 목록에 표시
     
-    User->>BuildUI: 견적 클릭하여 상세 보기<br/>Click Build for Details
+    User->>BuildUI: 견적 클릭하여 상세 보기
     BuildUI->>BuildActions: getBuild(buildId)
     BuildActions->>BuildAPI: getBuild(buildId)
-    BuildAPI->>Backend: GET /api/builds/:id
-    Backend-->>BuildAPI: 견적 상세 데이터<br/>Build Detail Data
-    BuildAPI-->>BuildActions: Build 객체 반환<br/>Return Build Object
-    BuildActions-->>BuildUI: 견적 상세 정보 표시<br/>Display Build Details
-    BuildUI-->>User: 견적 상세 페이지 표시<br/>Show Build Details Page
+    BuildAPI->>Backend: GET /estimates/:id
+    Backend-->>BuildAPI: 견적 상세 데이터
+    BuildAPI-->>BuildActions: Build 객체 반환
+    BuildActions-->>BuildUI: 견적 상세 정보 표시
+    BuildUI-->>User: 견적 상세 페이지 표시
 ```
 
 ### 4.4 견적 삭제 시퀀스 (Build Deletion Sequence)
 
 ```mermaid
 sequenceDiagram
-    participant User as 사용자<br/>User
-    participant BuildsList as BuildsList
-    participant BuildActions as useBuildActions
-    participant BuildAPI as buildApiService
-    participant LocalStorage as localStorage
-    participant Backend as Backend API
-
-    User->>BuildsList: 견적 삭제 버튼 클릭<br/>Click Delete Build Button
-    BuildsList->>BuildsList: 삭제 확인 다이얼로그 표시<br/>Show Delete Confirmation Dialog
-    User->>BuildsList: 삭제 확인<br/>Confirm Delete
+    User->>BuildsList: 견적 삭제 버튼 클릭
+    BuildsList->>BuildsList: 삭제 확인 다이얼로그 표시
+    User->>BuildsList: 삭제 확인
     
-    alt 로컬 견적인 경우<br/>If Local Build
-        BuildsList->>LocalStorage: 로컬 저장소에서 삭제<br/>Delete from Local Storage
-        LocalStorage-->>BuildsList: 삭제 완료<br/>Delete Complete
-        BuildsList->>BuildsList: buildsUpdated 이벤트 발생<br/>Emit buildsUpdated Event
-        BuildsList-->>User: 삭제 완료 토스트 표시<br/>Show Delete Complete Toast
-    else 데이터베이스 견적인 경우<br/>If Database Build
-        BuildsList->>BuildActions: handleDeleteBuild(buildId)
-        BuildActions->>BuildAPI: deleteBuild(buildId)
-        BuildAPI->>Backend: DELETE /api/builds/:id
-        Backend-->>BuildAPI: 삭제 완료<br/>Delete Complete
-        BuildAPI-->>BuildActions: 성공 응답<br/>Success Response
-        BuildActions->>BuildActions: 로컬 상태에서 견적 제거<br/>Remove Build from Local State
-        BuildActions-->>BuildsList: 삭제 완료<br/>Delete Complete
-        BuildsList-->>User: 삭제 완료 토스트 표시<br/>Show Delete Complete Toast
-    end
+    BuildsList->>BuildActions: handleDeleteBuild(buildId)
+    BuildActions->>BuildAPI: deleteBuild(buildId)
+    BuildAPI->>Backend: DELETE /estimates/:id
+    Backend-->>BuildAPI: 삭제 완료
+    BuildAPI-->>BuildActions: 성공 응답
+    BuildActions->>BuildActions: 로컬 상태에서 견적 제거
+    BuildActions-->>BuildsList: 삭제 완료
+    BuildsList-->>User: 삭제 완료 토스트 표시
 ```
 
 ### 4.5 응답 렌더링 및 제목 추출 시퀀스 (Response Rendering and Title Extraction Sequence)
