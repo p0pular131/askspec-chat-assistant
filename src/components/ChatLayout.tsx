@@ -80,7 +80,10 @@ const ChatLayout: React.FC = () => {
         position="right"
       >
         <BuildsList
-          builds={builds}
+          builds={builds.map(build => ({
+            ...build,
+            components: build.components || []
+          }))}
           loading={buildsLoading}
           error={null}
           onViewBuild={handleViewBuild}
