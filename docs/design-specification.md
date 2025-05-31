@@ -568,11 +568,7 @@ sequenceDiagram
 sequenceDiagram
     User->>ChatUI: 견적 요청 메시지 전송
     ChatUI->>State: sendMessage()
-    State->>Backend: AI 견적 생성 요청
-    Backend->>Backend: AI가 견적 데이터 생성
-    Backend-->>State: 견적 추천 응답
-    
-    State->>State: 응답에서 견적 데이터 추출
+
     State->>BuildAPI: createBuild(buildData)
     BuildAPI->>Backend: POST /estimates
     Backend-->>BuildAPI: 생성된 견적 데이터
