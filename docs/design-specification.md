@@ -33,19 +33,19 @@ graph TB
         subgraph "Presentation Layer"
             A[ChatLayout] --> B[ChatMain]
             A --> C[Sidebar - Conversations]
-            A --> D[Sidebar - Builds]
+            A --> D[Sidebar - Estimates]
             B --> E[ChatMessages]
             E --> F[ChatMessage]
             F --> G[ResponseRenderer]
             G --> H[Mode-specific Renderers]
             C --> I[ChatConversationList]
-            D --> J[BuildsList]
+            D --> J[EstimatesList]
         end
         
         subgraph "Business Logic Layer"
             K[useConversationState] --> L[useSessionManagement]
             K --> M[useMessageActions]
-            K --> N[useBuildActions]
+            K --> N[useEstimateActions]
             K --> O[useChatMode]
         end
         
@@ -63,18 +63,9 @@ graph TB
         end
     end
     
-    subgraph "Backend Services"
-        W[Supabase Database]
-        X[AI Processing Service]
-        Y[Authentication Service]
-    end
-    
     H --> P
     H --> Q
     H --> R
-    P --> W
-    Q --> X
-    R --> Y
     
     L --> P
     M --> Q
@@ -105,12 +96,12 @@ graph TD
     M --> N[GeneralSearchRenderer]
     M --> O[PartRecommendationRenderer]
     M --> P[CompatibilityCheckRenderer]
-    M --> Q[BuildRecommendationRenderer]
+    M --> Q[EstimateRecommendationRenderer]
     M --> R[SpecUpgradeRenderer]
-    M --> S[BuildEvaluationRenderer]
+    M --> S[EstimateEvaluationRenderer]
     
-    F --> T[BuildsList]
-    T --> U[Build Items]
+    F --> T[EstimatesList]
+    T --> U[Estimate Items]
     
     style A fill:#e1f5fe
     style C fill:#f3e5f5
@@ -131,7 +122,7 @@ graph LR
         C --> D[useConversationState]
         D --> E[useSessionManagement]
         D --> F[useMessageActions]
-        D --> G[useBuildActions]
+        D --> G[useEstimateActions]
     end
     
     subgraph "API Services"
@@ -141,15 +132,15 @@ graph LR
     end
     
     subgraph "Backend"
-        H --> K[Supabase Sessions]
+        H --> K[DB Sessions]
         I --> L[AI Processing]
-        J --> M[Build Management]
+        J --> M[Estimate Management]
     end
     
     subgraph "Response Processing"
         L --> N[ResponseRenderer]
         N --> O[Mode-specific Display]
-        M --> P[BuildsList Update]
+        M --> P[EstimatesList Update]
     end
     
     O --> Q[UI Update]
