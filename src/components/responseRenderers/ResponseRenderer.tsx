@@ -1,118 +1,113 @@
+import React, { useEffect } from 'react';
+import { GeneralSearchRenderer } from './GeneralSearchRenderer';
+import { PartRecommendationRenderer } from './PartRecommendationRenderer';
+import { CompatibilityCheckRenderer } from './CompatibilityCheckRenderer';
+import { BuildRecommendationRenderer } from './BuildRecommendationRenderer';
+import { SpecUpgradeRenderer } from './SpecUpgradeRenderer';
+import { BuildEvaluationRenderer } from './BuildEvaluationRenderer';
 
-import React from 'react';
-import GeneralSearchRenderer from './GeneralSearchRenderer';
-import PartRecommendationRenderer from './PartRecommendationRenderer';
-import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
-import BuildRecommendationRenderer from './BuildRecommendationRenderer';
-import SpecUpgradeRenderer from './SpecUpgradeRenderer';
-import BuildEvaluationRenderer from './BuildEvaluationRenderer';
+export type ExpertiseLevel = 'low' | 'middle' | 'high';
 
 interface ResponseRendererProps {
   content: string;
   chatMode: string;
   sessionId?: string;
   isCompatibilityRequest?: boolean;
-  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
+  expertiseLevel?: ExpertiseLevel;
   onTitleExtracted?: (title: string) => void;
 }
 
-const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
-  content, 
-  chatMode, 
+export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
+  content,
+  chatMode,
   sessionId,
   isCompatibilityRequest,
-  expertiseLevel = 'beginner',
+  expertiseLevel = 'middle',
   onTitleExtracted
 }) => {
   // Extract title from content and call the callback
-  React.useEffect(() => {
-    if (onTitleExtracted && content) {
+  useEffect(() => {
+    if (onTitleExtracted) {
       try {
-        // Try to parse the content as JSON to extract title
         const parsed = JSON.parse(content);
-        if (parsed.title) {
+        if (parsed.title && typeof parsed.title === 'string') {
           onTitleExtracted(parsed.title);
         }
       } catch {
-        // If not JSON, extract title from markdown-like format
-        const titleMatch = content.match(/^#\s*(.+)$/m) || content.match(/\*\*제목:\*\*\s*(.+)$/m);
-        if (titleMatch) {
-          onTitleExtracted(titleMatch[1].trim());
+        // Try to extract title from markdown
+        const titleMatch = content.match(/^#\s+(.+)$/m);
+        if (titleMatch && titleMatch[1]) {
+          onTitleExtracted(titleMatch[1]);
         }
       }
     }
   }, [content, onTitleExtracted]);
 
   // Select the appropriate renderer based on chat mode
-  switch (chatMode) {
-    case '범용 검색':
-      return (
-        <GeneralSearchRenderer 
-          content={content} 
-          sessionId={sessionId}
-          expertiseLevel={expertiseLevel} 
-        />
-      );
-    case '부품 추천':
-      return (
-        <PartRecommendationRenderer 
-          content={content} 
-          sessionId={sessionId}
-          expertiseLevel={expertiseLevel}
-        />
-      );
-    case '호환성 검사':
-      return (
-        <CompatibilityCheckRenderer 
-          content={content} 
-          sessionId={sessionId}
-          expertiseLevel={expertiseLevel}
-        />
-      );
-    case '견적 추천':
-      return (
-        <BuildRecommendationRenderer 
-          content={content} 
-          sessionId={sessionId}
-          expertiseLevel={expertiseLevel}
-        />
-      );
-    case '스펙 업그레이드':
-      return (
-        <SpecUpgradeRenderer 
-          content={content} 
-          sessionId={sessionId}
-          expertiseLevel={expertiseLevel}
-        />
-      );
-    case '견적 평가':
-      return (
-        <BuildEvaluationRenderer 
-          content={content} 
-          sessionId={sessionId}
-          expertiseLevel={expertiseLevel}
-        />
-      );
-    default:
-      // For compatibility checks detected in other modes
-      if (isCompatibilityRequest) {
+  const selectRenderer = () => {
+    try {
+      const parsed = JSON.parse(content);
+      
+      if (chatMode === 'general_search' || (!chatMode && parsed.suggestion)) {
         return (
-          <CompatibilityCheckRenderer 
-            content={content} 
-            sessionId={sessionId}
-            expertiseLevel={expertiseLevel}
+          <GeneralSearchRenderer
+            content={content}
+            expertiseLevel={expertiseLevel === 'low' ? 'beginner' : expertiseLevel === 'middle' ? 'intermediate' : 'expert'}
           />
         );
       }
-      // Default to general search renderer
+
+      if (chatMode === 'part_recommendation' || parsed.parts) {
+        return <PartRecommendationRenderer content={content} />;
+      }
+
+      if (chatMode === 'compatibility_check' || isCompatibilityRequest || parsed.components) {
+        return <CompatibilityCheckRenderer content={content} />;
+      }
+
+      if (chatMode === 'estimate_recommendation' || (parsed.parts && parsed.total_price)) {
+        return (
+          <BuildRecommendationRenderer
+            content={content}
+            sessionId={sessionId}
+          />
+        );
+      }
+
+      if (chatMode === 'spec_upgrade' || parsed.upgrade_parts) {
+        return (
+          <SpecUpgradeRenderer
+            content={content}
+            sessionId={sessionId}
+          />
+        );
+      }
+
+      if (chatMode === 'estimate_evaluation' || (parsed.performance && parsed.price_performance)) {
+        return <BuildEvaluationRenderer content={content} />;
+      }
+
       return (
-        <GeneralSearchRenderer 
-          content={content} 
-          sessionId={sessionId}
-          expertiseLevel={expertiseLevel} 
+        <GeneralSearchRenderer
+          content={content}
+          expertiseLevel={expertiseLevel === 'low' ? 'beginner' : expertiseLevel === 'middle' ? 'intermediate' : 'expert'}
         />
       );
-  }
+    } catch (error) {
+      return (
+        <GeneralSearchRenderer
+          content={content}
+          expertiseLevel={expertiseLevel === 'low' ? 'beginner' : expertiseLevel === 'middle' ? 'intermediate' : 'expert'}
+        />
+      );
+    }
+  };
+
+  return (
+    <div className="w-full">
+      {selectRenderer()}
+    </div>
+  );
 };
 
 export default ResponseRenderer;
