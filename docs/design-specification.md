@@ -523,54 +523,29 @@ sequenceDiagram
     ConversationState->>ConversationState: UI에 사용자 메시지 즉시 표시<br/>Immediately Show User Message in UI
     ConversationState->>MessageActions: sendMessage(text, expertiseLevel, chatMode, session)
     
-    MessageActions->>MessageActions: 사용자 메시지를 로컬 상태에 추가<br/>Add User Message to Local State
-    MessageActions->>MessageService: processMessage(apiMessages, chatMode, sessionId, expertiseLevel)
+    Backend-->>APIService: JSON 형식 응답
+    APIService-->>MessageService: 응답 데이터
+    MessageService-->>MessageActions: 처리된 응답 문자열
     
-    MessageService->>MessageService: 메시지 배열을 API 형식으로 변환<br/>Convert Message Array to API Format
-    MessageService->>APIService: post('/api/chat-completion', requestData)
-    
-    APIService->>Backend: POST /api/chat-completion<br/>{ messages, chatMode, sessionId, expertiseLevel }
-    Backend->>AIService: AI 모델에 요청 전달<br/>Forward Request to AI Model
-    
-    AIService->>AIService: 채팅 모드에 따른 AI 처리<br/>AI Processing Based on Chat Mode
-    AIService->>AIService: 응답 형식 결정 및 생성<br/>Determine Response Format and Generate
-    AIService-->>Backend: AI 응답 데이터 반환<br/>Return AI Response Data
-    
-    Backend-->>APIService: JSON 형식 응답<br/>JSON Format Response
-    APIService-->>MessageService: 응답 데이터<br/>Response Data
-    MessageService-->>MessageActions: 처리된 응답 문자열<br/>Processed Response String
-    
-    MessageActions->>MessageActions: 어시스턴트 메시지를 로컬 상태에 추가<br/>Add Assistant Message to Local State
-    MessageActions-->>ConversationState: 메시지 상태 업데이트<br/>Update Message State
-    
-    ConversationState-->>ChatMessage: 새로운 메시지로 리렌더링<br/>Re-render with New Message
-    ChatMessage->>ResponseRenderer: 응답 렌더링 요청<br/>Request Response Rendering
+    ConversationState-->>ChatMessage: backend에서 받은 응답으로 <br/> 새로운 메시지 렌더링
+    ChatMessage->>ResponseRenderer: 응답 렌더링 요청
     ChatMessage->>ResponseRenderer: render(content, chatMode, sessionId, expertiseLevel, onTitleExtracted)
     
     ResponseRenderer->>ResponseRenderer: 채팅 모드에 따른 렌더러 선택<br/>Select Renderer Based on Chat Mode
     
     alt 범용 검색 모드<br/>General Search Mode
-        ResponseRenderer->>UI: GeneralSearchRenderer로 렌더링<br/>Render with GeneralSearchRenderer
+        ResponseRenderer->>UI: GeneralSearchRenderer로 렌더링
     else 부품 추천 모드<br/>Part Recommendation Mode
-        ResponseRenderer->>UI: PartRecommendationRenderer로 렌더링<br/>Render with PartRecommendationRenderer
+        ResponseRenderer->>UI: PartRecommendationRenderer로 렌더링
     else 호환성 검사 모드<br/>Compatibility Check Mode
-        ResponseRenderer->>UI: CompatibilityCheckRenderer로 렌더링<br/>Render with CompatibilityCheckRenderer
+        ResponseRenderer->>UI: CompatibilityCheckRenderer로 렌더링
     else 견적 추천 모드<br/>Build Recommendation Mode
-        ResponseRenderer->>UI: BuildRecommendationRenderer로 렌더링<br/>Render with BuildRecommendationRenderer
+        ResponseRenderer->>UI: BuildRecommendationRenderer로 렌더링
     else 스펙 업그레이드 모드<br/>Spec Upgrade Mode
-        ResponseRenderer->>UI: SpecUpgradeRenderer로 렌더링<br/>Render with SpecUpgradeRenderer
+        ResponseRenderer->>UI: SpecUpgradeRenderer로 렌더링
     else 견적 평가 모드<br/>Build Evaluation Mode
-        ResponseRenderer->>UI: BuildEvaluationRenderer로 렌더링<br/>Render with BuildEvaluationRenderer
+        ResponseRenderer->>UI: BuildEvaluationRenderer로 렌더링
     end
-    
-    ResponseRenderer->>ResponseRenderer: 제목 추출 시도<br/>Attempt Title Extraction
-    
-    alt 제목 추출 성공<br/>Title Extraction Success
-        ResponseRenderer->>ConversationState: onTitleExtracted(title)
-        ConversationState->>ConversationState: 세션 제목 업데이트<br/>Update Session Title
-    end
-    
-    UI-->>User: 완전히 렌더링된 응답 표시<br/>Display Fully Rendered Response
 ```
 
 ### 4.2 세션 생성 및 첫 메시지 전송 시퀀스 (Session Creation and First Message Sequence)
