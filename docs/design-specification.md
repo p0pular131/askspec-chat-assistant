@@ -1,4 +1,3 @@
-
 # PC 견적 AI 어시스턴트 Frontend - Design Specification
 
 ## 1. 프로젝트 개요 (Project Overview)
@@ -499,31 +498,243 @@ sequenceDiagram
     ConversationState->>ConversationState: UI에 사용자 메시지 즉시 표시<br/>Immediately Show User Message in UI
     ConversationState->>MessageActions: sendMessage(text, expertiseLevel, chatMode, session)
     
-    MessageActions->>MessageService: backend에 응답 요청
-    MessageService->>MessageActions: 응답 데이터 전달
-    MessageActions->>ConversationState: 처리된 응답 문자열
+    MessageActions->>MessageService: processMessage(messages, chatMode, sessionId, expertiseLevel)
+    MessageService->>ResponseModule: 채팅 모드별 모듈 선택<br/>Select Module by Chat Mode
+    ResponseModule->>APIService: API 호출 (예: callGeneralSearchAPI)<br/>API Call (e.g., callGeneralSearchAPI)
+    APIService->>Backend: HTTP 요청 전송<br/>Send HTTP Request
+    Backend-->>APIService: AI 처리된 응답 반환<br/>Return AI Processed Response
+    APIService-->>ResponseModule: API 응답 데이터<br/>API Response Data
+    ResponseModule-->>MessageService: 처리된 응답 문자열<br/>Processed Response String
+    MessageService-->>MessageActions: 응답 데이터 전달<br/>Pass Response Data
+    MessageActions-->>ConversationState: 처리된 응답 문자열<br/>Processed Response String
     
-    ConversationState->>ChatMessage: backend에서 받은 응답으로 <br/> 새로운 메시지 렌더링
-    ChatMessage->>ResponseRenderer: 응답 렌더링 요청
+    ConversationState->>ChatMessage: backend에서 받은 응답으로<br/>새로운 메시지 렌더링<br/>Render New Message with Backend Response
+    ChatMessage->>ResponseRenderer: render(content, chatMode, expertiseLevel)
     
-    ResponseRenderer->>ResponseRenderer: 채팅 모드에 따른 렌더러 선택
+    ResponseRenderer->>ResponseRenderer: 채팅 모드에 따른 렌더러 선택<br/>Select Renderer by Chat Mode
     
-    alt 범용 검색 모드
-        ResponseRenderer->>UI: GeneralSearchRenderer로 렌더링
-    else 부품 추천 모드
-        ResponseRenderer->>UI: PartRecommendationRenderer로 렌더링
-    else 호환성 검사 모드
-        ResponseRenderer->>UI: CompatibilityCheckRenderer로 렌더링
-    else 견적 제작 모드
-        ResponseRenderer->>UI: BuildRecommendationRenderer로 렌더링
-    else 스펙 업그레이드 모드
-        ResponseRenderer->>UI: SpecUpgradeRenderer로 렌더링
-    else 견적 평가 모드
-        ResponseRenderer->>UI: BuildEvaluationRenderer로 렌더링
+    alt 범용 검색 모드<br/>General Search Mode
+        ResponseRenderer->>UI: GeneralSearchRenderer로 렌더링<br/>Render with GeneralSearchRenderer
+    else 부품 추천 모드<br/>Part Recommendation Mode
+        ResponseRenderer->>UI: PartRecommendationRenderer로 렌더링<br/>Render with PartRecommendationRenderer
+    else 호환성 검사 모드<br/>Compatibility Check Mode
+        ResponseRenderer->>UI: CompatibilityCheckRenderer로 렌더링<br/>Render with CompatibilityCheckRenderer
+    else 견적 제작 모드<br/>Build Recommendation Mode
+        ResponseRenderer->>UI: BuildRecommendationRenderer로 렌더링<br/>Render with BuildRecommendationRenderer
+    else 스펙 업그레이드 모드<br/>Spec Upgrade Mode
+        ResponseRenderer->>UI: SpecUpgradeRenderer로 렌더링<br/>Render with SpecUpgradeRenderer
+    else 견적 평가 모드<br/>Build Evaluation Mode
+        ResponseRenderer->>UI: BuildEvaluationRenderer로 렌더링<br/>Render with BuildEvaluationRenderer
+    end
+    
+    UI-->>User: 최종 렌더링된 응답 표시<br/>Display Final Rendered Response
+```
+
+### 4.2 세션 API 요청 및 에러 처리 시퀀스 (Session API Request and Error Handling Sequence)
+
+```mermaid
+sequenceDiagram
+    participant Client as 클라이언트<br/>Client
+    participant SessionAPI as sessionApiService
+    participant APIService as apiService
+    participant Backend as 백엔드 서버<br/>Backend Server
+    participant ErrorHandler as 에러 핸들러<br/>Error Handler
+    participant UI as UI Components
+
+    Client->>SessionAPI: 세션 요청<br/>Session Request
+    Note over Client,SessionAPI: createSession(), getSessions(),<br/>deleteSession(), updateSession()
+    
+    SessionAPI->>APIService: HTTP 요청 준비<br/>Prepare HTTP Request
+    APIService->>Backend: API 호출<br/>API Call
+    
+    alt 성공적인 응답<br/>Successful Response
+        Backend-->>APIService: 200 OK + 세션 데이터<br/>200 OK + Session Data
+        APIService-->>SessionAPI: 응답 데이터 반환<br/>Return Response Data
+        SessionAPI-->>Client: 세션 객체 반환<br/>Return Session Object
+        Client->>UI: 세션 상태 업데이트<br/>Update Session State
+        UI-->>Client: UI 새로고침<br/>Refresh UI
+        
+    else 네트워크 에러<br/>Network Error
+        Backend-->>APIService: 네트워크 연결 실패<br/>Network Connection Failed
+        APIService->>ErrorHandler: 네트워크 에러 처리<br/>Handle Network Error
+        ErrorHandler->>ErrorHandler: 재시도 로직 확인<br/>Check Retry Logic
+        
+        alt 재시도 가능<br/>Can Retry
+            ErrorHandler->>APIService: 재시도 수행<br/>Perform Retry
+            APIService->>Backend: 재시도 요청<br/>Retry Request
+        else 최대 재시도 초과<br/>Max Retries Exceeded
+            ErrorHandler-->>SessionAPI: 네트워크 에러 반환<br/>Return Network Error
+            SessionAPI-->>Client: 에러 상태 설정<br/>Set Error State
+            Client->>UI: 에러 토스트 표시<br/>Show Error Toast
+        end
+        
+    else 인증 에러<br/>Authentication Error
+        Backend-->>APIService: 401 Unauthorized
+        APIService->>ErrorHandler: 인증 에러 처리<br/>Handle Auth Error
+        ErrorHandler-->>SessionAPI: 인증 에러 반환<br/>Return Auth Error
+        SessionAPI-->>Client: 인증 상태 초기화<br/>Reset Auth State
+        Client->>UI: 로그인 페이지 리다이렉트<br/>Redirect to Login
+        
+    else 서버 에러<br/>Server Error
+        Backend-->>APIService: 500 Internal Server Error
+        APIService->>ErrorHandler: 서버 에러 처리<br/>Handle Server Error
+        ErrorHandler-->>SessionAPI: 서버 에러 반환<br/>Return Server Error
+        SessionAPI-->>Client: 에러 상태 설정<br/>Set Error State
+        Client->>UI: 서버 에러 토스트 표시<br/>Show Server Error Toast
+        
+    else 클라이언트 에러<br/>Client Error
+        Backend-->>APIService: 400 Bad Request
+        APIService->>ErrorHandler: 클라이언트 에러 처리<br/>Handle Client Error
+        ErrorHandler-->>SessionAPI: 클라이언트 에러 반환<br/>Return Client Error
+        SessionAPI-->>Client: 에러 상태 설정<br/>Set Error State
+        Client->>UI: 입력 검증 에러 표시<br/>Show Validation Error
     end
 ```
 
-### 4.2 세션 생성 및 첫 메시지 전송 시퀀스 (Session Creation and First Message Sequence)
+### 4.3 메시지 API 요청 및 에러 처리 시퀀스 (Message API Request and Error Handling Sequence)
+
+```mermaid
+sequenceDiagram
+    participant Client as 클라이언트<br/>Client
+    participant MessageService as messageService
+    participant ResponseModule as 응답 모듈<br/>Response Module
+    participant APIService as apiService
+    participant Backend as 백엔드 서버<br/>Backend Server
+    participant ErrorHandler as 에러 핸들러<br/>Error Handler
+    participant UI as UI Components
+
+    Client->>MessageService: 메시지 처리 요청<br/>Message Processing Request
+    Note over Client,MessageService: processMessage(messages, chatMode, sessionId)
+    
+    MessageService->>ResponseModule: 채팅 모드별 모듈 선택<br/>Select Module by Chat Mode
+    ResponseModule->>APIService: AI API 호출<br/>AI API Call
+    Note over ResponseModule,APIService: callGeneralSearchAPI(),<br/>callPartRecommendationAPI(), etc.
+    
+    APIService->>Backend: HTTP POST 요청<br/>HTTP POST Request
+    
+    alt 성공적인 AI 응답<br/>Successful AI Response
+        Backend-->>APIService: 200 OK + AI 응답<br/>200 OK + AI Response
+        APIService-->>ResponseModule: AI 응답 데이터<br/>AI Response Data
+        ResponseModule->>ResponseModule: 응답 데이터 가공<br/>Process Response Data
+        ResponseModule-->>MessageService: 처리된 응답 문자열<br/>Processed Response String
+        MessageService-->>Client: 메시지 응답 반환<br/>Return Message Response
+        Client->>UI: 메시지 렌더링<br/>Render Message
+        
+    else AI 처리 오류<br/>AI Processing Error
+        Backend-->>APIService: 422 Unprocessable Entity
+        APIService->>ErrorHandler: AI 처리 에러 핸들링<br/>Handle AI Processing Error
+        ErrorHandler-->>ResponseModule: 처리 에러 반환<br/>Return Processing Error
+        ResponseModule-->>MessageService: 폴백 응답 생성<br/>Generate Fallback Response
+        MessageService-->>Client: 기본 응답 메시지<br/>Default Response Message
+        Client->>UI: 기본 응답 표시<br/>Show Default Response
+        
+    else 세션 만료<br/>Session Expired
+        Backend-->>APIService: 403 Forbidden
+        APIService->>ErrorHandler: 세션 만료 처리<br/>Handle Session Expiry
+        ErrorHandler-->>MessageService: 세션 에러 반환<br/>Return Session Error
+        MessageService-->>Client: 세션 갱신 필요<br/>Session Refresh Required
+        Client->>UI: 세션 만료 알림<br/>Show Session Expiry Notice
+        
+    else 요청 제한 초과<br/>Rate Limit Exceeded
+        Backend-->>APIService: 429 Too Many Requests
+        APIService->>ErrorHandler: 요청 제한 처리<br/>Handle Rate Limit
+        ErrorHandler->>ErrorHandler: 대기 시간 계산<br/>Calculate Wait Time
+        ErrorHandler-->>MessageService: 재시도 대기 안내<br/>Retry Wait Notice
+        MessageService-->>Client: 대기 메시지<br/>Wait Message
+        Client->>UI: 재시도 대기 알림<br/>Show Retry Wait Notice
+        
+    else 네트워크 타임아웃<br/>Network Timeout
+        Backend-->>APIService: 타임아웃 발생<br/>Timeout Occurred
+        APIService->>ErrorHandler: 타임아웃 처리<br/>Handle Timeout
+        ErrorHandler->>ErrorHandler: 재시도 여부 결정<br/>Decide Retry
+        
+        alt 재시도 수행<br/>Perform Retry
+            ErrorHandler->>APIService: 재시도 요청<br/>Retry Request
+            APIService->>Backend: 재시도 API 호출<br/>Retry API Call
+        else 재시도 포기<br/>Give Up Retry
+            ErrorHandler-->>MessageService: 타임아웃 에러<br/>Timeout Error
+            MessageService-->>Client: 타임아웃 메시지<br/>Timeout Message
+            Client->>UI: 타임아웃 에러 표시<br/>Show Timeout Error
+        end
+    end
+```
+
+### 4.4 견적 API 요청 및 에러 처리 시퀀스 (Build API Request and Error Handling Sequence)
+
+```mermaid
+sequenceDiagram
+    participant Client as 클라이언트<br/>Client
+    participant BuildAPI as buildApiService
+    participant APIService as apiService
+    participant Backend as 백엔드 서버<br/>Backend Server
+    participant Database as 데이터베이스<br/>Database
+    participant ErrorHandler as 에러 핸들러<br/>Error Handler
+    participant UI as UI Components
+
+    Client->>BuildAPI: 견적 관련 요청<br/>Build Related Request
+    Note over Client,BuildAPI: getBuilds(), getBuild(id),<br/>createBuild(), updateBuild(), deleteBuild()
+    
+    BuildAPI->>APIService: HTTP 요청 준비<br/>Prepare HTTP Request
+    APIService->>Backend: 견적 API 호출<br/>Build API Call
+    Backend->>Database: 데이터베이스 쿼리<br/>Database Query
+    
+    alt 성공적인 견적 처리<br/>Successful Build Processing
+        Database-->>Backend: 쿼리 결과 반환<br/>Return Query Result
+        Backend-->>APIService: 200 OK + 견적 데이터<br/>200 OK + Build Data
+        APIService-->>BuildAPI: 견적 응답 데이터<br/>Build Response Data
+        BuildAPI-->>Client: 견적 객체 반환<br/>Return Build Object
+        Client->>UI: 견적 목록/상세 업데이트<br/>Update Build List/Details
+        UI-->>Client: 견적 정보 표시<br/>Display Build Info
+        
+    else 견적 데이터 없음<br/>No Build Data Found
+        Database-->>Backend: 빈 결과 반환<br/>Return Empty Result
+        Backend-->>APIService: 404 Not Found
+        APIService->>ErrorHandler: 데이터 없음 처리<br/>Handle No Data
+        ErrorHandler-->>BuildAPI: 데이터 없음 반환<br/>Return No Data
+        BuildAPI-->>Client: 빈 배열/null 반환<br/>Return Empty Array/null
+        Client->>UI: "견적 없음" 메시지 표시<br/>Show "No Builds" Message
+        
+    else 권한 없음<br/>No Permission
+        Backend-->>APIService: 403 Forbidden
+        APIService->>ErrorHandler: 권한 에러 처리<br/>Handle Permission Error
+        ErrorHandler-->>BuildAPI: 권한 에러 반환<br/>Return Permission Error
+        BuildAPI-->>Client: 권한 에러 상태<br/>Permission Error State
+        Client->>UI: 권한 없음 알림<br/>Show Permission Notice
+        
+    else 데이터베이스 에러<br/>Database Error
+        Database-->>Backend: 데이터베이스 연결 실패<br/>Database Connection Failed
+        Backend-->>APIService: 503 Service Unavailable
+        APIService->>ErrorHandler: 서비스 불가 처리<br/>Handle Service Unavailable
+        ErrorHandler-->>BuildAPI: 서비스 에러 반환<br/>Return Service Error
+        BuildAPI-->>Client: 에러 상태 설정<br/>Set Error State
+        Client->>UI: 서비스 장애 알림<br/>Show Service Error Notice
+        
+    else 데이터 검증 실패<br/>Data Validation Failed
+        Backend-->>APIService: 400 Bad Request
+        APIService->>ErrorHandler: 검증 에러 처리<br/>Handle Validation Error
+        ErrorHandler-->>BuildAPI: 검증 에러 반환<br/>Return Validation Error
+        BuildAPI-->>Client: 검증 에러 상태<br/>Validation Error State
+        Client->>UI: 입력 검증 에러 표시<br/>Show Validation Error
+        
+    else 견적 생성/수정 충돌<br/>Build Create/Update Conflict
+        Database-->>Backend: 동시성 충돌<br/>Concurrency Conflict
+        Backend-->>APIService: 409 Conflict
+        APIService->>ErrorHandler: 충돌 에러 처리<br/>Handle Conflict Error
+        ErrorHandler-->>BuildAPI: 충돌 에러 반환<br/>Return Conflict Error
+        BuildAPI-->>Client: 충돌 상태 설정<br/>Set Conflict State
+        Client->>UI: 충돌 해결 안내<br/>Show Conflict Resolution Guide
+        
+    else 견적 삭제 실패<br/>Build Delete Failed
+        Database-->>Backend: 제약 조건 위반<br/>Constraint Violation
+        Backend-->>APIService: 422 Unprocessable Entity
+        APIService->>ErrorHandler: 삭제 에러 처리<br/>Handle Delete Error
+        ErrorHandler-->>BuildAPI: 삭제 에러 반환<br/>Return Delete Error
+        BuildAPI-->>Client: 삭제 실패 상태<br/>Delete Failed State
+        Client->>UI: 삭제 실패 알림<br/>Show Delete Failed Notice
+    end
+```
+
+### 4.5 세션 생성 및 첫 메시지 전송 시퀀스 (Session Creation and First Message Sequence)
 
 ```mermaid
 sequenceDiagram
@@ -556,13 +767,15 @@ sequenceDiagram
     
     State->>State: onTitleExtracted 콜백 호출<br/>Call onTitleExtracted Callback
     State->>Session: updateSessionTitle(sessionId, title)
-    Session->>Session: setTitleUpdatingSessionId(sessionId)
-    
+    Session->>Session: 세션 목록 업데이트<br/>Update Session List
+    Session->>Session: 현재 세션 업데이트<br/>Update Current Session
+    Session->>UI: titleUpdatingSessionId 설정<br/>Set titleUpdatingSessionId
+    Session->>UI: titleUpdatingSessionId 초기화<br/>Reset titleUpdatingSessionId
     State-->>UI: 업데이트된 상태<br/>Updated State
     UI-->>User: 새 메시지 및 제목 업데이트 표시<br/>Display New Message and Title Update
 ```
 
-### 4.3 견적 생성 및 관리 시퀀스 (Build Creation and Management Sequence)
+### 4.6 견적 생성 및 관리 시퀀스 (Build Creation and Management Sequence)
 
 ```mermaid
 sequenceDiagram
@@ -593,7 +806,7 @@ sequenceDiagram
     BuildUI-->>User: 견적 상세 페이지 표시
 ```
 
-### 4.4 견적 삭제 시퀀스 (Build Deletion Sequence)
+### 4.7 견적 삭제 시퀀스 (Build Deletion Sequence)
 
 ```mermaid
 sequenceDiagram
@@ -610,7 +823,7 @@ sequenceDiagram
     BuildsList-->>User: 삭제 완료 토스트 표시
 ```
 
-### 4.5 응답 렌더링 및 제목 추출 시퀀스 (Response Rendering and Title Extraction Sequence)
+### 4.8 응답 렌더링 및 제목 추출 시퀀스 (Response Rendering and Title Extraction Sequence)
 
 ```mermaid
 sequenceDiagram
@@ -1331,5 +1544,3 @@ sequenceDiagram
 - 크로스 브라우저 테스트
 - 반응형 디자인 테스트
 - 성능 테스트
-
-이 Design Specification은 PC 견적 AI 어시스턴트 Frontend의 전체적인 구조와 설계 원칙을 제시하며, 견적 관리 기능을 포함한 완전한 시스템 아키텍처를 제공합니다. 개발팀이 일관된 방향으로 개발을 진행할 수 있도록 상세한 가이드라인을 제공합니다.
