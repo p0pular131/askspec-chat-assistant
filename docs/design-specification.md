@@ -407,6 +407,7 @@ classDiagram
 ### 3.3 Hooks Class Diagram
 
 ```mermaid
+%%{ init: { 'class': { 'defaultLayoutDirection': 'TB' }, 'themeVariables': { 'fontSize': '20px' } } }%%
 classDiagram
     class useConversationState {
         -messages: UIMessage[]
