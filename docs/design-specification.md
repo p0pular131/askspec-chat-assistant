@@ -530,16 +530,11 @@ sequenceDiagram
     Backend->>Backend: AI 처리 및 응답 생성<br/>AI Processing and Response Generation
     Backend-->>API: AI 응답 (title 포함)<br/>AI Response (with title)
     API-->>Message: 응답 데이터<br/>Response Data
-    Message->>Message: DB 메시지 업데이트<br/>Update DB Messages
     Message-->>State: 메시지 동기화<br/>Sync Messages
     
     State->>State: onTitleExtracted 콜백 호출<br/>Call onTitleExtracted Callback
     State->>Session: updateSessionTitle(sessionId, title)
-    Session->>Session: 로컬 상태 업데이트<br/>Update Local State
     Session->>Session: setTitleUpdatingSessionId(sessionId)
-    
-    Note over Session: 2초간 애니메이션 표시<br/>Show Animation for 2 seconds
-    Session->>Session: setTitleUpdatingSessionId(null)
     
     State-->>UI: 업데이트된 상태<br/>Updated State
     UI-->>User: 새 메시지 및 제목 업데이트 표시<br/>Display New Message and Title Update
