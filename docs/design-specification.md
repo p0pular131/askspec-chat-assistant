@@ -408,38 +408,22 @@ classDiagram
 
 ```mermaid
 classDiagram
-    direction TB
-    
     class useConversationState {
         -messages: UIMessage[]
         -isLoading: boolean
-        -currentConversation: Session | null
-        -conversations: Session[]
-        -builds: Build[]
-        -buildsLoading: boolean
-        -chatMode: string
-        +startNewConversation(): Promise~Session~
-        +selectConversation(session: Session): void
-        +sendMessage(text: string): Promise~void~
-        +loadBuilds(): Promise~void~
-        +handleDeleteConversation(id: string): Promise~void~
-        +handleViewBuild(id: string): void
-        +handleDeleteBuild(id: string): Promise~void~
-        +onTitleExtracted(title: string): void
     }
-    
+
     class useSessionManagement {
         -currentSession: Session | null
         -sessions: Session[]
         -sessionsLoading: boolean
-        -titleUpdatingSessionId: number | null
         +fetchSessions(): Promise~void~
         +startNewConversation(): Promise~Session~
         +selectConversation(session: Session): void
         +handleDeleteConversation(sessionId: string): Promise~void~
         +updateSessionTitle(sessionId: number, title: string): Promise~boolean~
     }
-    
+
     class useMessageActions {
         -dbMessages: ApiMessage[]
         -msgLoading: boolean
@@ -447,7 +431,7 @@ classDiagram
         +sendMessage(text: string, expertiseLevel: string, chatMode: string, sessionToUse: Session): Promise~void~
         +processMessageResponse(response: any): void
     }
-    
+
     class useBuilds {
         -builds: Build[]
         -loading: boolean
@@ -456,28 +440,17 @@ classDiagram
         +loadBuilds(silent: boolean): Promise~Build[]~
         +getBuild(id: string): Promise~Build~
         +deleteBuild(id: string): Promise~boolean~
-        +refreshBuilds(): Promise~void~
     }
-    
+
     class useChatMode {
         -chatMode: string
         +setChatMode(mode: string): void
-        +getExamplePrompt(): string
-        +autoSwitchMode(message: string): void
-    }
-    
-    class useBuildActions {
-        +createBuild(buildData: any): Promise~Build~
-        +updateBuild(id: string, data: any): Promise~Build~
-        +deleteBuild(id: string): Promise~boolean~
-        +extractBuildFromResponse(response: any): any
     }
 
     useConversationState --> useSessionManagement
     useConversationState --> useMessageActions
     useConversationState --> useBuilds
     useConversationState --> useChatMode
-    useConversationState --> useBuildActions
 ```
 
 ### 3.4 Service Layer Class Diagram
