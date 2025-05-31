@@ -534,60 +534,44 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Client as 클라이언트<br/>Client
-    participant SessionAPI as sessionApiService
-    participant APIService as apiService
-    participant Backend as 백엔드 서버<br/>Backend Server
-    participant ErrorHandler as 에러 핸들러<br/>Error Handler
-    participant UI as UI Components
-
-    Client->>SessionAPI: 세션 요청<br/>Session Request
-    Note over Client,SessionAPI: createSession(), getSessions(),<br/>deleteSession(), updateSession()
+    Client->>APIService: API 요청
+    Note over Client,APIService: Session, Message, Build
     
-    SessionAPI->>APIService: HTTP 요청 준비<br/>Prepare HTTP Request
-    APIService->>Backend: API 호출<br/>API Call
+    APIService->>Backend: API 호출
     
     alt 성공적인 응답<br/>Successful Response
-        Backend-->>APIService: 200 OK + 세션 데이터<br/>200 OK + Session Data
-        APIService-->>SessionAPI: 응답 데이터 반환<br/>Return Response Data
-        SessionAPI-->>Client: 세션 객체 반환<br/>Return Session Object
-        Client->>UI: 세션 상태 업데이트<br/>Update Session State
-        UI-->>Client: UI 새로고침<br/>Refresh UI
+        Backend-->>APIService: 200 OK + 데이터
+        APIService-->>Client: 응답 데이터 반환
+        Client->>UI: 상태 업데이트
+        UI-->>Client: UI 새로고침
         
-    else 네트워크 에러<br/>Network Error
-        Backend-->>APIService: 네트워크 연결 실패<br/>Network Connection Failed
-        APIService->>ErrorHandler: 네트워크 에러 처리<br/>Handle Network Error
-        ErrorHandler->>ErrorHandler: 재시도 로직 확인<br/>Check Retry Logic
+    else 네트워크 에러
+        Backend-->>APIService: 네트워크 연결 실패
+        APIService->>ErrorHandler: 네트워크 에러 처리
+        ErrorHandler->>ErrorHandler: 재시도 로직 확인
         
-        alt 재시도 가능<br/>Can Retry
-            ErrorHandler->>APIService: 재시도 수행<br/>Perform Retry
-            APIService->>Backend: 재시도 요청<br/>Retry Request
-        else 최대 재시도 초과<br/>Max Retries Exceeded
-            ErrorHandler-->>SessionAPI: 네트워크 에러 반환<br/>Return Network Error
-            SessionAPI-->>Client: 에러 상태 설정<br/>Set Error State
-            Client->>UI: 에러 토스트 표시<br/>Show Error Toast
+        alt 재시도 가능
+            ErrorHandler->>APIService: 재시도 수행
+            APIService->>Backend: 재시도 요청
+        else 최대 재시도 초과
+            ErrorHandler-->>APIService: 네트워크 에러 반환
+            APIService-->>Client: 에러 상태 설정
+            Client->>UI: 에러 토스트 표시
         end
         
-    else 인증 에러<br/>Authentication Error
-        Backend-->>APIService: 401 Unauthorized
-        APIService->>ErrorHandler: 인증 에러 처리<br/>Handle Auth Error
-        ErrorHandler-->>SessionAPI: 인증 에러 반환<br/>Return Auth Error
-        SessionAPI-->>Client: 인증 상태 초기화<br/>Reset Auth State
-        Client->>UI: 로그인 페이지 리다이렉트<br/>Redirect to Login
-        
-    else 서버 에러<br/>Server Error
+    else 서버 에러
         Backend-->>APIService: 500 Internal Server Error
-        APIService->>ErrorHandler: 서버 에러 처리<br/>Handle Server Error
-        ErrorHandler-->>SessionAPI: 서버 에러 반환<br/>Return Server Error
-        SessionAPI-->>Client: 에러 상태 설정<br/>Set Error State
-        Client->>UI: 서버 에러 토스트 표시<br/>Show Server Error Toast
+        APIService->>ErrorHandler: 서버 에러 처리
+        ErrorHandler-->>APIService: 서버 에러 반환
+        APIService-->>Client: 에러 상태 설정
+        Client->>UI: 서버 에러 토스트 표시
         
-    else 클라이언트 에러<br/>Client Error
-        Backend-->>APIService: 400 Bad Request
-        APIService->>ErrorHandler: 클라이언트 에러 처리<br/>Handle Client Error
-        ErrorHandler-->>SessionAPI: 클라이언트 에러 반환<br/>Return Client Error
-        SessionAPI-->>Client: 에러 상태 설정<br/>Set Error State
-        Client->>UI: 입력 검증 에러 표시<br/>Show Validation Error
+    else 클라이언트 에러
+        Backend-->>APIService: Bad Request
+        APIService->>ErrorHandler: 클라이언트 에러 처리
+        ErrorHandler-->>APIService: 클라이언트 에러 반환
+        APIService-->>Client: 에러 상태 설정
+        Client->>UI: 입력 검증 에러 표시
     end
 ```
 
