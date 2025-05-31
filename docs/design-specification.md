@@ -112,6 +112,7 @@ graph TD
 ### 2.3 데이터 흐름 아키텍처 (Data Flow Architecture)
 
 ```mermaid
+%%{ init: { 'themeVariables': { 'fontSize': '20px' } } }%%
 graph LR
     subgraph "User Interface"
         A[User Input] --> B[MessageInput]
