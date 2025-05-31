@@ -30,47 +30,47 @@
 
 ```mermaid
 graph TB
-    subgraph "프론트엔드 애플리케이션<br/>Frontend Application"
-        subgraph "프레젠테이션 계층<br/>Presentation Layer"
-            ChatLayout["ChatLayout<br/>메인 레이아웃<br/>Main Layout"]
-            ChatMain["ChatMain<br/>채팅 영역<br/>Chat Area"]
-            SidebarLeft["Sidebar Left<br/>대화 목록<br/>Conversation List"]
-            SidebarRight["Sidebar Right<br/>견적 목록<br/>Build List"]
-            ChatMessages["ChatMessages<br/>메시지 목록<br/>Message List"]
-            ChatMessage["ChatMessage<br/>개별 메시지<br/>Individual Message"]
-            ResponseRenderer["ResponseRenderer<br/>응답 렌더러<br/>Response Renderer"]
-            BuildsList["BuildsList<br/>견적 목록<br/>Build List Component"]
-            BuildDetails["BuildDetails<br/>견적 상세<br/>Build Details"]
+    subgraph "프론트엔드 애플리케이션"
+        subgraph "프레젠테이션 계층"
+            ChatLayout["ChatLayout"]
+            ChatMain["ChatMain"]
+            SidebarLeft["Sidebar Left"]
+            SidebarRight["Sidebar Right"]
+            ChatMessages["ChatMessages"]
+            ChatMessage["ChatMessage"]
+            ResponseRenderer["ResponseRenderer"]
+            BuildsList["BuildsList"]
+            BuildDetails["BuildDetails"]
         end
         
-        subgraph "비즈니스 로직 계층<br/>Business Logic Layer"
-            ConversationState["useConversationState<br/>대화 상태 관리<br/>Conversation State Management"]
-            SessionManagement["useSessionManagement<br/>세션 관리<br/>Session Management"]
-            MessageActions["useMessageActions<br/>메시지 처리<br/>Message Processing"]
-            BuildActions["useBuildActions<br/>견적 처리<br/>Build Processing"]
-            ChatMode["useChatMode<br/>채팅 모드<br/>Chat Mode"]
+        subgraph "비즈니스 로직 계층"
+            ConversationState["useConversationState"]
+            SessionManagement["useSessionManagement"]
+            MessageActions["useMessageActions"]
+            BuildActions["useBuildActions"]
+            ChatMode["useChatMode"]
         end
         
-        subgraph "서비스 계층<br/>Service Layer"
-            SessionAPI["sessionApiService<br/>세션 API<br/>Session API"]
-            MessageService["messageService<br/>메시지 API<br/>Message API"]
-            BuildService["buildApiService<br/>견적 API<br/>Build API"]
-            APIService["apiService<br/>공통 API<br/>Common API"]
+        subgraph "서비스 계층"
+            SessionAPI["sessionApiService"]
+            MessageService["messageService"]
+            BuildService["buildApiService"]
+            APIService["apiService"]
         end
         
-        subgraph "데이터 계층<br/>Data Layer"
-            SessionTypes["Session Types<br/>세션 타입<br/>Session Types"]
-            MessageTypes["Message Types<br/>메시지 타입<br/>Message Types"]
-            BuildTypes["Build Types<br/>견적 타입<br/>Build Types"]
-            APITypes["API Types<br/>API 타입<br/>API Types"]
+        subgraph "데이터 계층"
+            SessionTypes["Session Types"]
+            MessageTypes["Message Types"]
+            BuildTypes["Build Types"]
+            APITypes["API Types"]
         end
     end
     
-    subgraph "백엔드 API<br/>Backend API"
-        SessionEndpoints["Session Endpoints<br/>세션 API<br/>Session API"]
-        MessageEndpoints["Message Endpoints<br/>메시지 API<br/>Message API"]
-        BuildEndpoints["Build Endpoints<br/>견적 API<br/>Build API"]
-        AIService["AI Service<br/>AI 처리<br/>AI Processing"]
+    subgraph "백엔드 API"
+        SessionEndpoints["Session Endpoints"]
+        MessageEndpoints["Message Endpoints"]
+        BuildEndpoints["Build Endpoints"]
+        AIService["AI Service"]
     end
     
     ChatLayout --> ChatMain
@@ -110,38 +110,38 @@ graph TB
 
 ```mermaid
 graph TD
-    App["App<br/>애플리케이션 루트<br/>Application Root"] --> Index["Index<br/>메인 페이지<br/>Main Page"]
-    App --> BuildDetailsPage["BuildDetails Page<br/>견적 상세 페이지<br/>Build Details Page"]
+    App["App"] --> Index["Index"]
+    App --> BuildDetailsPage["BuildDetails Page"]
     
-    Index --> ChatLayout["ChatLayout<br/>채팅 레이아웃<br/>Chat Layout"]
+    Index --> ChatLayout["ChatLayout"]
     
-    ChatLayout --> SidebarLeft["Sidebar Left<br/>왼쪽 사이드바<br/>Left Sidebar"]
-    ChatLayout --> ChatMainArea["ChatMain<br/>메인 채팅 영역<br/>Main Chat Area"]
-    ChatLayout --> SidebarRight["Sidebar Right<br/>오른쪽 사이드바<br/>Right Sidebar"]
+    ChatLayout --> SidebarLeft["Sidebar Left"]
+    ChatLayout --> ChatMainArea["ChatMain"]
+    ChatLayout --> SidebarRight["Sidebar Right"]
     
-    SidebarLeft --> ConversationList["ChatConversationList<br/>대화 목록<br/>Conversation List"]
-    ConversationList --> SessionItem["Session Items<br/>세션 항목들<br/>Session Items"]
+    SidebarLeft --> ConversationList["ChatConversationList"]
+    ConversationList --> SessionItem["Session Items"]
     
-    ChatMainArea --> ChatHeader["ChatHeader<br/>채팅 헤더<br/>Chat Header"]
-    ChatMainArea --> ChatMessages["ChatMessages<br/>메시지 영역<br/>Message Area"]
-    ChatMainArea --> MessageInput["MessageInput<br/>메시지 입력<br/>Message Input"]
+    ChatMainArea --> ChatHeader["ChatHeader"]
+    ChatMainArea --> ChatMessages["ChatMessages"]
+    ChatMainArea --> MessageInput["MessageInput"]
     
-    ChatMessages --> ChatMessage["ChatMessage<br/>개별 메시지<br/>Individual Message"]
-    ChatMessage --> ResponseRenderer["ResponseRenderer<br/>응답 렌더러<br/>Response Renderer"]
+    ChatMessages --> ChatMessage["ChatMessage"]
+    ChatMessage --> ResponseRenderer["ResponseRenderer"]
     
-    ResponseRenderer --> GeneralSearch["GeneralSearchRenderer<br/>범용 검색 렌더러<br/>General Search Renderer"]
-    ResponseRenderer --> PartRecommendation["PartRecommendationRenderer<br/>부품 추천 렌더러<br/>Part Recommendation Renderer"]
-    ResponseRenderer --> CompatibilityCheck["CompatibilityCheckRenderer<br/>호환성 검사 렌더러<br/>Compatibility Check Renderer"]
-    ResponseRenderer --> BuildRecommendation["BuildRecommendationRenderer<br/>견적 추천 렌더러<br/>Build Recommendation Renderer"]
-    ResponseRenderer --> SpecUpgrade["SpecUpgradeRenderer<br/>스펙 업그레이드 렌더러<br/>Spec Upgrade Renderer"]
-    ResponseRenderer --> BuildEvaluation["BuildEvaluationRenderer<br/>견적 평가 렌더러<br/>Build Evaluation Renderer"]
+    ResponseRenderer --> GeneralSearch["GeneralSearchRenderer"]
+    ResponseRenderer --> PartRecommendation["PartRecommendationRenderer"]
+    ResponseRenderer --> CompatibilityCheck["CompatibilityCheckRenderer"]
+    ResponseRenderer --> BuildRecommendation["BuildRecommendationRenderer"]
+    ResponseRenderer --> SpecUpgrade["SpecUpgradeRenderer"]
+    ResponseRenderer --> BuildEvaluation["BuildEvaluationRenderer"]
     
-    SidebarRight --> BuildsList["BuildsList<br/>견적 목록<br/>Build List"]
-    BuildsList --> BuildItem["Build Items<br/>견적 항목들<br/>Build Items"]
+    SidebarRight --> BuildsList["BuildsList"]
+    BuildsList --> BuildItem["Build Items"]
     
-    BuildDetailsPage --> BuildCard["BuildCard<br/>견적 카드<br/>Build Card"]
-    BuildDetailsPage --> ComponentList["Component List<br/>부품 목록<br/>Component List"]
-    BuildDetailsPage --> RatingDisplay["Rating Display<br/>평점 표시<br/>Rating Display"]
+    BuildDetailsPage --> BuildCard["BuildCard"]
+    BuildDetailsPage --> ComponentList["Component List"]
+    BuildDetailsPage --> RatingDisplay["Rating Display"]
     
     style App fill:#e1f5fe
     style ChatLayout fill:#f3e5f5
@@ -479,9 +479,9 @@ classDiagram
         +retryRequest(config: AxiosRequestConfig, retries: number): Promise~any~
     }
 
-    sessionApiService ||--|| apiService
-    messageService ||--|| apiService
-    buildApiService ||--|| apiService
+    sessionApiService --> apiService
+    messageService --> apiService
+    buildApiService --> apiService
 ```
 
 ## 4. 시퀀스 다이어그램 (Sequence Diagrams)
