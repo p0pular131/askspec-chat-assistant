@@ -569,7 +569,7 @@ sequenceDiagram
     User->>ChatUI: 견적 요청 메시지 전송
     ChatUI->>State: sendMessage()
 
-    State->>BuildAPI: createBuild(buildData)
+    State->>BuildAPI: 견적 생성 API 호출
     BuildAPI->>Backend: POST /estimates
     Backend-->>BuildAPI: 생성된 견적 데이터
     BuildAPI-->>State: Build 객체 반환
