@@ -611,18 +611,11 @@ sequenceDiagram
 
     ChatMessage->>Renderer: render(content, chatMode, onTitleExtracted)
     Renderer->>Renderer: useEffect 실행<br/>Execute useEffect
-    Renderer->>Renderer: JSON.parse(content) 시도<br/>Try JSON.parse(content)
+    Renderer->>ChatMessage: redering 결과 전달후 시각화
     
-    alt JSON 파싱 성공<br/>JSON Parse Success
-        Renderer->>Renderer: parsed.title 확인<br/>Check parsed.title
-        alt 제목이 존재<br/>If Title Exists
-            Renderer->>State: onTitleExtracted(title)
-        end
-    else JSON 파싱 실패<br/>JSON Parse Failed
-        Renderer->>Renderer: 마크다운 패턴 매칭<br/>Markdown Pattern Matching
-        alt 마크다운 제목 발견<br/>If Markdown Title Found
-            Renderer->>State: onTitleExtracted(title)
-        end
+    Renderer->>Renderer: parsed.title 확인<br/>Check parsed.title
+    alt 제목이 존재<br/>If Title Exists
+        Renderer->>State: onTitleExtracted(title)
     end
     
     alt 제목이 추출된 경우<br/>If Title Extracted
@@ -630,12 +623,7 @@ sequenceDiagram
         Session->>Session: 세션 목록 업데이트<br/>Update Session List
         Session->>Session: 현재 세션 업데이트<br/>Update Current Session
         Session->>UI: titleUpdatingSessionId 설정<br/>Set titleUpdatingSessionId
-        UI->>UI: 반짝임 애니메이션 시작<br/>Start Flashing Animation
-        
-        Note over UI: 2초간 파란색 배경 + 펄스 효과<br/>2 seconds blue background + pulse effect
-        
         Session->>UI: titleUpdatingSessionId 초기화<br/>Reset titleUpdatingSessionId
-        UI->>UI: 애니메이션 종료<br/>End Animation
     end
 ```
 
