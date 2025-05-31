@@ -510,11 +510,11 @@ sequenceDiagram
     ConversationState->>ConversationState: UI에 사용자 메시지 즉시 표시<br/>Immediately Show User Message in UI
     ConversationState->>MessageActions: sendMessage(text, expertiseLevel, chatMode, session)
     
-    MessageActions-->>MessageService: backend에 응답 요청
-    MessageService-->>MessageActions: 응답 데이터 전달
-    MessageActions-->>ConversationState: 처리된 응답 문자열
+    MessageActions->>MessageService: backend에 응답 요청
+    MessageService->>MessageActions: 응답 데이터 전달
+    MessageActions->>ConversationState: 처리된 응답 문자열
     
-    ConversationState-->>ChatMessage: backend에서 받은 응답으로 <br/> 새로운 메시지 렌더링
+    ConversationState->>ChatMessage: backend에서 받은 응답으로 <br/> 새로운 메시지 렌더링
     ChatMessage->>ResponseRenderer: 응답 렌더링 요청
     
     ResponseRenderer->>ResponseRenderer: 채팅 모드에 따른 렌더러 선택
