@@ -204,36 +204,36 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "사용자 상호작용<br/>User Interaction"
-        UserInput["사용자 입력<br/>User Input"]
-        MessageSend["메시지 전송<br/>Message Send"]
-        BuildView["견적 보기<br/>Build View"]
+    subgraph "사용자 상호작용"
+        UserInput["사용자 입력"]
+        MessageSend["메시지 전송"]
+        BuildView["견적 보기"]
     end
     
-    subgraph "상태 관리<br/>State Management"
-        ConversationState["대화 상태<br/>useConversationState<br/>Conversation State"]
-        SessionState["세션 상태<br/>useSessionManagement<br/>Session State"]
-        MessageState["메시지 상태<br/>useMessageActions<br/>Message State"]
-        BuildState["견적 상태<br/>useBuildActions<br/>Build State"]
+    subgraph "상태 관리"
+        ConversationState["대화 상태"]
+        SessionState["세션 상태"]
+        MessageState["메시지 상태"]
+        BuildState["견적 상태"]
     end
     
-    subgraph "API 서비스<br/>API Services"
-        SessionAPI["세션 API<br/>sessionApiService<br/>Session API"]
-        MessageAPI["메시지 API<br/>messageService<br/>Message API"]
-        BuildAPI["견적 API<br/>buildApiService<br/>Build API"]
+    subgraph "API 서비스"
+        SessionAPI["세션 API"]
+        MessageAPI["메시지 API"]
+        BuildAPI["견적 API"]
     end
     
-    subgraph "백엔드 처리<br/>Backend Processing"
-        SessionDB["세션 데이터베이스<br/>Session DB"]
-        MessageDB["메시지 데이터베이스<br/>Message DB"]
-        BuildDB["견적 데이터베이스<br/>Build DB"]
-        AIProcessor["AI 처리기<br/>AI Processing"]
+    subgraph "백엔드 처리"
+        SessionDB["세션 데이터베이스"]
+        MessageDB["메시지 데이터베이스"]
+        BuildDB["견적 데이터베이스"]
+        AIProcessor["AI 처리기"]
     end
     
-    subgraph "응답 처리<br/>Response Processing"
-        ResponseRender["응답 렌더링<br/>ResponseRenderer<br/>Response Rendering"]
-        BuildDisplay["견적 표시<br/>Build Display"]
-        UIUpdate["UI 업데이트<br/>UI Update"]
+    subgraph "응답 처리"
+        ResponseRender["응답 렌더링"]
+        BuildDisplay["견적 표시"]
+        UIUpdate["UI 업데이트"]
     end
     
     UserInput --> MessageSend
@@ -610,7 +610,6 @@ sequenceDiagram
     BuildAPI->>Backend: DELETE /estimates/:id
     Backend-->>BuildAPI: 삭제 완료
     BuildAPI-->>BuildActions: 성공 응답
-    BuildActions->>BuildActions: 로컬 상태에서 견적 제거
     BuildActions-->>BuildsList: 삭제 완료
     BuildsList-->>User: 삭제 완료 토스트 표시
 ```
