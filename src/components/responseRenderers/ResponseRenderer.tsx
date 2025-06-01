@@ -1,113 +1,113 @@
-import React, { useEffect } from 'react';
-import { GeneralSearchRenderer } from './GeneralSearchRenderer';
-import { PartRecommendationRenderer } from './PartRecommendationRenderer';
-import { CompatibilityCheckRenderer } from './CompatibilityCheckRenderer';
-import { BuildRecommendationRenderer } from './BuildRecommendationRenderer';
-import { SpecUpgradeRenderer } from './SpecUpgradeRenderer';
-import { BuildEvaluationRenderer } from './BuildEvaluationRenderer';
 
-export type ExpertiseLevel = 'low' | 'middle' | 'high';
+import React from 'react';
+import GeneralSearchRenderer from './GeneralSearchRenderer';
+import PartRecommendationRenderer from './PartRecommendationRenderer';
+import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
+import BuildRecommendationRenderer from './BuildRecommendationRenderer';
+import SpecUpgradeRenderer from './SpecUpgradeRenderer';
+import BuildEvaluationRenderer from './BuildEvaluationRenderer';
 
 interface ResponseRendererProps {
   content: string;
   chatMode: string;
   sessionId?: string;
   isCompatibilityRequest?: boolean;
-  expertiseLevel?: ExpertiseLevel;
-  onTitleExtracted?: (title: string) => void;
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }
 
-export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
-  content,
-  chatMode,
+// Helper function to map expertise levels for internal use
+const mapExpertiseLevel = (level: 'beginner' | 'intermediate' | 'expert'): 'low' | 'middle' | 'high' => {
+  switch (level) {
+    case 'beginner':
+      return 'low';
+    case 'intermediate':
+      return 'middle';
+    case 'expert':
+      return 'high';
+    default:
+      return 'low';
+  }
+};
+
+const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
+  content, 
+  chatMode, 
   sessionId,
   isCompatibilityRequest,
-  expertiseLevel = 'middle',
-  onTitleExtracted
+  expertiseLevel = 'beginner'
 }) => {
-  // Extract title from content and call the callback
-  useEffect(() => {
-    if (onTitleExtracted) {
-      try {
-        const parsed = JSON.parse(content);
-        if (parsed.title && typeof parsed.title === 'string') {
-          onTitleExtracted(parsed.title);
-        }
-      } catch {
-        // Try to extract title from markdown
-        const titleMatch = content.match(/^#\s+(.+)$/m);
-        if (titleMatch && titleMatch[1]) {
-          onTitleExtracted(titleMatch[1]);
-        }
-      }
-    }
-  }, [content, onTitleExtracted]);
+  const mappedExpertiseLevel = mapExpertiseLevel(expertiseLevel);
 
   // Select the appropriate renderer based on chat mode
-  const selectRenderer = () => {
-    try {
-      const parsed = JSON.parse(content);
-      
-      if (chatMode === 'general_search' || (!chatMode && parsed.suggestion)) {
-        return (
-          <GeneralSearchRenderer
-            content={content}
-            expertiseLevel={expertiseLevel === 'low' ? 'beginner' : expertiseLevel === 'middle' ? 'intermediate' : 'expert'}
-          />
-        );
-      }
-
-      if (chatMode === 'part_recommendation' || parsed.parts) {
-        return <PartRecommendationRenderer content={content} />;
-      }
-
-      if (chatMode === 'compatibility_check' || isCompatibilityRequest || parsed.components) {
-        return <CompatibilityCheckRenderer content={content} />;
-      }
-
-      if (chatMode === 'estimate_recommendation' || (parsed.parts && parsed.total_price)) {
-        return (
-          <BuildRecommendationRenderer
-            content={content}
-            sessionId={sessionId}
-          />
-        );
-      }
-
-      if (chatMode === 'spec_upgrade' || parsed.upgrade_parts) {
-        return (
-          <SpecUpgradeRenderer
-            content={content}
-            sessionId={sessionId}
-          />
-        );
-      }
-
-      if (chatMode === 'estimate_evaluation' || (parsed.performance && parsed.price_performance)) {
-        return <BuildEvaluationRenderer content={content} />;
-      }
-
+  switch (chatMode) {
+    case '범용 검색':
       return (
-        <GeneralSearchRenderer
-          content={content}
-          expertiseLevel={expertiseLevel === 'low' ? 'beginner' : expertiseLevel === 'middle' ? 'intermediate' : 'expert'}
+        <GeneralSearchRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={mappedExpertiseLevel} 
         />
       );
-    } catch (error) {
+    case '부품 추천':
       return (
-        <GeneralSearchRenderer
-          content={content}
-          expertiseLevel={expertiseLevel === 'low' ? 'beginner' : expertiseLevel === 'middle' ? 'intermediate' : 'expert'}
+        <PartRecommendationRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={mappedExpertiseLevel}
         />
       );
-    }
-  };
-
-  return (
-    <div className="w-full">
-      {selectRenderer()}
-    </div>
-  );
+    case '호환성 검사':
+      return (
+        <CompatibilityCheckRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={mappedExpertiseLevel}
+        />
+      );
+    case '견적 추천':
+      return (
+        <BuildRecommendationRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={mappedExpertiseLevel}
+        />
+      );
+    case '스펙 업그레이드':
+      return (
+        <SpecUpgradeRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={mappedExpertiseLevel}
+        />
+      );
+    case '견적 평가':
+      return (
+        <BuildEvaluationRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={mappedExpertiseLevel}
+        />
+      );
+    default:
+      // For compatibility checks detected in other modes
+      if (isCompatibilityRequest) {
+        return (
+          <CompatibilityCheckRenderer 
+            content={content} 
+            sessionId={sessionId}
+            expertiseLevel={mappedExpertiseLevel}
+          />
+        );
+      }
+      // Default to general search renderer
+      return (
+        <GeneralSearchRenderer 
+          content={content} 
+          sessionId={sessionId}
+          expertiseLevel={mappedExpertiseLevel} 
+        />
+      );
+  }
 };
 
 export default ResponseRenderer;

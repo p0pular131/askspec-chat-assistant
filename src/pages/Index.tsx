@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
-import ChatLayout from '../components/ChatLayout';
+import { ChatLayout } from '../components/ChatLayout';
 
 const Index = () => {
   return (

@@ -10,15 +10,13 @@ interface ChatMessagesProps {
   sessionId?: string;
   isLoading?: boolean;
   chatMode?: string;
-  onTitleExtracted?: (title: string) => void;
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ 
   messages, 
   sessionId,
   isLoading = false, 
-  chatMode = '범용 검색',
-  onTitleExtracted
+  chatMode = '범용 검색' 
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,9 +38,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     return () => clearTimeout(timeoutId);
   }, [messages, isLoading]);
 
-  // Find the first assistant message
-  const firstAssistantMessageIndex = messages.findIndex(msg => !msg.isUser);
-
   return (
     <ScrollArea className="flex-1 h-full w-full pr-4" ref={scrollAreaRef}>
       <div className="space-y-4 pb-32">
@@ -51,9 +46,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
             key={index} 
             message={message} 
             sessionId={sessionId}
-            chatMode={chatMode}
-            onTitleExtracted={onTitleExtracted}
-            isFirstAssistantMessage={index === firstAssistantMessageIndex && !message.isUser}
+            chatMode={chatMode} 
           />
         ))}
         

@@ -9,7 +9,6 @@ export function useSessionManagement() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [showExample, setShowExample] = useState(true);
   const [sessionsLoading, setSessionsLoading] = useState(false);
-  const [titleUpdatingSessionId, setTitleUpdatingSessionId] = useState<number | null>(null);
 
   // 세션 목록 로드
   const fetchSessions = useCallback(async () => {
@@ -92,35 +91,6 @@ export function useSessionManagement() {
     }
   }, [currentSession]);
 
-  // 세션 제목 업데이트
-  const updateSessionTitle = useCallback(async (sessionId: number, title: string) => {
-    console.log('[📝 세션 제목 업데이트] 요청:', sessionId, title);
-    
-    // Show visual feedback
-    setTitleUpdatingSessionId(sessionId);
-    
-    // Update local state immediately for better UX
-    setSessions(prevSessions => 
-      prevSessions.map(session => 
-        session.id === sessionId 
-          ? { ...session, session_name: title }
-          : session
-      )
-    );
-    
-    // Update current session if it's the one being updated
-    if (currentSession?.id === sessionId) {
-      setCurrentSession(prev => prev ? { ...prev, session_name: title } : null);
-    }
-    
-    // Remove visual feedback after animation
-    setTimeout(() => {
-      setTitleUpdatingSessionId(null);
-    }, 2000);
-    
-    return true;
-  }, [currentSession]);
-
   // 세션 업데이트 (기존 기능 유지를 위해 더미 함수)
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
     console.log('[📝 세션 업데이트] 요청:', sessionId, sessionName);
@@ -133,13 +103,11 @@ export function useSessionManagement() {
     sessions,
     sessionsLoading,
     showExample,
-    titleUpdatingSessionId,
     setShowExample,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
     updateSession,
-    updateSessionTitle,
     fetchSessions
   };
 }
