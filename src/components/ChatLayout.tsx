@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
+import { useEstimates } from '../hooks/useEstimates';
 import ChatMain from './ChatMain';
 import ChatConversationList from './ChatConversationList';
 import BuildsList from './BuildsList';
@@ -45,6 +47,9 @@ export const ChatLayout: React.FC = () => {
     disableAutoSwitch
   } = useConversationState();
 
+  // Estimates management
+  const { loadEstimates } = useEstimates();
+
   // Only load messages when a conversation is explicitly selected
   useEffect(() => {
     if (currentConversation?.id) {
@@ -74,10 +79,11 @@ export const ChatLayout: React.FC = () => {
   useEffect(() => {
     if (activeTab === 'builds') {
       loadBuilds();
+      loadEstimates(); // Load API estimates
       // Reset auto-switch flag when user manually goes to builds tab
       disableAutoSwitch();
     }
-  }, [activeTab, loadBuilds, disableAutoSwitch]);
+  }, [activeTab, loadBuilds, loadEstimates, disableAutoSwitch]);
 
   // Track build count and automatically switch to builds tab when new builds are created
   useEffect(() => {
@@ -192,7 +198,10 @@ export const ChatLayout: React.FC = () => {
               error={null}
               onViewBuild={handleViewBuild}
               onDelete={handleDeleteBuild}
-              onRefresh={loadBuilds}
+              onRefresh={() => {
+                loadBuilds();
+                loadEstimates();
+              }}
             />
           )}
         </div>

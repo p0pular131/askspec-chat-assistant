@@ -2,6 +2,7 @@
 import React, { useState, useCallback, memo, useEffect } from 'react';
 import { Build } from '../hooks/useBuilds';
 import { toast } from '../components/ui/use-toast';
+import { useEstimates } from '../hooks/useEstimates';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,15 @@ const BuildsList: React.FC<BuildsListProps> = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [buildToDelete, setBuildToDelete] = useState<string | null>(null);
   const [localBuilds, setLocalBuilds] = useState<any[]>([]);
+  
+  // API 견적 관리를 위한 hook
+  const {
+    estimates,
+    loading: estimatesLoading,
+    error: estimatesError,
+    loadEstimates,
+    handleDeleteEstimate
+  } = useEstimates();
 
   // Function to standardize part type from localStorage build data
   const getStandardizedPartType = (partName: string): string => {
@@ -108,7 +118,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
     };
   };
 
-  // Load builds from localStorage on component mount
+  // Load builds from localStorage and API on component mount
   useEffect(() => {
     const loadLocalBuilds = () => {
       try {
@@ -123,6 +133,8 @@ const BuildsList: React.FC<BuildsListProps> = ({
     };
 
     loadLocalBuilds();
+    // Load API estimates
+    loadEstimates();
 
     // Listen for builds updates
     const handleBuildsUpdated = () => {
@@ -134,7 +146,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
     return () => {
       window.removeEventListener('buildsUpdated', handleBuildsUpdated);
     };
-  }, []);
+  }, [loadEstimates]);
 
   const handleDelete = useCallback((e: React.MouseEvent, buildId: number | string) => {
     e.stopPropagation();
@@ -142,10 +154,11 @@ const BuildsList: React.FC<BuildsListProps> = ({
     setDialogOpen(true);
   }, []);
 
-  const confirmDelete = useCallback(() => {
+  const confirmDelete = useCallback(async () => {
     if (buildToDelete) {
-      // Check if it's a local build or database build
+      // Check if it's a local build or API build
       const isLocalBuild = localBuilds.some(build => String(build.id) === buildToDelete);
+      const isApiBuild = estimates.some(estimate => String(estimate.id) === buildToDelete);
       
       if (isLocalBuild) {
         // Delete from localStorage
@@ -157,26 +170,29 @@ const BuildsList: React.FC<BuildsListProps> = ({
           title: "견적 삭제 완료",
           description: "견적이 성공적으로 삭제되었습니다.",
         });
+      } else if (isApiBuild) {
+        // Delete from API
+        await handleDeleteEstimate(buildToDelete);
       } else {
-        // Delete from database
+        // Delete from database (legacy)
         onDelete(buildToDelete);
       }
       
       setDialogOpen(false);
       setBuildToDelete(null);
     }
-  }, [buildToDelete, localBuilds, onDelete]);
+  }, [buildToDelete, localBuilds, estimates, handleDeleteEstimate, onDelete]);
 
   const cancelDelete = useCallback(() => {
     setBuildToDelete(null);
     setDialogOpen(false);
   }, []);
 
-  // Combine local builds with database builds
-  const allBuilds = [...localBuilds, ...builds];
+  // Combine local builds, API estimates, and database builds
+  const allBuilds = [...localBuilds, ...estimates, ...builds];
 
   const renderContent = useCallback(() => {
-    if (error) {
+    if (error || estimatesError) {
       return (
         <div className="p-4 rounded-md bg-red-50">
           <div className="flex">
@@ -187,13 +203,16 @@ const BuildsList: React.FC<BuildsListProps> = ({
               <h3 className="text-sm font-medium text-red-800">데이터 로딩 실패</h3>
               <div className="mt-2 text-sm text-red-700">
                 <p>견적 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
-                <p className="mt-1 text-xs text-red-600">{error}</p>
+                <p className="mt-1 text-xs text-red-600">{error || estimatesError}</p>
                 {onRefresh && (
                   <Button 
                     variant="outline" 
                     size="sm" 
                     className="mt-2" 
-                    onClick={onRefresh}
+                    onClick={() => {
+                      onRefresh();
+                      loadEstimates();
+                    }}
                   >
                     다시 시도
                   </Button>
@@ -205,7 +224,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       );
     }
     
-    if (loading) {
+    if (loading || estimatesLoading) {
       return <div className="p-2 text-sm text-center">로딩 중...</div>;
     }
     
@@ -228,10 +247,15 @@ const BuildsList: React.FC<BuildsListProps> = ({
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <span>{build.name}</span>
+              <span>{build.name || build.title}</span>
               {build.type === 'spec_upgrade' && (
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
                   업그레이드
+                </span>
+              )}
+              {estimates.some(e => e.id === build.id) && (
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                  API
                 </span>
               )}
             </div>
@@ -239,9 +263,9 @@ const BuildsList: React.FC<BuildsListProps> = ({
               {new Date(build.created_at).toLocaleDateString()}
             </span>
           </div>
-          {build.total_price > 0 && (
+          {(build.total_price > 0 || build.totalPrice > 0) && (
             <div className="text-xs text-gray-500 mt-1">
-              예상 가격: ₩{build.total_price.toLocaleString()}원
+              예상 가격: ₩{(build.total_price || build.totalPrice).toLocaleString()}원
             </div>
           )}
         </button>
@@ -256,7 +280,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
         </button>
       </div>
     ));
-  }, [allBuilds, error, loading, onRefresh, handleDelete, onViewBuild]);
+  }, [allBuilds, error, estimatesError, loading, estimatesLoading, onRefresh, handleDelete, onViewBuild, loadEstimates]);
 
   return (
     <div className="flex flex-col gap-2">

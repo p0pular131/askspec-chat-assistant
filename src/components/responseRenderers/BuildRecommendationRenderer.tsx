@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Card, 
@@ -10,8 +9,9 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Save, ArrowRight } from 'lucide-react';
+import { ExternalLink, Save, ArrowRight, Cloud } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useEstimates } from '@/hooks/useEstimates';
 import { sampleBuildRecommendation } from '../../data/sampleData';
 
 // Fixed order for component types
@@ -34,6 +34,7 @@ export interface EstimateResponse {
   total_price: string;
   total_reason: string;
   suggestion?: string;
+  estimate_id?: string; // API에서 받은 견적 ID
 }
 
 interface BuildRecommendationRendererProps {
@@ -49,6 +50,8 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   expertiseLevel = 'beginner',
   recommendationData 
 }) => {
+  const { handleSaveEstimate } = useEstimates();
+  
   // Try to parse content as JSON, fallback to sample data if parsing fails
   let buildData;
   try {
@@ -162,7 +165,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   const sortedParts = getSortedParts();
   
   // Function to save the estimate to local storage and show feedback
-  const handleSaveEstimate = () => {
+  const handleSaveEstimateLocal = () => {
     try {
       // Create a build object from the current recommendation data with sorted parts
       const newBuild = {
@@ -202,6 +205,24 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     }
   };
 
+  // Function to save via API
+  const handleSaveEstimateAPI = async () => {
+    if (!buildData.estimate_id) {
+      toast({
+        title: "저장 실패",
+        description: "견적 ID가 없습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await handleSaveEstimate(buildData.estimate_id);
+    } catch (error) {
+      console.error('Error saving estimate via API:', error);
+    }
+  };
+
   return (
     <div className="build-recommendation-response space-y-6">
       {/* Summary Card with Total Price and Reasoning */}
@@ -209,15 +230,28 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         <CardHeader className="bg-blue-50 dark:bg-blue-950/30">
           <div className="flex justify-between items-center">
             <CardTitle className="text-2xl font-bold">{buildData.title}</CardTitle>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-1"
-              onClick={handleSaveEstimate}
-            >
-              <Save size={16} />
-              <span>견적 저장</span>
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1"
+                onClick={handleSaveEstimateLocal}
+              >
+                <Save size={16} />
+                <span>로컬 저장</span>
+              </Button>
+              {buildData.estimate_id && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                  onClick={handleSaveEstimateAPI}
+                >
+                  <Cloud size={16} />
+                  <span>견적 저장</span>
+                </Button>
+              )}
+            </div>
           </div>
           <div className="flex justify-between items-center mt-2">
             <CardDescription className="text-xl font-semibold text-blue-600 dark:text-blue-400">
