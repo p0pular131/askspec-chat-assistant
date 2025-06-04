@@ -91,12 +91,26 @@ export function useSessionManagement() {
     }
   }, [currentSession]);
 
-  // 세션 업데이트 (기존 기능 유지를 위해 더미 함수)
+  // 세션 업데이트 (제목 변경)
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
     console.log('[📝 세션 업데이트] 요청:', sessionId, sessionName);
-    // 백엔드에 업데이트 API가 있다면 여기에 구현
+    
+    // 로컬 상태 즉시 업데이트
+    setSessions(prevSessions => 
+      prevSessions.map(session => 
+        session.id === sessionId 
+          ? { ...session, session_name: sessionName }
+          : session
+      )
+    );
+    
+    // 현재 세션도 업데이트
+    if (currentSession?.id === sessionId) {
+      setCurrentSession(prev => prev ? { ...prev, session_name: sessionName } : null);
+    }
+    
     return true;
-  }, []);
+  }, [currentSession]);
 
   return {
     currentSession,

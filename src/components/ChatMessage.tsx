@@ -31,7 +31,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   
   // Use the message's stored chatMode and expertiseLevel if available
   const effectiveChatMode = message.chatMode || chatMode;
-  const expertiseLevel = (message.expertiseLevel || 'beginner') as 'beginner' | 'intermediate' | 'expert';
+  const expertiseLevel = message.expertiseLevel || 'beginner';
   
   if (message.isUser) {
     return (
@@ -62,7 +62,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           chatMode={effectiveChatMode} 
           sessionId={sessionId}
           isCompatibilityRequest={isCompatibilityRequest}
-          expertiseLevel={expertiseLevel}
+          expertiseLevel={expertiseLevel as 'beginner' | 'intermediate' | 'expert'}
         />
       </div>
     </div>
