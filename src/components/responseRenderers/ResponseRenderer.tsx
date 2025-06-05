@@ -25,9 +25,20 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
     return <div className="whitespace-pre-wrap">{content}</div>;
   }
 
-  // Map expertise levels to expected format
-  const mappedExpertiseLevel = expertiseLevel === 'beginner' ? 'low' : 
-                               expertiseLevel === 'expert' ? 'high' : 'middle';
+  // Map expertise levels correctly
+  const getCompatibleExpertiseLevel = (level: string): 'low' | 'middle' | 'high' => {
+    switch (level) {
+      case 'beginner':
+        return 'low';
+      case 'expert':
+        return 'high';
+      case 'intermediate':
+      default:
+        return 'middle';
+    }
+  };
+
+  const mappedExpertiseLevel = getCompatibleExpertiseLevel(expertiseLevel);
 
   // Render based on chat mode
   switch (chatMode) {
@@ -35,7 +46,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
       return (
         <BuildRecommendationRenderer 
           content={content} 
-          expertiseLevel={mappedExpertiseLevel as 'high' | 'low' | 'middle'}
+          expertiseLevel={mappedExpertiseLevel}
         />
       );
     
@@ -43,7 +54,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
       return (
         <PartRecommendationRenderer 
           content={content} 
-          expertiseLevel={mappedExpertiseLevel as 'high' | 'low' | 'middle'}
+          expertiseLevel={mappedExpertiseLevel}
         />
       );
     
@@ -51,7 +62,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
       return (
         <CompatibilityCheckRenderer 
           content={content} 
-          expertiseLevel={mappedExpertiseLevel as 'high' | 'low' | 'middle'}
+          expertiseLevel={mappedExpertiseLevel}
         />
       );
     
@@ -59,7 +70,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
       return (
         <SpecUpgradeRenderer 
           content={content} 
-          expertiseLevel={mappedExpertiseLevel as 'high' | 'low' | 'middle'}
+          expertiseLevel={mappedExpertiseLevel}
         />
       );
     
@@ -67,7 +78,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
       return (
         <BuildEvaluationRenderer 
           content={content} 
-          expertiseLevel={mappedExpertiseLevel as 'high' | 'low' | 'middle'}
+          expertiseLevel={mappedExpertiseLevel}
         />
       );
     
@@ -76,7 +87,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
       return (
         <GeneralSearchRenderer 
           content={content} 
-          expertiseLevel={mappedExpertiseLevel as 'high' | 'low' | 'middle'}
+          expertiseLevel={mappedExpertiseLevel}
         />
       );
   }
