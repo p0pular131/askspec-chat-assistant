@@ -43,6 +43,8 @@ export const ChatLayout: React.FC = () => {
 
   const {
     estimates,
+    getEstimateDetails,
+    deleteEstimate,
     fetchEstimates
   } = useEstimates();
 
@@ -92,11 +94,27 @@ export const ChatLayout: React.FC = () => {
     }
   }, [activeTab, fetchEstimates, disableAutoSwitch]);
 
-  // Handle estimate view - this is now handled inside BuildsList component
+  // Handle estimate view
   const handleViewEstimate = useCallback(async (estimateId: string) => {
-    console.log('View estimate called with ID:', estimateId);
-    // This function is kept for compatibility but actual logic is in BuildsList
-  }, []);
+    try {
+      const estimateDetails = await getEstimateDetails(estimateId);
+      if (estimateDetails) {
+        // Navigate to estimate details view (you might want to add routing here)
+        console.log('Viewing estimate details:', estimateDetails);
+      }
+    } catch (error) {
+      console.error('Error viewing estimate:', error);
+    }
+  }, [getEstimateDetails]);
+
+  // Handle estimate deletion
+  const handleDeleteEstimate = useCallback(async (estimateId: string) => {
+    try {
+      await deleteEstimate(estimateId);
+    } catch (error) {
+      console.error('Error deleting estimate:', error);
+    }
+  }, [deleteEstimate]);
 
   // Track build count and automatically switch to builds tab when new builds are created
   useEffect(() => {
@@ -113,13 +131,13 @@ export const ChatLayout: React.FC = () => {
   const getExpertiseLevel = useCallback(() => {
     switch(selectedAnswer) {
       case 1:
-        return 'high';
+        return 'expert';
       case 2:
-        return 'middle';
+        return 'intermediate';
       case 3:
-        return 'low';
+        return 'beginner';
       default:
-        return 'low';
+        return 'beginner';
     }
   }, [selectedAnswer]);
 

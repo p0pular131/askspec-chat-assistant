@@ -18,7 +18,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
   content,
   chatMode,
   isUser,
-  expertiseLevel = 'middle'
+  expertiseLevel = 'intermediate'
 }) => {
   // User messages don't need special rendering
   if (isUser) {
