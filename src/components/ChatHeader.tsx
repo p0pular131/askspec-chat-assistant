@@ -11,13 +11,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ expertiseLevel }) => {
   // Map expertise level to Korean
   const getExpertiseLevelText = (level: string | null | undefined) => {
     switch(level) {
-      case 'expert':
       case 'high':
         return '전문가';
-      case 'intermediate':
       case 'middle':
         return '중급자';
-      case 'beginner':
       case 'low':
         return '입문자';
       default:
@@ -28,13 +25,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ expertiseLevel }) => {
   // Get badge class based on expertise level
   const getBadgeClass = (level: string | null | undefined): string => {
     switch(level) {
-      case 'beginner':
       case 'low':
         return 'bg-blue-100 text-blue-700 border-blue-300';
-      case 'expert':
       case 'high':
         return 'bg-red-100 text-red-700 border-red-300';
-      case 'intermediate':
       case 'middle':
         return 'bg-green-100 text-green-700 border-green-300';
       default:
@@ -45,13 +39,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ expertiseLevel }) => {
   // Get icon based on expertise level
   const getExpertiseLevelIcon = (level: string | null | undefined) => {
     switch(level) {
-      case 'beginner':
       case 'low':
         return <BookOpen className="h-3 w-3 mr-1" />;
-      case 'expert':
       case 'high':
         return <Cpu className="h-3 w-3 mr-1" />;
-      case 'intermediate':
       case 'middle':
         return <InfoIcon className="h-3 w-3 mr-1" />;
       default:
