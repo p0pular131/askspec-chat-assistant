@@ -7,13 +7,13 @@ import { Badge } from '../ui/badge';
 interface GeneralSearchRendererProps {
   content: string;
   sessionId?: string;
-  expertiseLevel?: 'beginner' | 'intermediate' | 'expert' | null;
+  expertiseLevel?: 'low' | 'middle' | 'high' | null;
 }
 
 const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({ 
   content, 
   sessionId,
-  expertiseLevel = 'beginner' 
+  expertiseLevel = 'low' 
 }) => {
   return (
     <div className="general-search-response relative">
@@ -37,11 +37,11 @@ const GeneralSearchRenderer: React.FC<GeneralSearchRendererProps> = ({
 // Helper functions for styling based on expertise level
 const getBadgeClass = (level: string | null): string => {
   switch (level) {
-    case 'beginner':
+    case 'low':
       return 'bg-blue-100 text-blue-700 border-blue-300';
-    case 'expert':
+    case 'high':
       return 'bg-red-100 text-red-700 border-red-300';
-    case 'intermediate':
+    case 'middle':
       return 'bg-green-100 text-green-700 border-green-300';
     default:
       return 'bg-gray-100 text-gray-700 border-gray-300';
@@ -50,11 +50,11 @@ const getBadgeClass = (level: string | null): string => {
 
 const getExpertiseLevelLabel = (level: string | null): string => {
   switch (level) {
-    case 'beginner':
+    case 'low':
       return '입문자';
-    case 'expert':
+    case 'high':
       return '전문가';
-    case 'intermediate':
+    case 'middle':
       return '중급자';
     default:
       return '선택되지 않음';
@@ -63,11 +63,11 @@ const getExpertiseLevelLabel = (level: string | null): string => {
 
 const getExpertiseLevelIcon = (level: string | null) => {
   switch (level) {
-    case 'beginner':
+    case 'low':
       return <BookOpen className="h-3 w-3" />;
-    case 'expert':
+    case 'high':
       return <Cpu className="h-3 w-3" />;
-    case 'intermediate':
+    case 'middle':
       return <InfoIcon className="h-3 w-3" />;
     default:
       return <InfoIcon className="h-3 w-3" />;
