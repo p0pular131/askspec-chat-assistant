@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, memo, useEffect } from 'react';
 import { toast } from '../components/ui/use-toast';
 import { 
@@ -11,9 +10,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { AlertCircle, Loader2, Download } from 'lucide-react';
+import { AlertCircle, Loader2, Download, Eye } from 'lucide-react';
 import { Button } from './ui/button';
 import { useEstimates } from '../hooks/useEstimates';
+import EstimateDetailsModal from './EstimateDetailsModal';
 
 interface BuildsListProps {
   onViewBuild: (buildId: string) => void;
@@ -26,6 +26,8 @@ const BuildsList: React.FC<BuildsListProps> = ({
 }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [buildToDelete, setBuildToDelete] = useState<string | null>(null);
+  const [selectedEstimate, setSelectedEstimate] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const {
     estimates,
@@ -36,13 +38,26 @@ const BuildsList: React.FC<BuildsListProps> = ({
     pdfLoading,
     fetchEstimates,
     deleteEstimate,
-    generatePdf
+    generatePdf,
+    getEstimateDetails
   } = useEstimates();
 
   // Load estimates when component mounts
   useEffect(() => {
     fetchEstimates();
   }, [fetchEstimates]);
+
+  const handleViewEstimate = useCallback(async (estimateId: string) => {
+    try {
+      const estimateDetails = await getEstimateDetails(estimateId);
+      if (estimateDetails) {
+        setSelectedEstimate(estimateDetails);
+        setModalOpen(true);
+      }
+    } catch (error) {
+      console.error('Error viewing estimate:', error);
+    }
+  }, [getEstimateDetails]);
 
   const handleDelete = useCallback((e: React.MouseEvent, buildId: string) => {
     e.stopPropagation();
@@ -136,7 +151,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
         <div className="flex items-center gap-2">
           <button
             className="p-3 w-full text-sm text-left rounded-lg text-neutral-700 hover:bg-neutral-100 flex-1"
-            onClick={() => onViewBuild(estimate.id)}
+            onClick={() => handleViewEstimate(estimate.id)}
           >
             <div className="flex justify-between items-start">
               <div className="flex-1">
@@ -152,6 +167,19 @@ const BuildsList: React.FC<BuildsListProps> = ({
           </button>
 
           <div className="flex flex-col gap-1">
+            {/* View Details Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewEstimate(estimate.id);
+              }}
+              className="p-1 text-green-600 rounded hover:bg-green-50"
+              aria-label="견적 상세보기"
+              title="견적 상세보기"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+
             {/* PDF Generation Button */}
             <button
               onClick={(e) => handleGeneratePdf(e, estimate.id)}
@@ -183,7 +211,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
         </div>
       </div>
     ));
-  }, [estimates, loading, error, pdfLoading, deleteLoading, onViewBuild, handleDelete, handleGeneratePdf, handleRefresh]);
+  }, [estimates, loading, error, pdfLoading, deleteLoading, handleViewEstimate, handleDelete, handleGeneratePdf, handleRefresh]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -205,6 +233,18 @@ const BuildsList: React.FC<BuildsListProps> = ({
       </div>
       
       {renderContent()}
+
+      {/* Estimate Details Modal */}
+      <EstimateDetailsModal
+        estimate={selectedEstimate}
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedEstimate(null);
+        }}
+        onGeneratePdf={generatePdf}
+        pdfLoading={pdfLoading}
+      />
 
       {/* Confirmation Dialog */}
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
