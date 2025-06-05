@@ -1,96 +1,86 @@
 
 import React from 'react';
-import BuildRecommendationRenderer from './BuildRecommendationRenderer';
-import PartRecommendationRenderer from './PartRecommendationRenderer';
-import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
-import SpecUpgradeRenderer from './SpecUpgradeRenderer';
-import BuildEvaluationRenderer from './BuildEvaluationRenderer';
-import GeneralSearchRenderer from './GeneralSearchRenderer';
+import { BuildRecommendationRenderer } from './BuildRecommendationRenderer';
+import { PartRecommendationRenderer } from './PartRecommendationRenderer';
+import { CompatibilityCheckRenderer } from './CompatibilityCheckRenderer';
+import { BuildEvaluationRenderer } from './BuildEvaluationRenderer';
+import { SpecUpgradeRenderer } from './SpecUpgradeRenderer';
+import { GeneralSearchRenderer } from './GeneralSearchRenderer';
+import { ResponseData } from '../types';
 
 interface ResponseRendererProps {
-  content: string;
-  chatMode: string;
-  isUser: boolean;
-  expertiseLevel?: string;
+  response: ResponseData;
+  expertiseLevel?: string | null;
 }
 
-export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
-  content,
-  chatMode,
-  isUser,
-  expertiseLevel = 'middle'
+export const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
+  response, 
+  expertiseLevel 
 }) => {
-  // User messages don't need special rendering
-  if (isUser) {
-    return <div className="whitespace-pre-wrap">{content}</div>;
-  }
-
-  // Map expertise levels correctly
-  const getCompatibleExpertiseLevel = (level: string): 'low' | 'middle' | 'high' => {
-    switch (level) {
-      case 'beginner':
-        return 'low';
-      case 'expert':
-        return 'high';
-      case 'intermediate':
+  // Map expertise levels from ChatHeader format to component format
+  const mapExpertiseLevel = (level: string | null | undefined): "beginner" | "intermediate" | "expert" => {
+    switch(level) {
+      case 'low':
+        return 'beginner';
+      case 'middle':
+        return 'intermediate';
+      case 'high':
+        return 'expert';
       default:
-        return 'middle';
+        return 'beginner';
     }
   };
 
-  const mappedExpertiseLevel = getCompatibleExpertiseLevel(expertiseLevel);
+  const mappedExpertiseLevel = mapExpertiseLevel(expertiseLevel);
 
-  // Render based on chat mode
-  switch (chatMode) {
-    case '견적 추천':
+  switch (response.response_type) {
+    case 'build_recommendation':
       return (
-        <BuildRecommendationRenderer 
-          content={content} 
+        <BuildRecommendationRenderer
+          response={response}
           expertiseLevel={mappedExpertiseLevel}
         />
       );
-    
-    case '부품 추천':
+    case 'part_recommendation':
       return (
-        <PartRecommendationRenderer 
-          content={content} 
+        <PartRecommendationRenderer
+          response={response}
           expertiseLevel={mappedExpertiseLevel}
         />
       );
-    
-    case '호환성 검사':
+    case 'compatibility_check':
       return (
-        <CompatibilityCheckRenderer 
-          content={content} 
+        <CompatibilityCheckRenderer
+          response={response}
           expertiseLevel={mappedExpertiseLevel}
         />
       );
-    
-    case '스펙 업그레이드':
+    case 'build_evaluation':
       return (
-        <SpecUpgradeRenderer 
-          content={content} 
+        <BuildEvaluationRenderer
+          response={response}
           expertiseLevel={mappedExpertiseLevel}
         />
       );
-    
-    case '견적 평가':
+    case 'spec_upgrade':
       return (
-        <BuildEvaluationRenderer 
-          content={content} 
+        <SpecUpgradeRenderer
+          response={response}
           expertiseLevel={mappedExpertiseLevel}
         />
       );
-    
-    case '범용 검색':
+    case 'general_search':
+      return (
+        <GeneralSearchRenderer
+          response={response}
+          expertiseLevel={mappedExpertiseLevel}
+        />
+      );
     default:
       return (
-        <GeneralSearchRenderer 
-          content={content} 
-          expertiseLevel={mappedExpertiseLevel}
-        />
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <p className="text-gray-600">Unknown response type: {(response as any).response_type}</p>
+        </div>
       );
   }
 };
-
-export default ResponseRenderer;

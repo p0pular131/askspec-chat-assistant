@@ -47,15 +47,23 @@ const BuildsList: React.FC<BuildsListProps> = ({
     fetchEstimates();
   }, [fetchEstimates]);
 
+  // Updated handleViewEstimate to use API data and show modal
   const handleViewEstimate = useCallback(async (estimateId: string) => {
     try {
+      console.log('Fetching estimate details for ID:', estimateId);
       const estimateDetails = await getEstimateDetails(estimateId);
       if (estimateDetails) {
+        console.log('Successfully fetched estimate details:', estimateDetails);
         setSelectedEstimate(estimateDetails);
         setModalOpen(true);
       }
     } catch (error) {
       console.error('Error viewing estimate:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load estimate details",
+        variant: "destructive",
+      });
     }
   }, [getEstimateDetails]);
 
@@ -234,7 +242,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       
       {renderContent()}
 
-      {/* Estimate Details Modal */}
+      {/* Estimate Details Modal using BuildDetails component */}
       <EstimateDetailsModal
         estimate={selectedEstimate}
         isOpen={modalOpen}
