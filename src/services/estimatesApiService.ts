@@ -45,110 +45,71 @@ export interface GeneratePdfResponse {
   message?: string;
 }
 
-// API Service Class
-class EstimatesApiService {
-  private axiosInstance;
+// 견적 목록 조회 API
+export const fetchEstimates = async (): Promise<EstimatesListResponse> => {
+  try {
+    console.log('[🔄 견적 목록] API 호출 시작');
+    const response = await axios.get(`${API_BASE_URL}/estimates`);
+    console.log('[✅ 견적 목록] API 응답 성공:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[❌ 견적 목록 조회 API 오류]:', error);
+    throw error;
+  }
+};
 
-  constructor() {
-    this.axiosInstance = axios.create({
-      baseURL: API_BASE_URL,
-      timeout: 30000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+// 견적 저장 API
+export const saveEstimate = async (estimateId: string): Promise<SaveEstimateResponse> => {
+  try {
+    console.log('[🔄 견적 저장] API 호출 시작:', estimateId);
+    const response = await axios.post(`${API_BASE_URL}/estimates/${estimateId}/save`, {
+      estimate_id: estimateId
     });
-
-    // Request interceptor for logging
-    this.axiosInstance.interceptors.request.use(
-      (config) => {
-        console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
-        return config;
-      },
-      (error) => {
-        console.error('[API Request Error]', error);
-        return Promise.reject(error);
-      }
-    );
-
-    // Response interceptor for error handling
-    this.axiosInstance.interceptors.response.use(
-      (response) => {
-        console.log(`[API Response] ${response.status} ${response.config.url}`);
-        return response;
-      },
-      (error) => {
-        console.error('[API Response Error]', error.response?.data || error.message);
-        return Promise.reject(error);
-      }
-    );
+    console.log('[✅ 견적 저장] API 응답 성공:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[❌ 견적 저장 API 오류]:', error);
+    throw error;
   }
+};
 
-  // 1. Fetch estimate list
-  async fetchEstimates(): Promise<EstimatesListResponse> {
-    try {
-      const response = await this.axiosInstance.get<EstimatesListResponse>('/estimates');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching estimates:', error);
-      throw new Error(`Failed to fetch estimates: ${error.response?.data?.message || error.message}`);
-    }
+// 견적 상세 조회 API
+export const getEstimateDetails = async (estimateId: string): Promise<EstimatesListResponse> => {
+  try {
+    console.log('[🔄 견적 상세 조회] API 호출 시작:', estimateId);
+    const response = await axios.get(`${API_BASE_URL}/estimates/${estimateId}`);
+    console.log('[✅ 견적 상세 조회] API 응답 성공:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[❌ 견적 상세 조회 API 오류]:', error);
+    throw error;
   }
+};
 
-  // 2. Save estimate
-  async saveEstimate(estimateId: string): Promise<SaveEstimateResponse> {
-    try {
-      const response = await this.axiosInstance.post<SaveEstimateResponse>(
-        `/estimates/${estimateId}/save`,
-        { estimate_id: estimateId }
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Error saving estimate:', error);
-      throw new Error(`Failed to save estimate: ${error.response?.data?.message || error.message}`);
-    }
+// 견적 삭제 API
+export const deleteEstimate = async (estimateId: string): Promise<DeleteEstimateResponse> => {
+  try {
+    console.log('[🔄 견적 삭제] API 호출 시작:', estimateId);
+    const response = await axios.delete(`${API_BASE_URL}/estimates/${estimateId}`);
+    console.log('[✅ 견적 삭제] API 응답 성공:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[❌ 견적 삭제 API 오류]:', error);
+    throw error;
   }
+};
 
-  // 3. Get estimate details
-  async getEstimateDetails(estimateId: string): Promise<EstimatesListResponse> {
-    try {
-      const response = await this.axiosInstance.get<EstimatesListResponse>(
-        `/estimates/${estimateId}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching estimate details:', error);
-      throw new Error(`Failed to fetch estimate details: ${error.response?.data?.message || error.message}`);
-    }
+// PDF 생성 API
+export const generatePdf = async (estimateId: string): Promise<GeneratePdfResponse> => {
+  try {
+    console.log('[🔄 PDF 생성] API 호출 시작:', estimateId);
+    const response = await axios.post(`${API_BASE_URL}/generate-pdf`, {
+      estimate_id: estimateId
+    });
+    console.log('[✅ PDF 생성] API 응답 성공:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[❌ PDF 생성 API 오류]:', error);
+    throw error;
   }
-
-  // 4. Delete estimate
-  async deleteEstimate(estimateId: string): Promise<DeleteEstimateResponse> {
-    try {
-      const response = await this.axiosInstance.delete<DeleteEstimateResponse>(
-        `/estimates/${estimateId}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting estimate:', error);
-      throw new Error(`Failed to delete estimate: ${error.response?.data?.message || error.message}`);
-    }
-  }
-
-  // 5. Generate PDF
-  async generatePdf(estimateId: string): Promise<GeneratePdfResponse> {
-    try {
-      const response = await this.axiosInstance.post<GeneratePdfResponse>(
-        '/generate-pdf',
-        { estimate_id: estimateId }
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      throw new Error(`Failed to generate PDF: ${error.response?.data?.message || error.message}`);
-    }
-  }
-}
-
-// Export singleton instance
-export const estimatesApiService = new EstimatesApiService();
-export default estimatesApiService;
+};

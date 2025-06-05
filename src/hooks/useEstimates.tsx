@@ -1,9 +1,14 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from '../components/ui/use-toast';
-import estimatesApiService, { 
-  EstimateResponse, 
-  EstimatesListResponse 
+import {
+  fetchEstimates as fetchEstimatesAPI,
+  saveEstimate as saveEstimateAPI,
+  getEstimateDetails as getEstimateDetailsAPI,
+  deleteEstimate as deleteEstimateAPI,
+  generatePdf as generatePdfAPI,
+  EstimateResponse,
+  EstimatesListResponse
 } from '../services/estimatesApiService';
 
 export interface EstimateItem extends EstimateResponse {
@@ -26,8 +31,9 @@ export function useEstimates() {
     try {
       setLoading(true);
       setError(null);
+      console.log('[🔄 견적 목록 호출] useEstimates 시작');
 
-      const response: EstimatesListResponse = await estimatesApiService.fetchEstimates();
+      const response: EstimatesListResponse = await fetchEstimatesAPI();
       
       // Transform response to include IDs and timestamps
       const transformedEstimates: EstimateItem[] = response.responses.map((estimate, index) => ({
@@ -37,6 +43,7 @@ export function useEstimates() {
       }));
 
       setEstimates(transformedEstimates);
+      console.log('[✅ 견적 목록] 로드 완료:', transformedEstimates.length, '개');
       
       toast({
         title: "견적 목록 로드 완료",
@@ -45,6 +52,7 @@ export function useEstimates() {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '견적 목록을 불러오는데 실패했습니다.';
+      console.error('[❌ 견적 목록] 로드 실패:', err);
       setError(errorMessage);
       
       toast({
@@ -61,10 +69,12 @@ export function useEstimates() {
   const saveEstimate = useCallback(async (estimateId: string) => {
     try {
       setSaveLoading(true);
+      console.log('[🔄 견적 저장] useEstimates 시작:', estimateId);
       
-      const response = await estimatesApiService.saveEstimate(estimateId);
+      const response = await saveEstimateAPI(estimateId);
       
       if (response.success) {
+        console.log('[✅ 견적 저장] 완료');
         toast({
           title: "견적 저장 완료",
           description: "견적이 성공적으로 저장되었습니다.",
@@ -79,6 +89,7 @@ export function useEstimates() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '견적 저장에 실패했습니다.';
+      console.error('[❌ 견적 저장] 실패:', err);
       
       toast({
         title: "견적 저장 실패",
@@ -97,8 +108,9 @@ export function useEstimates() {
     try {
       setDetailsLoading(true);
       setError(null);
+      console.log('[🔄 견적 상세 조회] useEstimates 시작:', estimateId);
 
-      const response = await estimatesApiService.getEstimateDetails(estimateId);
+      const response = await getEstimateDetailsAPI(estimateId);
       
       if (response.responses && response.responses.length > 0) {
         const estimateData = response.responses[0];
@@ -110,12 +122,14 @@ export function useEstimates() {
         };
 
         setSelectedEstimate(detailedEstimate);
+        console.log('[✅ 견적 상세 조회] 완료');
         return detailedEstimate;
       } else {
         throw new Error('견적 상세 정보를 찾을 수 없습니다.');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '견적 상세 정보를 불러오는데 실패했습니다.';
+      console.error('[❌ 견적 상세 조회] 실패:', err);
       setError(errorMessage);
       
       toast({
@@ -134,8 +148,9 @@ export function useEstimates() {
   const deleteEstimate = useCallback(async (estimateId: string) => {
     try {
       setDeleteLoading(true);
+      console.log('[🔄 견적 삭제] useEstimates 시작:', estimateId);
       
-      const response = await estimatesApiService.deleteEstimate(estimateId);
+      const response = await deleteEstimateAPI(estimateId);
       
       if (response.success) {
         // Remove from local state immediately
@@ -146,6 +161,7 @@ export function useEstimates() {
           setSelectedEstimate(null);
         }
         
+        console.log('[✅ 견적 삭제] 완료');
         toast({
           title: "견적 삭제 완료",
           description: "견적이 성공적으로 삭제되었습니다.",
@@ -157,6 +173,7 @@ export function useEstimates() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '견적 삭제에 실패했습니다.';
+      console.error('[❌ 견적 삭제] 실패:', err);
       
       toast({
         title: "견적 삭제 실패",
@@ -174,13 +191,15 @@ export function useEstimates() {
   const generatePdf = useCallback(async (estimateId: string) => {
     try {
       setPdfLoading(true);
+      console.log('[🔄 PDF 생성] useEstimates 시작:', estimateId);
       
-      const response = await estimatesApiService.generatePdf(estimateId);
+      const response = await generatePdfAPI(estimateId);
       
       if (response.success && response.pdf_url) {
         // Open PDF in new window or download
         window.open(response.pdf_url, '_blank');
         
+        console.log('[✅ PDF 생성] 완료:', response.pdf_url);
         toast({
           title: "PDF 생성 완료",
           description: "PDF가 성공적으로 생성되었습니다.",
@@ -192,6 +211,7 @@ export function useEstimates() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'PDF 생성에 실패했습니다.';
+      console.error('[❌ PDF 생성] 실패:', err);
       
       toast({
         title: "PDF 생성 실패",
