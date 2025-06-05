@@ -5,6 +5,7 @@ import ChatMain from './ChatMain';
 import ChatConversationList from './ChatConversationList';
 import BuildsList from './BuildsList';
 import ExpertiseSurvey from './ExpertiseSurvey';
+import { useEstimates } from '../hooks/useEstimates';
 
 // Helper function to validate if a string is a valid UUID
 const isUUID = (str: string | null): boolean => {
@@ -27,16 +28,11 @@ export const ChatLayout: React.FC = () => {
     conversations,
     convoLoading,
     dbMessages,
-    builds,
-    buildsLoading,
     startNewConversation,
     selectConversation,
     handleDeleteConversation,
-    handleDeleteBuild,
-    handleViewBuild,
     sendMessage,
     loadMessages,
-    loadBuilds,
     chatMode,
     setChatMode,
     getExamplePrompt,
@@ -44,6 +40,26 @@ export const ChatLayout: React.FC = () => {
     checkForNewBuilds,
     disableAutoSwitch
   } = useConversationState();
+
+  const {
+    estimates,
+    getEstimateDetails,
+    deleteEstimate,
+    fetchEstimates
+  } = useEstimates();
+
+  // Listen for estimates updates
+  useEffect(() => {
+    const handleEstimatesUpdated = () => {
+      fetchEstimates();
+    };
+
+    window.addEventListener('estimatesSaved', handleEstimatesUpdated);
+    
+    return () => {
+      window.removeEventListener('estimatesSaved', handleEstimatesUpdated);
+    };
+  }, [fetchEstimates]);
 
   // Only load messages when a conversation is explicitly selected
   useEffect(() => {
@@ -70,25 +86,46 @@ export const ChatLayout: React.FC = () => {
     }
   }, [activeTab, currentConversation, loadMessages]);
   
-  // Refresh builds list when the active tab changes to builds
+  // Refresh estimates list when the active tab changes to builds
   useEffect(() => {
     if (activeTab === 'builds') {
-      loadBuilds();
-      // Reset auto-switch flag when user manually goes to builds tab
+      fetchEstimates();
       disableAutoSwitch();
     }
-  }, [activeTab, loadBuilds, disableAutoSwitch]);
+  }, [activeTab, fetchEstimates, disableAutoSwitch]);
+
+  // Handle estimate view
+  const handleViewEstimate = useCallback(async (estimateId: string) => {
+    try {
+      const estimateDetails = await getEstimateDetails(estimateId);
+      if (estimateDetails) {
+        // Navigate to estimate details view (you might want to add routing here)
+        console.log('Viewing estimate details:', estimateDetails);
+      }
+    } catch (error) {
+      console.error('Error viewing estimate:', error);
+    }
+  }, [getEstimateDetails]);
+
+  // Handle estimate deletion
+  const handleDeleteEstimate = useCallback(async (estimateId: string) => {
+    try {
+      await deleteEstimate(estimateId);
+    } catch (error) {
+      console.error('Error deleting estimate:', error);
+    }
+  }, [deleteEstimate]);
 
   // Track build count and automatically switch to builds tab when new builds are created
   useEffect(() => {
-    const hasNewBuilds = checkForNewBuilds(builds);
+    const hasNewBuilds = checkForNewBuilds(estimates);
     
     // Automatically switch to the builds tab when a new build is created
     // But only if the user hasn't disabled auto-switching
     if (hasNewBuilds && !autoSwitchDisabled) {
       setActiveTab('builds');
     }
-  }, [builds, autoSwitchDisabled, checkForNewBuilds]);
+  }, [estimates, autoSwitchDisabled, checkForNewBuilds]);
 
   // Map the selected answer to an expertise level
   const getExpertiseLevel = useCallback(() => {
@@ -117,9 +154,6 @@ export const ChatLayout: React.FC = () => {
     disableAutoSwitch();
     sendMessage(text, getExpertiseLevel(), chatMode);
   }, [sendMessage, getExpertiseLevel, chatMode, disableAutoSwitch]);
-
-  // Use type assertion to make sure the builds property is compatible with the BuildsList component
-  const buildsList = builds as any[];
 
   // Get the display expertise level for UI
   const displayExpertiseLevel = getDisplayExpertiseLevel();
@@ -187,12 +221,8 @@ export const ChatLayout: React.FC = () => {
           
           {activeTab === 'builds' && (
             <BuildsList
-              builds={buildsList}
-              loading={buildsLoading}
-              error={null}
-              onViewBuild={handleViewBuild}
-              onDelete={handleDeleteBuild}
-              onRefresh={loadBuilds}
+              onViewBuild={handleViewEstimate}
+              onRefresh={fetchEstimates}
             />
           )}
         </div>

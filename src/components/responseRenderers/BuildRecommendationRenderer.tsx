@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Card, 
   CardHeader, 
@@ -13,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Save, ArrowRight } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { sampleBuildRecommendation } from '../../data/sampleData';
+import { useEstimates } from '../../hooks/useEstimates';
 
 // Fixed order for component types
 const COMPONENT_ORDER = ["VGA", "CPU", "Motherboard", "Memory", "Storage", "PSU", "Case", "Cooler"];
@@ -49,6 +49,9 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   expertiseLevel = 'beginner',
   recommendationData 
 }) => {
+  const { saveEstimate, saveLoading } = useEstimates();
+  const [isSaving, setIsSaving] = useState(false);
+
   // Try to parse content as JSON, fallback to sample data if parsing fails
   let buildData;
   try {
@@ -161,36 +164,20 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
 
   const sortedParts = getSortedParts();
   
-  // Function to save the estimate to local storage and show feedback
-  const handleSaveEstimate = () => {
+  // Function to save the estimate via API
+  const handleSaveEstimate = async () => {
     try {
-      // Create a build object from the current recommendation data with sorted parts
-      const newBuild = {
-        id: Date.now(), // Simple ID generation for local storage
-        name: buildData.title,
-        total_price: parseInt(buildData.total_price.replace(/[₩,]/g, '')), // Parse price
-        created_at: new Date().toISOString(),
-        parts: sortedParts, // Use sorted parts
-        total_reason: buildData.total_reason
-      };
-
-      // Get existing builds from localStorage
-      const existingBuilds = JSON.parse(localStorage.getItem('savedBuilds') || '[]');
+      setIsSaving(true);
       
-      // Add the new build
-      const updatedBuilds = [newBuild, ...existingBuilds];
+      // Generate a temporary estimate ID (in real scenario, this would come from the recommendation response)
+      const estimateId = `temp_${Date.now()}`;
       
-      // Save back to localStorage
-      localStorage.setItem('savedBuilds', JSON.stringify(updatedBuilds));
+      const success = await saveEstimate(estimateId);
       
-      // Show success toast
-      toast({
-        title: "견적 저장 완료",
-        description: "견적이 성공적으로 저장되었습니다.",
-      });
-
-      // Trigger a custom event to notify other components of the update
-      window.dispatchEvent(new CustomEvent('buildsUpdated'));
+      if (success) {
+        // Trigger a custom event to notify other components
+        window.dispatchEvent(new CustomEvent('estimatesSaved'));
+      }
       
     } catch (error) {
       console.error('Error saving estimate:', error);
@@ -199,6 +186,8 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         description: "견적 저장 중 오류가 발생했습니다.",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -214,9 +203,19 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
               size="sm" 
               className="flex items-center gap-1"
               onClick={handleSaveEstimate}
+              disabled={isSaving || saveLoading}
             >
-              <Save size={16} />
-              <span>견적 저장</span>
+              {isSaving || saveLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span>저장 중...</span>
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  <span>견적 저장</span>
+                </>
+              )}
             </Button>
           </div>
           <div className="flex justify-between items-center mt-2">

@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../components/ui/use-toast';
-import { useConversationState as useConversations } from './useConversations';
+import { useEstimates } from './useEstimates';
 
 export function useBuildActions() {
   const [isGeneratingBuilds, setIsGeneratingBuilds] = useState(false);
@@ -12,25 +12,24 @@ export function useBuildActions() {
   const navigate = useNavigate();
   
   const { 
-    builds,
-    loadBuilds,
-    handleDeleteBuild: deleteBuild,
-  } = useConversations();
+    estimates,
+    fetchEstimates,
+    deleteEstimate: deleteEstimateAPI,
+  } = useEstimates();
 
   const handleDeleteBuild = useCallback(async (buildId: string) => {
     try {
-      const result = await deleteBuild(buildId);
-      if (result) {
-        // Handled in useConversations, no need to reload here
-      }
+      const result = await deleteEstimateAPI(buildId);
+      return result;
     } catch (error) {
       toast({
         title: "오류",
         description: "견적 삭제에 실패했습니다.",
         variant: "destructive",
       });
+      return false;
     }
-  }, [deleteBuild]);
+  }, [deleteEstimateAPI]);
 
   const handleViewBuild = useCallback((buildId: string) => {
     navigate(`/build/${buildId}`);
@@ -58,13 +57,13 @@ export function useBuildActions() {
   }, []);
 
   return {
-    builds,
+    builds: estimates,
     isGeneratingBuilds,
     setIsGeneratingBuilds,
     autoSwitchDisabled,
     handleDeleteBuild,
     handleViewBuild,
-    loadBuilds,
+    loadBuilds: fetchEstimates,
     checkForNewBuilds,
     disableAutoSwitch
   };

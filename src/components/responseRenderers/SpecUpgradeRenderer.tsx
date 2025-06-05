@@ -1,10 +1,12 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '../ui/badge';
-import { ArrowRight, Zap, BookOpen, Cpu, InfoIcon } from 'lucide-react';
+import { Button } from '../ui/button';
+import { ArrowRight, Zap, BookOpen, Cpu, InfoIcon, Save } from 'lucide-react';
 import { sampleSpecUpgradeData } from '../../data/sampleData';
+import { useEstimates } from '../../hooks/useEstimates';
+import { toast } from '@/hooks/use-toast';
 
 interface SpecUpgradeRendererProps {
   content: string;
@@ -17,6 +19,9 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
   sessionId,
   expertiseLevel = 'low'
 }) => {
+  const { saveEstimate, saveLoading } = useEstimates();
+  const [isSaving, setIsSaving] = useState(false);
+
   // Try to parse content as JSON, fallback to sample data if parsing fails
   let dataToUse;
   try {
@@ -32,9 +37,36 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
 
   const upgrades = dataToUse.upgrades || [];
 
+  // Function to save the upgrade as an estimate
+  const handleSaveUpgrade = async () => {
+    try {
+      setIsSaving(true);
+      
+      // Generate a temporary estimate ID for upgrades
+      const estimateId = `upgrade_${Date.now()}`;
+      
+      const success = await saveEstimate(estimateId);
+      
+      if (success) {
+        // Trigger a custom event to notify other components
+        window.dispatchEvent(new CustomEvent('estimatesSaved'));
+      }
+      
+    } catch (error) {
+      console.error('Error saving upgrade:', error);
+      toast({
+        title: "저장 실패",
+        description: "업그레이드 저장 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="spec-upgrade-response space-y-6">
-      <div className="mb-2 flex justify-start">
+      <div className="mb-2 flex justify-between items-center">
         <Badge 
           variant="outline" 
           className={`${getBadgeClass(expertiseLevel)} flex items-center px-2 py-0.5 text-xs`}
@@ -42,6 +74,26 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
           {getExpertiseLevelIcon(expertiseLevel)}
           <span className="ml-1">{getExpertiseLevelLabel(expertiseLevel)}</span>
         </Badge>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-1"
+          onClick={handleSaveUpgrade}
+          disabled={isSaving || saveLoading}
+        >
+          {isSaving || saveLoading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <span>저장 중...</span>
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              <span>업그레이드 저장</span>
+            </>
+          )}
+        </Button>
       </div>
 
       <h2 className="text-2xl font-bold mb-4">스펙 업그레이드 제안</h2>
