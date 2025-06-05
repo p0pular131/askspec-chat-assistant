@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, memo, useEffect } from 'react';
 import { toast } from '../components/ui/use-toast';
 import { 
@@ -10,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { AlertCircle, Loader2, Download, Eye } from 'lucide-react';
+import { AlertCircle, Loader2, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import { useEstimates } from '../hooks/useEstimates';
 import EstimateDetailsModal from './EstimateDetailsModal';
@@ -175,19 +176,6 @@ const BuildsList: React.FC<BuildsListProps> = ({
           </button>
 
           <div className="flex flex-col gap-1">
-            {/* View Details Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewEstimate(estimate.id);
-              }}
-              className="p-1 text-green-600 rounded hover:bg-green-50"
-              aria-label="견적 상세보기"
-              title="견적 상세보기"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-
             {/* PDF Generation Button */}
             <button
               onClick={(e) => handleGeneratePdf(e, estimate.id)}

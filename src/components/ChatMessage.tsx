@@ -31,7 +31,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   
   // Use the message's stored chatMode and expertiseLevel if available
   const effectiveChatMode = message.chatMode || chatMode;
-  const expertiseLevel = message.expertiseLevel || 'beginner';
+  const expertiseLevel = message.expertiseLevel || 'low';
   
   if (message.isUser) {
     return (
@@ -57,12 +57,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         <AvatarFallback className="bg-teal-600 text-white text-xs">PC봇</AvatarFallback>
       </Avatar>
       <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
-        <ResponseRenderer 
-          content={message.text} 
-          chatMode={effectiveChatMode} 
-          isUser={false}
-          expertiseLevel={expertiseLevel as 'beginner' | 'intermediate' | 'expert'}
-        />
+        <ReactMarkdown className="prose prose-sm dark:prose-invert break-words">
+          {message.text}
+        </ReactMarkdown>
       </div>
     </div>
   );

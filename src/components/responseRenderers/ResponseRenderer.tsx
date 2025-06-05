@@ -1,79 +1,67 @@
 
 import React from 'react';
-import { BuildRecommendationRenderer } from './BuildRecommendationRenderer';
-import { PartRecommendationRenderer } from './PartRecommendationRenderer';
-import { CompatibilityCheckRenderer } from './CompatibilityCheckRenderer';
-import { BuildEvaluationRenderer } from './BuildEvaluationRenderer';
-import { SpecUpgradeRenderer } from './SpecUpgradeRenderer';
-import { GeneralSearchRenderer } from './GeneralSearchRenderer';
-import { ResponseData } from '../types';
+import BuildRecommendationRenderer from './BuildRecommendationRenderer';
+import PartRecommendationRenderer from './PartRecommendationRenderer';
+import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
+import BuildEvaluationRenderer from './BuildEvaluationRenderer';
+import SpecUpgradeRenderer from './SpecUpgradeRenderer';
+import GeneralSearchRenderer from './GeneralSearchRenderer';
+
+interface ResponseData {
+  response_type: string;
+  [key: string]: any;
+}
 
 interface ResponseRendererProps {
   response: ResponseData;
-  expertiseLevel?: string | null;
+  expertiseLevel?: "low" | "middle" | "high";
 }
 
 export const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
   response, 
-  expertiseLevel 
+  expertiseLevel = "low"
 }) => {
-  // Map expertise levels from ChatHeader format to component format
-  const mapExpertiseLevel = (level: string | null | undefined): "beginner" | "intermediate" | "expert" => {
-    switch(level) {
-      case 'low':
-        return 'beginner';
-      case 'middle':
-        return 'intermediate';
-      case 'high':
-        return 'expert';
-      default:
-        return 'beginner';
-    }
-  };
-
-  const mappedExpertiseLevel = mapExpertiseLevel(expertiseLevel);
-
   switch (response.response_type) {
     case 'build_recommendation':
       return (
         <BuildRecommendationRenderer
           response={response}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case 'part_recommendation':
       return (
         <PartRecommendationRenderer
           response={response}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case 'compatibility_check':
       return (
         <CompatibilityCheckRenderer
           response={response}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case 'build_evaluation':
       return (
         <BuildEvaluationRenderer
           response={response}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case 'spec_upgrade':
       return (
         <SpecUpgradeRenderer
           response={response}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     case 'general_search':
       return (
         <GeneralSearchRenderer
           response={response}
-          expertiseLevel={mappedExpertiseLevel}
+          expertiseLevel={expertiseLevel}
         />
       );
     default:
