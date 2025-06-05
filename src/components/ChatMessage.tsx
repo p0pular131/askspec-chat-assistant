@@ -3,7 +3,7 @@ import React from 'react';
 import { Message } from './types';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import ReactMarkdown from 'react-markdown';
-import ResponseRenderer from './responseRenderers/ResponseRenderer';
+import { ResponseRenderer } from './responseRenderers/ResponseRenderer';
 import { UserRound } from 'lucide-react';
 
 // Helper function to detect compatibility check requests
@@ -60,8 +60,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         <ResponseRenderer 
           content={message.text} 
           chatMode={effectiveChatMode} 
-          sessionId={sessionId}
-          isCompatibilityRequest={isCompatibilityRequest}
+          isUser={false}
           expertiseLevel={expertiseLevel as 'beginner' | 'intermediate' | 'expert'}
         />
       </div>

@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { BuildRecommendationRenderer } from './BuildRecommendationRenderer';
-import { PartRecommendationRenderer } from './PartRecommendationRenderer';
-import { CompatibilityCheckRenderer } from './CompatibilityCheckRenderer';
-import { SpecUpgradeRenderer } from './SpecUpgradeRenderer';
-import { BuildEvaluationRenderer } from './BuildEvaluationRenderer';
-import { GeneralSearchRenderer } from './GeneralSearchRenderer';
+import BuildRecommendationRenderer from './BuildRecommendationRenderer';
+import PartRecommendationRenderer from './PartRecommendationRenderer';
+import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
+import SpecUpgradeRenderer from './SpecUpgradeRenderer';
+import BuildEvaluationRenderer from './BuildEvaluationRenderer';
+import GeneralSearchRenderer from './GeneralSearchRenderer';
 
 interface ResponseRendererProps {
   content: string;
@@ -81,3 +81,5 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
       );
   }
 };
+
+export default ResponseRenderer;
