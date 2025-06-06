@@ -70,19 +70,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         <AvatarFallback className="bg-teal-600 text-white text-xs">PC봇</AvatarFallback>
       </Avatar>
       <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
-        {shouldUseResponseRenderer ? (
-          <ResponseRenderer 
-            response={JSON.parse(message.text)}
-            expertiseLevel={expertiseLevel as "low" | "middle" | "high"}
-          />
-        ) : (
         <ResponseRenderer 
           content={message.text} 
           chatMode={effectiveChatMode} 
           sessionId={sessionId}
           expertiseLevel={expertiseLevel as 'low' | 'middle' | 'high'}
         />
-        )}
       </div>
     </div>
   );
