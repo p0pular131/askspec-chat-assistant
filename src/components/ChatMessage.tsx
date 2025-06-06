@@ -66,7 +66,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   return (
     <div className="flex gap-3 justify-start items-start">
       <Avatar className="h-8 w-8 bg-teal-600 text-white flex items-center justify-center">
-        <AvatarImage src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=100&h=100" alt="PC봇" />
+        <AvatarImage src="/lovable-uploads/285cf658-d42c-4aba-a833-0feba368695a.png" alt="PC봇" />
         <AvatarFallback className="bg-teal-600 text-white text-xs">PC봇</AvatarFallback>
       </Avatar>
       <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
