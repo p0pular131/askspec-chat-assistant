@@ -37,7 +37,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
     case 'build_recommendation':
       return (
         <BuildRecommendationRenderer
-          response={response}
+          content={JSON.stringify(response)}
           expertiseLevel={convertedExpertiseLevel}
         />
       );
@@ -51,7 +51,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
     case 'compatibility_check':
       return (
         <CompatibilityCheckRenderer
-          response={response}
+          content={JSON.stringify(response)}
           expertiseLevel={convertedExpertiseLevel}
         />
       );
