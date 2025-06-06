@@ -76,9 +76,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             expertiseLevel={expertiseLevel as "low" | "middle" | "high"}
           />
         ) : (
-          <ReactMarkdown className="prose prose-sm dark:prose-invert break-words">
-            {message.text}
-          </ReactMarkdown>
+        <ResponseRenderer 
+          content={message.text} 
+          chatMode={effectiveChatMode} 
+          sessionId={sessionId}
+          expertiseLevel={expertiseLevel as 'low' | 'middle' | 'high'}
+        />
         )}
       </div>
     </div>
