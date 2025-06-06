@@ -17,22 +17,34 @@ interface ResponseRendererProps {
   expertiseLevel?: "low" | "middle" | "high";
 }
 
+// Helper function to convert expertise levels
+const convertExpertiseLevel = (level: "low" | "middle" | "high"): "beginner" | "intermediate" | "expert" => {
+  switch (level) {
+    case "low": return "beginner";
+    case "middle": return "intermediate";
+    case "high": return "expert";
+    default: return "beginner";
+  }
+};
+
 export const ResponseRenderer: React.FC<ResponseRendererProps> = ({ 
   response, 
   expertiseLevel = "low"
 }) => {
+  const convertedExpertiseLevel = convertExpertiseLevel(expertiseLevel);
+  
   switch (response.response_type) {
     case 'build_recommendation':
       return (
         <BuildRecommendationRenderer
           response={response}
-          expertiseLevel={expertiseLevel}
+          expertiseLevel={convertedExpertiseLevel}
         />
       );
     case 'part_recommendation':
       return (
         <PartRecommendationRenderer
-          response={response}
+          content={JSON.stringify(response)}
           expertiseLevel={expertiseLevel}
         />
       );
@@ -40,34 +52,34 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
       return (
         <CompatibilityCheckRenderer
           response={response}
-          expertiseLevel={expertiseLevel}
+          expertiseLevel={convertedExpertiseLevel}
         />
       );
     case 'build_evaluation':
       return (
         <BuildEvaluationRenderer
-          response={response}
-          expertiseLevel={expertiseLevel}
+          content={JSON.stringify(response)}
+          expertiseLevel={convertedExpertiseLevel}
         />
       );
     case 'spec_upgrade':
       return (
         <SpecUpgradeRenderer
-          response={response}
+          content={JSON.stringify(response)}
           expertiseLevel={expertiseLevel}
         />
       );
     case 'general_search':
       return (
         <GeneralSearchRenderer
-          response={response}
+          content={response.content || response.message || ""}
           expertiseLevel={expertiseLevel}
         />
       );
     default:
       return (
         <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">Unknown response type: {(response as any).response_type}</p>
+          <p className="text-gray-600">Unknown response type: {response.response_type}</p>
         </div>
       );
   }

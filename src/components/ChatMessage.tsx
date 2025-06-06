@@ -6,6 +6,16 @@ import ReactMarkdown from 'react-markdown';
 import { ResponseRenderer } from './responseRenderers/ResponseRenderer';
 import { UserRound } from 'lucide-react';
 
+// Helper function to detect if content is JSON response data
+const isJsonResponse = (text: string): boolean => {
+  try {
+    const parsed = JSON.parse(text);
+    return parsed && typeof parsed === 'object' && parsed.response_type;
+  } catch {
+    return false;
+  }
+};
+
 // Helper function to detect compatibility check requests
 const isCompatibilityCheckRequest = (text: string): boolean => {
   const compatibilityKeywords = [
@@ -50,6 +60,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     );
   }
 
+  // Check if the message text is a JSON response that should be rendered with ResponseRenderer
+  const shouldUseResponseRenderer = isJsonResponse(message.text);
+
   return (
     <div className="flex gap-3 justify-start items-start">
       <Avatar className="h-8 w-8 bg-teal-600 text-white flex items-center justify-center">
@@ -57,9 +70,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         <AvatarFallback className="bg-teal-600 text-white text-xs">PC봇</AvatarFallback>
       </Avatar>
       <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
-        <ReactMarkdown className="prose prose-sm dark:prose-invert break-words">
-          {message.text}
-        </ReactMarkdown>
+        {shouldUseResponseRenderer ? (
+          <ResponseRenderer 
+            response={JSON.parse(message.text)}
+            expertiseLevel={expertiseLevel as "low" | "middle" | "high"}
+          />
+        ) : (
+          <ReactMarkdown className="prose prose-sm dark:prose-invert break-words">
+            {message.text}
+          </ReactMarkdown>
+        )}
       </div>
     </div>
   );
