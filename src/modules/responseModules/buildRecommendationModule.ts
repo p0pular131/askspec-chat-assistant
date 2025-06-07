@@ -22,12 +22,8 @@ export const buildRecommendationModule: ResponseModule = {
 
       console.log('[✅ 견적 추천] API 응답 성공');
       
-      // API 응답이 JSON 형태인지 확인
-      if (typeof apiResponse === 'object') {
-        return JSON.stringify(apiResponse);
-      }
-      
-      return apiResponse;
+      // Return the full API response including the ID
+      return JSON.stringify(apiResponse);
     } catch (error) {
       console.error('[❌ 견적 추천] API 호출 실패:', error);
       return `견적 추천 중 오류가 발생했습니다: ${error.message}`;

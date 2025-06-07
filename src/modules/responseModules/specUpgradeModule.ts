@@ -12,7 +12,7 @@ export const specUpgradeModule: ResponseModule = {
     }
 
     try {
-      console.log('[🔄 스펙 업그레이드] API 호출 시작:', { content, expertiseLevel, sessionId });
+      console.log('[🔄  스펙 업그레이드] API 호출 시작:', { content, expertiseLevel, sessionId });
       
       const apiResponse = await callSpecUpgradeAPI({
         sessionId,
@@ -22,12 +22,8 @@ export const specUpgradeModule: ResponseModule = {
 
       console.log('[✅ 스펙 업그레이드] API 응답 성공');
       
-      // API 응답이 JSON 형태인지 확인
-      if (typeof apiResponse === 'object') {
-        return JSON.stringify(apiResponse);
-      }
-      
-      return apiResponse;
+      // Return the full API response including the ID
+      return JSON.stringify(apiResponse);
     } catch (error) {
       console.error('[❌ 스펙 업그레이드] API 호출 실패:', error);
       return `스펙 업그레이드 중 오류가 발생했습니다: ${error.message}`;

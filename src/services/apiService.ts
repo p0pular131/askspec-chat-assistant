@@ -52,28 +52,28 @@ export const callCompatibilityCheckAPI = async (params: APIRequest) => {
   }
 };
 
-// 견적 추천 API
+// 견적 제작 API (updated endpoint)
 export const callBuildRecommendationAPI = async (params: APIRequest) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/build-recommendation?session_id=${params.sessionId}`, {
+    const response = await axios.post(`${API_BASE_URL}/estimate?session_id=${params.sessionId}`, {
       user_prompt: params.userPrompt,
       user_level: params.userLevel
     });
-    return response.data.response;
+    return response.data;
   } catch (error) {
-    console.error('[❌ 견적 추천 API 오류]:', error);
+    console.error('[❌ 견적 제작 API 오류]:', error);
     throw error;
   }
 };
 
-// 스펙 업그레이드 API
+// 스펙 업그레이드 API (updated endpoint)
 export const callSpecUpgradeAPI = async (params: APIRequest) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/spec-upgrade?session_id=${params.sessionId}`, {
+    const response = await axios.post(`${API_BASE_URL}/upgrade?session_id=${params.sessionId}`, {
       user_prompt: params.userPrompt,
       user_level: params.userLevel
     });
-    return response.data.response;
+    return response.data;
   } catch (error) {
     console.error('[❌ 스펙 업그레이드 API 오류]:', error);
     throw error;

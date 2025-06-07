@@ -54,10 +54,20 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
 
   // Try to parse content as JSON, fallback to sample data if parsing fails
   let buildData;
+  let estimateId = null;
+  
   try {
-    buildData = JSON.parse(content);
-    // Validate that parsed data has the expected structure
-    if (!buildData.title || !buildData.parts) {
+    const parsedData = JSON.parse(content);
+    
+    // Extract estimate ID if available
+    estimateId = parsedData.id;
+    
+    // Check if the parsed data has the expected structure
+    if (parsedData.response && parsedData.response.title && parsedData.response.parts) {
+      buildData = parsedData.response;
+    } else if (parsedData.title && parsedData.parts) {
+      buildData = parsedData;
+    } else {
       throw new Error('Invalid data structure');
     }
   } catch (error) {
@@ -169,9 +179,18 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     try {
       setIsSaving(true);
       
-      // Generate a temporary estimate ID (in real scenario, this would come from the recommendation response)
-      const estimateId = `temp_${Date.now()}`;
+      // Use the actual estimate ID from the API response
+      if (!estimateId) {
+        console.warn('No estimate ID found in response, cannot save estimate');
+        toast({
+          title: "저장 실패",
+          description: "견적 ID를 찾을 수 없습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
       
+      console.log('Saving estimate with ID:', estimateId);
       const success = await saveEstimate(estimateId);
       
       if (success) {
@@ -203,7 +222,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
               size="sm" 
               className="flex items-center gap-1"
               onClick={handleSaveEstimate}
-              disabled={isSaving || saveLoading}
+              disabled={isSaving || saveLoading || !estimateId}
             >
               {isSaving || saveLoading ? (
                 <>

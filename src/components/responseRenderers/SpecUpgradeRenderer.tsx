@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,10 +25,20 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
 
   // Try to parse content as JSON, fallback to sample data if parsing fails
   let dataToUse;
+  let estimateId = null;
+  
   try {
-    dataToUse = JSON.parse(content);
-    // Validate that parsed data has the expected structure
-    if (!dataToUse.upgrades || !Array.isArray(dataToUse.upgrades)) {
+    const parsedData = JSON.parse(content);
+    
+    // Extract estimate ID if available
+    estimateId = parsedData.id;
+    
+    // Check if the parsed data has the expected structure
+    if (parsedData.response && parsedData.response.upgrades) {
+      dataToUse = parsedData.response;
+    } else if (parsedData.upgrades && Array.isArray(parsedData.upgrades)) {
+      dataToUse = parsedData;
+    } else {
       throw new Error('Invalid data structure');
     }
   } catch (error) {
@@ -42,9 +53,18 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
     try {
       setIsSaving(true);
       
-      // Generate a temporary estimate ID for upgrades
-      const estimateId = `upgrade_${Date.now()}`;
+      // Use the actual estimate ID from the API response
+      if (!estimateId) {
+        console.warn('No estimate ID found in response, cannot save upgrade');
+        toast({
+          title: "저장 실패",
+          description: "업그레이드 ID를 찾을 수 없습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
       
+      console.log('Saving upgrade with ID:', estimateId);
       const success = await saveEstimate(estimateId);
       
       if (success) {
@@ -80,7 +100,7 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
           size="sm" 
           className="flex items-center gap-1"
           onClick={handleSaveUpgrade}
-          disabled={isSaving || saveLoading}
+          disabled={isSaving || saveLoading || !estimateId}
         >
           {isSaving || saveLoading ? (
             <>
