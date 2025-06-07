@@ -222,7 +222,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
               size="sm" 
               className="flex items-center gap-1"
               onClick={handleSaveEstimate}
-              disabled={isSaving || saveLoading || !estimateId}
+              disabled={isSaving || saveLoading}
             >
               {isSaving || saveLoading ? (
                 <>
