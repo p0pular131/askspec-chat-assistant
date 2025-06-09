@@ -30,7 +30,20 @@ export const buildEvaluationModule: ResponseModule = {
       return apiResponse;
     } catch (error) {
       console.error('[❌ 견적 평가] API 호출 실패:', error);
-      return `견적 평가 중 오류가 발생했습니다: ${error.message}`;
+      
+      // API 에러 응답을 ErrorMessageRenderer가 처리할 수 있는 형태로 반환
+      const errorResponse = {
+        success: false,
+        response_type: 'error',
+        message: '견적 평가 중 오류가 발생했습니다.',
+        detail: {
+          success: false,
+          message: error?.response?.data?.message || error?.message || '알 수 없는 오류가 발생했습니다.',
+          original_error: error?.response?.data || error?.message
+        }
+      };
+      
+      return JSON.stringify(errorResponse);
     }
   }
 };
