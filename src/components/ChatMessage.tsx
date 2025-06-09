@@ -16,6 +16,21 @@ const isJsonResponse = (text: string): boolean => {
   }
 };
 
+// Helper function to determine if we should use ResponseRenderer based on chat mode and content
+const shouldUseResponseRenderer = (message: Message): boolean => {
+  // If the message text is already a JSON response, use ResponseRenderer
+  if (isJsonResponse(message.text)) {
+    return true;
+  }
+  
+  // If the message has a specific chat mode (not general search), use ResponseRenderer
+  if (message.chatMode && message.chatMode !== '범용 검색') {
+    return true;
+  }
+  
+  return false;
+};
+
 // Helper function to detect compatibility check requests
 const isCompatibilityCheckRequest = (text: string): boolean => {
   const compatibilityKeywords = [
@@ -60,8 +75,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     );
   }
 
-  // Check if the message text is a JSON response that should be rendered with ResponseRenderer
-  const shouldUseResponseRenderer = isJsonResponse(message.text);
+  // Check if we should use ResponseRenderer for this message
+  const useResponseRenderer = shouldUseResponseRenderer(message);
 
   return (
     <div className="flex gap-3 justify-start items-start">
@@ -70,12 +85,18 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         <AvatarFallback className="bg-teal-600 text-white text-xs">PC봇</AvatarFallback>
       </Avatar>
       <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
-        <ResponseRenderer 
-          content={message.text} 
-          chatMode={effectiveChatMode} 
-          sessionId={sessionId}
-          expertiseLevel={expertiseLevel as 'low' | 'middle' | 'high'}
-        />
+        {useResponseRenderer ? (
+          <ResponseRenderer 
+            content={message.text} 
+            chatMode={effectiveChatMode} 
+            sessionId={sessionId}
+            expertiseLevel={expertiseLevel as 'low' | 'middle' | 'high'}
+          />
+        ) : (
+          <ReactMarkdown className="prose prose-sm dark:prose-invert break-words">
+            {message.text}
+          </ReactMarkdown>
+        )}
       </div>
     </div>
   );

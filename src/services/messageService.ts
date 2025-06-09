@@ -53,7 +53,12 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
       // Try to extract chat mode and expertise level from response_json
       if (message.response_json) {
         try {
-          const jsonData = JSON.parse(message.response_json);
+          // Check if response_json is already an object or a string
+          let jsonData = message.response_json;
+          if (typeof jsonData === 'string') {
+            jsonData = JSON.parse(jsonData);
+          }
+          
           if (jsonData) {
             if (jsonData.chat_mode) {
               chatMode = jsonData.chat_mode;
@@ -95,11 +100,49 @@ export async function addMessageToDatabase(
     // Get the next message ID
     const nextMessageId = await getNextId('messages');
     
-    // Create response_json with chat mode and expertise level for proper rendering on reload
-    const responseJson = JSON.stringify({ 
+    // For assistant messages, try to parse the content to determine response_type
+    let responseJson: any = { 
       chat_mode: chatMode,
       expertise_level: expertiseLevel
-    });
+    };
+    
+    if (role === 'assistant') {
+      try {
+        const parsedContent = JSON.parse(content);
+        if (parsedContent && parsedContent.response_type) {
+          // If content is already a valid JSON response, use it directly
+          responseJson = {
+            ...parsedContent,
+            chat_mode: chatMode,
+            expertise_level: expertiseLevel
+          };
+        } else {
+          // If content is not JSON, determine response_type based on chat mode
+          const responseTypeMap: Record<string, string> = {
+            '견적 추천': 'build_recommendation',
+            '부품 추천': 'part_recommendation',
+            '호환성 검사': 'compatibility_check',
+            '견적 평가': 'build_evaluation',
+            '스펙 업그레이드': 'spec_upgrade',
+            '범용 검색': 'general_search'
+          };
+          
+          responseJson.response_type = responseTypeMap[chatMode] || 'general_search';
+        }
+      } catch (e) {
+        // Content is not JSON, determine response_type based on chat mode
+        const responseTypeMap: Record<string, string> = {
+          '견적 추천': 'build_recommendation',
+          '부품 추천': 'part_recommendation',
+          '호환성 검사': 'compatibility_check',
+          '견적 평가': 'build_evaluation',
+          '스펙 업그레이드': 'spec_upgrade',
+          '범용 검색': 'general_search'
+        };
+        
+        responseJson.response_type = responseTypeMap[chatMode] || 'general_search';
+      }
+    }
     
     // Add the message directly to the database
     const { data, error } = await supabase
@@ -109,7 +152,7 @@ export async function addMessageToDatabase(
         input_text: content,
         role: role,
         session_id: parseInt(sessionId, 10),
-        response_json: responseJson // Store chat mode and expertise level in response_json
+        response_json: JSON.stringify(responseJson)
       })
       .select();
     
