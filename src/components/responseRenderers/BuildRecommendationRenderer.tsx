@@ -58,8 +58,12 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   let buildData;
   let finalEstimateId = estimateId; // 먼저 prop으로 받은 견적 ID 사용
   
+  console.log('[🔍 BuildRecommendationRenderer] 받은 estimateId:', estimateId);
+  console.log('[🔍 BuildRecommendationRenderer] content:', content.substring(0, 200));
+  
   try {
     const parsedData = JSON.parse(content);
+    console.log('[🔍 BuildRecommendationRenderer] 파싱된 데이터:', parsedData);
     
     // Extract estimate ID if available in content and not provided via prop
     if (!finalEstimateId && parsedData.id) {
@@ -79,6 +83,8 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     console.warn('Failed to parse build recommendation data, using sample data');
     buildData = recommendationData || sampleBuildRecommendation;
   }
+  
+  console.log('[🔍 BuildRecommendationRenderer] 최종 estimateId:', finalEstimateId);
   
   // Function to get standardized part type from part details
   const getStandardizedPartType = (part: PartDetail): string => {
@@ -246,6 +252,11 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
             <CardDescription className="text-xl font-semibold text-blue-600 dark:text-blue-400">
               총 예상 가격: {buildData.total_price}
             </CardDescription>
+            {finalEstimateId && (
+              <CardDescription className="text-sm text-muted-foreground">
+                견적 ID: {finalEstimateId}
+              </CardDescription>
+            )}
           </div>
         </CardHeader>
         <CardContent className="pt-4">

@@ -1,6 +1,6 @@
 
 import { useCallback, useState } from 'react';
-import { Session, ApiMessage, UIMessage } from '../types/sessionTypes';
+import { Session, ApiMessage, UIMessage, MessageResponse } from '../types/sessionTypes';
 import { getSessionMessages } from '../services/sessionApiService';
 import { processMessage } from '../services/messageService';
 import { toast } from '../components/ui/use-toast';
@@ -8,6 +8,17 @@ import { toast } from '../components/ui/use-toast';
 export function useMessageActions(currentSession: Session | null) {
   const [dbMessages, setDbMessages] = useState<ApiMessage[]>([]);
   const [msgLoading, setMsgLoading] = useState(false);
+
+  // Convert MessageResponse to ApiMessage
+  const convertMessageResponse = (response: MessageResponse): ApiMessage => ({
+    id: response.id,
+    content: response.input_text,
+    role: response.role as 'user' | 'assistant',
+    session_id: response.session_id,
+    created_at: response.created_at,
+    mode: response.chat_mode || '범용 검색',
+    estimate_id: response.estimate_id || null
+  });
 
   // 메시지 로드
   const loadMessages = useCallback(async (sessionId: string) => {
@@ -20,18 +31,21 @@ export function useMessageActions(currentSession: Session | null) {
       const messages = await getSessionMessages(numericId);
       console.log('[✅ 메시지 로드] API 응답 성공:', messages.length, '개 메시지');
       
+      // Convert MessageResponse[] to ApiMessage[]
+      const convertedMessages = messages.map(convertMessageResponse);
+      
       // 메시지를 생성 시간 순으로 정렬 (오래된 것부터 최신 순)
-      const sortedMessages = messages.sort((a, b) => 
+      const sortedMessages = convertedMessages.sort((a, b) => 
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
       
-      // 견적 ID 정보를 포함하여 메시지 상태 업데이트
-      const messagesWithEstimateId = sortedMessages.map(msg => ({
-        ...msg,
-        estimate_id: msg.estimate_id || null // 견적 ID 포함
-      }));
+      console.log('[🔍 메시지 변환] 견적 ID 포함 메시지들:', sortedMessages.map(m => ({ 
+        id: m.id, 
+        role: m.role, 
+        estimate_id: m.estimate_id 
+      })));
       
-      setDbMessages(messagesWithEstimateId);
+      setDbMessages(sortedMessages);
     } catch (error) {
       console.error('[❌ 메시지 로드] 실패:', error);
       toast({
