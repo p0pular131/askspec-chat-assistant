@@ -10,6 +10,7 @@ export function useConversationState() {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [autoRefreshTriggered, setAutoRefreshTriggered] = useState(false);
+  const [isMessageBeingSent, setIsMessageBeingSent] = useState(false);
   
   const {
     currentSession,
@@ -54,6 +55,7 @@ export function useConversationState() {
     setMessages([]);
     setShowExample(true);
     setIsLoading(false);
+    setIsMessageBeingSent(false);
     // 현재 세션 선택 해제를 위해 null 세션 선택
     selectConversation(null);
   }, [setShowExample, selectConversation]);
@@ -72,24 +74,30 @@ export function useConversationState() {
         chatMode: msg.mode || '범용 검색',
         expertiseLevel: 'beginner' // 기본값
       }));
-      setMessages(uiMessages);
+      
+      // 메시지를 보내는 중이 아닐 때만 동기화
+      if (!isMessageBeingSent) {
+        setMessages(uiMessages);
+      }
     }
-  }, []);
+  }, [isMessageBeingSent]);
 
-  // 세션이 변경되면 메시지 로드 - 하지만 이미 메시지가 있으면 유지
+  // 세션이 변경되면 메시지 로드 - 하지만 메시지를 보내는 중이면 로드하지 않음
   useEffect(() => {
     if (currentSession?.id) {
-      // 현재 메시지가 비어있거나, 세션이 실제로 변경된 경우에만 로드
-      // 새 메시지를 보내는 중이 아닌 경우에만 로드
-      if (messages.length === 0 && !isLoading) {
+      // 메시지를 보내는 중이 아니고, 현재 메시지가 비어있을 때만 로드
+      if (!isMessageBeingSent && messages.length === 0 && !isLoading) {
         loadMessages(String(currentSession.id));
       }
     } else {
-      setMessages([]);
+      // 메시지를 보내는 중이 아닐 때만 초기화
+      if (!isMessageBeingSent) {
+        setMessages([]);
+      }
     }
-  }, [currentSession, loadMessages, messages.length, isLoading]);
+  }, [currentSession, loadMessages, messages.length, isLoading, isMessageBeingSent]);
 
-  // DB 메시지가 변경되면 UI 메시지 동기화
+  // DB 메시지가 변경되면 UI 메시지 동기화 (메시지 전송 중이 아닐 때만)
   useEffect(() => {
     syncMessagesFromDB(dbMessages);
   }, [dbMessages, syncMessagesFromDB]);
@@ -101,6 +109,17 @@ export function useConversationState() {
     console.log('[📤 메시지 전송] 시작:', { currentSession: currentSession?.id });
     
     setIsLoading(true);
+    setIsMessageBeingSent(true);
+    
+    // 사용자 메시지를 즉시 UI에 추가
+    const userMessage: UIMessage = {
+      text: text,
+      isUser: true,
+      chatMode: chatMode,
+      expertiseLevel: expertiseLevel
+    };
+    
+    setMessages(prevMessages => [...prevMessages, userMessage]);
     
     try {
       let sessionToUse = currentSession;
@@ -145,8 +164,14 @@ export function useConversationState() {
       setShowExample(false);
     } catch (error) {
       console.error('[❌ 메시지 전송] 실패:', error);
+      // 에러 발생 시 사용자 메시지 제거
+      setMessages(prevMessages => prevMessages.slice(0, -1));
     } finally {
       setIsLoading(false);
+      // 메시지 전송 완료 후 잠시 후에 DB 동기화 허용
+      setTimeout(() => {
+        setIsMessageBeingSent(false);
+      }, 500);
     }
   }, [
     currentSession, 
