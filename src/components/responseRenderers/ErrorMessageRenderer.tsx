@@ -9,15 +9,6 @@ interface ErrorMessageRendererProps {
   expertiseLevel?: "low" | "middle" | "high";
 }
 
-interface ErrorData {
-  success: boolean;
-  message: string;
-  detail?: string | {
-    message?: string;
-    [key: string]: any;
-  };
-}
-
 const ErrorMessageRenderer: React.FC<ErrorMessageRendererProps> = ({ 
   content 
 }) => {
@@ -25,9 +16,9 @@ const ErrorMessageRenderer: React.FC<ErrorMessageRendererProps> = ({
     try {
       const parsed = JSON.parse(content);
       
-      // Handle API response errors with detail object
-      if (parsed.detail && parsed.detail.success === false) {
-        // First try to get the message from detail
+      // Handle the new nested error format
+      if (parsed.detail) {
+        // First check if detail has a message directly
         if (parsed.detail.message) {
           return parsed.detail.message;
         }
@@ -36,6 +27,13 @@ const ErrorMessageRenderer: React.FC<ErrorMessageRendererProps> = ({
         if (parsed.detail.detail && typeof parsed.detail.detail === 'string') {
           try {
             const nestedError = JSON.parse(parsed.detail.detail);
+            
+            // Check for deeply nested error message
+            if (nestedError.detail && nestedError.detail.message) {
+              return nestedError.detail.message;
+            }
+            
+            // Fallback to nested error message
             if (nestedError.message) {
               return nestedError.message;
             }
@@ -45,7 +43,10 @@ const ErrorMessageRenderer: React.FC<ErrorMessageRendererProps> = ({
           }
         }
         
-        return 'An error occurred while processing your request.';
+        // Handle API response errors with detail object success: false
+        if (parsed.detail.success === false) {
+          return parsed.detail.message || 'An error occurred while processing your request.';
+        }
       }
       
       // Handle direct error objects
