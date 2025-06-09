@@ -29,20 +29,24 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
   
   try {
     const parsedData = JSON.parse(content);
+    console.log('[🔍 업그레이드 데이터] 파싱된 데이터:', parsedData);
     
-    // Extract estimate ID if available
-    estimateId = parsedData.id;
+    // Extract estimate ID from various possible locations
+    estimateId = parsedData.id || parsedData.estimate_id || null;
+    console.log('[🔍 업그레이드 ID] 추출된 견적 ID:', estimateId);
     
     // Check if the parsed data has the expected structure
     if (parsedData.response && parsedData.response.upgrades) {
       dataToUse = parsedData.response;
+      console.log('[✅ 업그레이드 데이터] response 구조에서 데이터 추출');
     } else if (parsedData.upgrades && Array.isArray(parsedData.upgrades)) {
       dataToUse = parsedData;
+      console.log('[✅ 업그레이드 데이터] 직접 구조에서 데이터 추출');
     } else {
       throw new Error('Invalid data structure');
     }
   } catch (error) {
-    console.warn('Failed to parse spec upgrade data, using sample data');
+    console.warn('[⚠️ 업그레이드 데이터] 파싱 실패, 샘플 데이터 사용:', error);
     dataToUse = sampleSpecUpgradeData;
   }
 
@@ -55,7 +59,7 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
       
       // Use the actual estimate ID from the API response
       if (!estimateId) {
-        console.warn('No estimate ID found in response, cannot save upgrade');
+        console.warn('[⚠️ 업그레이드 저장] 업그레이드 ID를 찾을 수 없음');
         toast({
           title: "저장 실패",
           description: "업그레이드 ID를 찾을 수 없습니다.",
@@ -64,7 +68,7 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
         return;
       }
       
-      console.log('Saving upgrade with ID:', estimateId);
+      console.log('[🔄 업그레이드 저장] 업그레이드 ID로 저장 시작:', estimateId);
       const success = await saveEstimate(estimateId);
       
       if (success) {
@@ -73,7 +77,7 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
       }
       
     } catch (error) {
-      console.error('Error saving upgrade:', error);
+      console.error('[❌ 업그레이드 저장] 저장 중 오류:', error);
       toast({
         title: "저장 실패",
         description: "업그레이드 저장 중 오류가 발생했습니다.",

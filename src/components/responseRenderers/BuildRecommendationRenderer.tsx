@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -58,20 +59,24 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   
   try {
     const parsedData = JSON.parse(content);
+    console.log('[🔍 견적 데이터] 파싱된 데이터:', parsedData);
     
-    // Extract estimate ID if available
-    estimateId = parsedData.id;
+    // Extract estimate ID from various possible locations
+    estimateId = parsedData.id || parsedData.estimate_id || null;
+    console.log('[🔍 견적 ID] 추출된 견적 ID:', estimateId);
     
     // Check if the parsed data has the expected structure
     if (parsedData.response && parsedData.response.title && parsedData.response.parts) {
       buildData = parsedData.response;
+      console.log('[✅ 견적 데이터] response 구조에서 데이터 추출');
     } else if (parsedData.title && parsedData.parts) {
       buildData = parsedData;
+      console.log('[✅ 견적 데이터] 직접 구조에서 데이터 추출');
     } else {
       throw new Error('Invalid data structure');
     }
   } catch (error) {
-    console.warn('Failed to parse build recommendation data, using sample data');
+    console.warn('[⚠️ 견적 데이터] 파싱 실패, 샘플 데이터 사용:', error);
     buildData = recommendationData || sampleBuildRecommendation;
   }
   
@@ -181,7 +186,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
       
       // Use the actual estimate ID from the API response
       if (!estimateId) {
-        console.warn('No estimate ID found in response, cannot save estimate');
+        console.warn('[⚠️ 견적 저장] 견적 ID를 찾을 수 없음');
         toast({
           title: "저장 실패",
           description: "견적 ID를 찾을 수 없습니다.",
@@ -190,7 +195,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         return;
       }
       
-      console.log('Saving estimate with ID:', estimateId);
+      console.log('[🔄 견적 저장] 견적 ID로 저장 시작:', estimateId);
       const success = await saveEstimate(estimateId);
       
       if (success) {
@@ -199,7 +204,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
       }
       
     } catch (error) {
-      console.error('Error saving estimate:', error);
+      console.error('[❌ 견적 저장] 저장 중 오류:', error);
       toast({
         title: "저장 실패",
         description: "견적 저장 중 오류가 발생했습니다.",
