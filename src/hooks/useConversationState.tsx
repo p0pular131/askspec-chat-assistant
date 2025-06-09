@@ -75,30 +75,25 @@ export function useConversationState() {
         expertiseLevel: 'beginner' // 기본값
       }));
       
-      // 메시지를 보내는 중이 아닐 때만 동기화
-      if (!isMessageBeingSent) {
-        setMessages(uiMessages);
-      }
+      console.log('[🔄 메시지 동기화] DB에서 UI로:', uiMessages.length, '개 메시지');
+      setMessages(uiMessages);
     }
-  }, [isMessageBeingSent]);
+  }, []);
 
-  // 세션이 변경되면 메시지 로드 - 하지만 메시지를 보내는 중이면 로드하지 않음
+  // 세션이 변경되면 메시지 로드
   useEffect(() => {
     if (currentSession?.id) {
-      // 메시지를 보내는 중이 아니고, 현재 메시지가 비어있을 때만 로드
-      if (!isMessageBeingSent && messages.length === 0 && !isLoading) {
-        loadMessages(String(currentSession.id));
-      }
+      console.log('[📥 세션 변경] 메시지 로드 시작:', currentSession.id);
+      loadMessages(String(currentSession.id));
     } else {
-      // 메시지를 보내는 중이 아닐 때만 초기화
-      if (!isMessageBeingSent) {
-        setMessages([]);
-      }
+      console.log('[🏠 세션 해제] 메시지 초기화');
+      setMessages([]);
     }
-  }, [currentSession, loadMessages, messages.length, isLoading, isMessageBeingSent]);
+  }, [currentSession, loadMessages]);
 
-  // DB 메시지가 변경되면 UI 메시지 동기화 (메시지 전송 중이 아닐 때만)
+  // DB 메시지가 변경되면 UI 메시지 동기화
   useEffect(() => {
+    console.log('[📊 DB 메시지 변경] 길이:', dbMessages.length, 'isMessageBeingSent:', isMessageBeingSent);
     syncMessagesFromDB(dbMessages);
   }, [dbMessages, syncMessagesFromDB]);
 
@@ -119,7 +114,10 @@ export function useConversationState() {
       expertiseLevel: expertiseLevel
     };
     
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setMessages(prevMessages => {
+      console.log('[📨 사용자 메시지 추가] 현재 메시지 수:', prevMessages.length);
+      return [...prevMessages, userMessage];
+    });
     
     try {
       let sessionToUse = currentSession;
@@ -162,16 +160,16 @@ export function useConversationState() {
       });
       
       setShowExample(false);
+      console.log('[✅ 메시지 전송] 완료');
     } catch (error) {
       console.error('[❌ 메시지 전송] 실패:', error);
       // 에러 발생 시 사용자 메시지 제거
       setMessages(prevMessages => prevMessages.slice(0, -1));
     } finally {
       setIsLoading(false);
-      // 메시지 전송 완료 후 잠시 후에 DB 동기화 허용
-      setTimeout(() => {
-        setIsMessageBeingSent(false);
-      }, 500);
+      // 메시지 전송 완료 후 상태 즉시 해제
+      setIsMessageBeingSent(false);
+      console.log('[🔄 메시지 전송 상태] 해제 완료');
     }
   }, [
     currentSession, 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useConversationState } from '../hooks/useConversationState';
@@ -110,17 +111,17 @@ export const ChatLayout: React.FC = () => {
     }
   }, [estimates, autoSwitchDisabled, checkForNewBuilds]);
 
-  // Map the selected answer to an expertise level (순서 변경됨)
-  const getExpertiseLevel = useCallback(() => {
+  // Map the selected answer to an expertise level (타입을 올바르게 매핑)
+  const getExpertiseLevel = useCallback((): 'beginner' | 'intermediate' | 'expert' => {
     switch(selectedAnswer) {
       case 1:
-        return 'low';     // 입문자
+        return 'beginner';     // 입문자
       case 2:
-        return 'middle';  // 중급자
+        return 'intermediate'; // 중급자
       case 3:
-        return 'high';    // 전문가
+        return 'expert';       // 전문가
       default:
-        return 'low';
+        return 'beginner';
     }
   }, [selectedAnswer]);
 
