@@ -103,7 +103,7 @@ export function useConversationState() {
   }, [dbMessages, syncMessagesFromDB]);
 
   // 메시지 전송 함수
-  const sendMessage = useCallback(async (text: string, expertiseLevel: string = 'intermediate', chatMode: string = '범용 검색') => {
+  const sendMessage = useCallback(async (text: string, expertiseLevel: 'beginner' | 'intermediate' | 'expert' = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
     console.log('[📤 메시지 전송] 시작:', { currentSession: currentSession?.id });
