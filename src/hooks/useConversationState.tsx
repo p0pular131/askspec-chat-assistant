@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { UIMessage } from '../types/sessionTypes';
 import { useSessionManagement } from './useSessionManagement';
@@ -75,14 +76,18 @@ export function useConversationState() {
     }
   }, []);
 
-  // 세션이 변경되면 메시지 로드
+  // 세션이 변경되면 메시지 로드 - 하지만 이미 메시지가 있으면 유지
   useEffect(() => {
     if (currentSession?.id) {
-      loadMessages(String(currentSession.id));
+      // 현재 메시지가 비어있거나, 세션이 실제로 변경된 경우에만 로드
+      // 새 메시지를 보내는 중이 아닌 경우에만 로드
+      if (messages.length === 0 && !isLoading) {
+        loadMessages(String(currentSession.id));
+      }
     } else {
       setMessages([]);
     }
-  }, [currentSession, loadMessages]);
+  }, [currentSession, loadMessages, messages.length, isLoading]);
 
   // DB 메시지가 변경되면 UI 메시지 동기화
   useEffect(() => {
@@ -110,7 +115,7 @@ export function useConversationState() {
         }
         
         sessionToUse = newSession;
-        console.log('[✅ 세션 생성] 완료:', sessionToUse.id);
+        console.log('[✅세션 생성] 완료:', sessionToUse.id);
       }
       
       if (!sessionToUse) {
