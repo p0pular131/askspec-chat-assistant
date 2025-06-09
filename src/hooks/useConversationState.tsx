@@ -177,16 +177,21 @@ export function useConversationState() {
       setMessages(prevMessages => prevMessages.slice(0, -1));
     } finally {
       setIsLoading(false);
-      // 메시지 전송 완료 후 즉시 상태 해제하되, DB 메시지 재로드하여 동기화
-      setIsMessageBeingSent(false);
-      console.log('[🔄 메시지 전송 상태] 해제 완료 - DB 재로드');
+      console.log('[🔄 메시지 전송 상태] 해제 시작');
       
-      // 현재 세션이 있다면 메시지 재로드하여 완전 동기화
-      if (currentSession?.id) {
-        setTimeout(() => {
-          loadMessages(String(currentSession.id));
-        }, 100);
-      }
+      // 메시지 전송 상태 해제를 약간 지연시켜 응답이 완전히 처리된 후 동기화
+      setTimeout(() => {
+        setIsMessageBeingSent(false);
+        console.log('[🔄 메시지 전송 상태] 해제 완료 - DB 동기화 재개');
+        
+        // 현재 세션의 메시지를 다시 로드하여 완전 동기화
+        if (currentSession?.id) {
+          setTimeout(() => {
+            console.log('[🔄 최종 동기화] DB에서 메시지 재로드');
+            loadMessages(String(currentSession.id));
+          }, 200);
+        }
+      }, 1000); // 1초 후 동기화 재개
     }
   }, [
     currentSession, 
