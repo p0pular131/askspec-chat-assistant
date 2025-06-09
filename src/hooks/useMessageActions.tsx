@@ -87,9 +87,36 @@ export function useMessageActions(currentSession: Session | null) {
       const response = await processMessage(apiMessages, chatMode, session.id.toString(), expertiseLevel);
       
       if (response) {
+        // 응답을 JSON으로 파싱 시도하여 로드된 메시지와 동일한 구조로 만들기
+        let processedResponse = response;
+        
+        try {
+          const parsedResponse = JSON.parse(response);
+          
+          // 만약 응답이 JSON이고 response_type이 있다면, 로드된 메시지와 동일한 구조로 변환
+          if (parsedResponse && parsedResponse.response_type) {
+            console.log('[🔄 응답 구조 변환] JSON 응답을 로드된 메시지 구조로 변환');
+            
+            // 로드된 메시지에서 사용하는 구조로 변환
+            const structuredResponse = {
+              response_type: parsedResponse.response_type,
+              response: parsedResponse.response || parsedResponse,
+              id: parsedResponse.id, // estimateId 보존
+              chat_mode: chatMode,
+              expertise_level: expertiseLevel,
+              ...parsedResponse // 기타 모든 필드 보존
+            };
+            
+            processedResponse = JSON.stringify(structuredResponse);
+          }
+        } catch (parseError) {
+          // JSON 파싱 실패시 원본 응답 사용
+          console.log('[ℹ️ 응답 처리] JSON이 아닌 응답, 원본 사용');
+        }
+        
         // 어시스턴트 응답을 로컬 상태에 추가
         const assistantMessage: ApiMessage = {
-          content: response,
+          content: processedResponse,
           role: 'assistant',
           mode: chatMode,
           id: Date.now() + 1, // 임시 ID
