@@ -75,21 +75,31 @@ export function useConversationState() {
         expertiseLevel: 'beginner' // 기본값
       }));
       
-      console.log('[🔄 메시지 동기화] DB에서 UI로:', uiMessages.length, '개 메시지');
-      setMessages(uiMessages);
+      console.log('[🔄 메시지 동기화] DB에서 UI로:', uiMessages.length, '개 메시지', 'isMessageBeingSent:', isMessageBeingSent);
+      
+      // 메시지를 보내는 중이 아닐 때만 DB에서 UI로 동기화
+      if (!isMessageBeingSent) {
+        setMessages(uiMessages);
+      }
     }
-  }, []);
+  }, [isMessageBeingSent]);
 
   // 세션이 변경되면 메시지 로드
   useEffect(() => {
     if (currentSession?.id) {
       console.log('[📥 세션 변경] 메시지 로드 시작:', currentSession.id);
-      loadMessages(String(currentSession.id));
+      // 메시지를 보내는 중이 아닐 때만 로드
+      if (!isMessageBeingSent) {
+        loadMessages(String(currentSession.id));
+      }
     } else {
       console.log('[🏠 세션 해제] 메시지 초기화');
-      setMessages([]);
+      // 메시지를 보내는 중이 아닐 때만 초기화
+      if (!isMessageBeingSent) {
+        setMessages([]);
+      }
     }
-  }, [currentSession, loadMessages]);
+  }, [currentSession, loadMessages, isMessageBeingSent]);
 
   // DB 메시지가 변경되면 UI 메시지 동기화
   useEffect(() => {
@@ -167,9 +177,11 @@ export function useConversationState() {
       setMessages(prevMessages => prevMessages.slice(0, -1));
     } finally {
       setIsLoading(false);
-      // 메시지 전송 완료 후 상태 즉시 해제
-      setIsMessageBeingSent(false);
-      console.log('[🔄 메시지 전송 상태] 해제 완료');
+      // 메시지 전송 완료 후 잠시 후에 상태 해제하여 DB 동기화 허용
+      setTimeout(() => {
+        setIsMessageBeingSent(false);
+        console.log('[🔄 메시지 전송 상태] 해제 완료 - DB 동기화 재개');
+      }, 500);
     }
   }, [
     currentSession, 
