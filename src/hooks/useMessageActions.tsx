@@ -25,7 +25,13 @@ export function useMessageActions(currentSession: Session | null) {
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
       
-      setDbMessages(sortedMessages);
+      // 견적 ID 정보를 포함하여 메시지 상태 업데이트
+      const messagesWithEstimateId = sortedMessages.map(msg => ({
+        ...msg,
+        estimate_id: msg.estimate_id || null // 견적 ID 포함
+      }));
+      
+      setDbMessages(messagesWithEstimateId);
     } catch (error) {
       console.error('[❌ 메시지 로드] 실패:', error);
       toast({
@@ -71,7 +77,8 @@ export function useMessageActions(currentSession: Session | null) {
         mode: chatMode,
         id: Date.now(), // 임시 ID
         session_id: session.id,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        estimate_id: null // 사용자 메시지는 견적 ID 없음
       };
       
       setDbMessages(prevMessages => [...prevMessages, userMessage]);
@@ -87,6 +94,18 @@ export function useMessageActions(currentSession: Session | null) {
       const response = await processMessage(apiMessages, chatMode, session.id.toString(), expertiseLevel);
       
       if (response) {
+        // 견적 ID 추출 시도
+        let estimateId = null;
+        try {
+          const parsedResponse = JSON.parse(response);
+          if (parsedResponse.id) {
+            estimateId = parsedResponse.id;
+            console.log('[🔍 견적 ID 추출] 응답에서 견적 ID 발견:', estimateId);
+          }
+        } catch (e) {
+          // JSON이 아닌 경우 견적 ID 없음
+        }
+        
         // 어시스턴트 응답을 로컬 상태에 추가
         const assistantMessage: ApiMessage = {
           content: response,
@@ -94,7 +113,8 @@ export function useMessageActions(currentSession: Session | null) {
           mode: chatMode,
           id: Date.now() + 1, // 임시 ID
           session_id: session.id,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          estimate_id: estimateId // 견적 ID 포함
         };
         
         setDbMessages(prevMessages => [...prevMessages, assistantMessage]);

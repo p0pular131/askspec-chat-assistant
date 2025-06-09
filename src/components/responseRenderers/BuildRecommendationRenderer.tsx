@@ -41,26 +41,31 @@ interface BuildRecommendationRendererProps {
   sessionId?: string;
   expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
   recommendationData?: EstimateResponse;
+  estimateId?: string | null; // 견적 ID prop 추가
 }
 
 const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ 
   content, 
   sessionId,
   expertiseLevel = 'beginner',
-  recommendationData 
+  recommendationData,
+  estimateId = null // 견적 ID 받기
 }) => {
   const { saveEstimate, saveLoading } = useEstimates();
   const [isSaving, setIsSaving] = useState(false);
 
   // Try to parse content as JSON, fallback to sample data if parsing fails
   let buildData;
-  let estimateId = null;
+  let finalEstimateId = estimateId; // 먼저 prop으로 받은 견적 ID 사용
   
   try {
     const parsedData = JSON.parse(content);
     
-    // Extract estimate ID if available
-    estimateId = parsedData.id;
+    // Extract estimate ID if available in content and not provided via prop
+    if (!finalEstimateId && parsedData.id) {
+      finalEstimateId = parsedData.id;
+      console.log('[🔍 견적 ID] content에서 견적 ID 추출:', finalEstimateId);
+    }
     
     // Check if the parsed data has the expected structure
     if (parsedData.response && parsedData.response.title && parsedData.response.parts) {
@@ -179,9 +184,9 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     try {
       setIsSaving(true);
       
-      // Use the actual estimate ID from the API response
-      if (!estimateId) {
-        console.warn('No estimate ID found in response, cannot save estimate');
+      // Use the final estimate ID (from prop or content)
+      if (!finalEstimateId) {
+        console.warn('No estimate ID found, cannot save estimate');
         toast({
           title: "저장 실패",
           description: "견적 ID를 찾을 수 없습니다.",
@@ -190,8 +195,8 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         return;
       }
       
-      console.log('Saving estimate with ID:', estimateId);
-      const success = await saveEstimate(estimateId);
+      console.log('[💾 견적 저장] 견적 ID로 저장 시도:', finalEstimateId);
+      const success = await saveEstimate(finalEstimateId);
       
       if (success) {
         // Trigger a custom event to notify other components

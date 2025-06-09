@@ -18,6 +18,7 @@ interface ResponseRendererProps {
   chatMode: string;
   sessionId?: string;
   expertiseLevel?: "low" | "middle" | "high";
+  estimateId?: string | null; // 견적 ID 추가
 }
 
 // Helper function to convert expertise levels
@@ -58,7 +59,8 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
   content, 
   chatMode,
   sessionId,
-  expertiseLevel = "low"
+  expertiseLevel = "low",
+  estimateId = null // 견적 ID 받기
 }) => {
   const convertedExpertiseLevel = convertExpertiseLevel(expertiseLevel);
   
@@ -74,6 +76,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
               content={content}
               sessionId={sessionId}
               expertiseLevel={convertedExpertiseLevel}
+              estimateId={estimateId} // 견적 ID 전달
             />
           );
         case 'part_recommendation':
@@ -106,6 +109,7 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
               content={content}
               sessionId={sessionId}
               expertiseLevel={expertiseLevel}
+              estimateId={estimateId} // 견적 ID 전달
             />
           );
         case 'general_search':
@@ -119,19 +123,19 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
         default:
           // Unknown response type, fallback based on chat mode
           const fallbackResponseType = getResponseTypeFromChatMode(chatMode);
-          return renderByResponseType(fallbackResponseType, content, sessionId, expertiseLevel, convertedExpertiseLevel);
+          return renderByResponseType(fallbackResponseType, content, sessionId, expertiseLevel, convertedExpertiseLevel, estimateId);
       }
     } catch (error) {
       console.warn('Failed to parse JSON response, falling back based on chat mode:', error);
       // Fallback to chat mode based rendering
       const responseType = getResponseTypeFromChatMode(chatMode);
-      return renderByResponseType(responseType, content, sessionId, expertiseLevel, convertedExpertiseLevel);
+      return renderByResponseType(responseType, content, sessionId, expertiseLevel, convertedExpertiseLevel, estimateId);
     }
   }
   
   // For non-JSON content, determine renderer based on chat mode
   const responseType = getResponseTypeFromChatMode(chatMode);
-  return renderByResponseType(responseType, content, sessionId, expertiseLevel, convertedExpertiseLevel);
+  return renderByResponseType(responseType, content, sessionId, expertiseLevel, convertedExpertiseLevel, estimateId);
 };
 
 // Helper function to render by response type
@@ -140,7 +144,8 @@ const renderByResponseType = (
   content: string, 
   sessionId: string | undefined, 
   expertiseLevel: "low" | "middle" | "high", 
-  convertedExpertiseLevel: "beginner" | "intermediate" | "expert"
+  convertedExpertiseLevel: "beginner" | "intermediate" | "expert",
+  estimateId: string | null = null // 견적 ID 추가
 ) => {
   switch (responseType) {
     case 'build_recommendation':
@@ -149,6 +154,7 @@ const renderByResponseType = (
           content={content}
           sessionId={sessionId}
           expertiseLevel={convertedExpertiseLevel}
+          estimateId={estimateId} // 견적 ID 전달
         />
       );
     case 'part_recommendation':
@@ -181,6 +187,7 @@ const renderByResponseType = (
           content={content}
           sessionId={sessionId}
           expertiseLevel={expertiseLevel}
+          estimateId={estimateId} // 견적 ID 전달
         />
       );
     case 'general_search':

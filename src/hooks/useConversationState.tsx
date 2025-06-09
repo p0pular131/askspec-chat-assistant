@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { UIMessage } from '../types/sessionTypes';
 import { useSessionManagement } from './useSessionManagement';
@@ -53,14 +54,15 @@ export function useConversationState() {
     fetchSessions();
   }, [fetchSessions]);
 
-  // API 메시지를 UI 메시지로 변환
+  // API 메시지를 UI 메시지로 변환 (견적 ID 포함)
   const syncMessagesFromDB = useCallback((apiMessages: typeof dbMessages) => {
     if (apiMessages) {
       const uiMessages: UIMessage[] = apiMessages.map(msg => ({
         text: msg.content,
         isUser: msg.role === 'user',
         chatMode: msg.mode || '범용 검색',
-        expertiseLevel: 'beginner' // 기본값
+        expertiseLevel: 'beginner', // 기본값
+        estimateId: msg.estimate_id || null // 견적 ID 포함
       }));
       setMessages(uiMessages);
     }

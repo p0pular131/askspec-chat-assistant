@@ -57,6 +57,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   // Use the message's stored chatMode and expertiseLevel if available
   const effectiveChatMode = message.chatMode || chatMode;
   const expertiseLevel = message.expertiseLevel || 'low';
+  // 견적 ID 가져오기
+  const estimateId = message.estimateId || null;
   
   if (message.isUser) {
     return (
@@ -91,6 +93,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             chatMode={effectiveChatMode} 
             sessionId={sessionId}
             expertiseLevel={expertiseLevel as 'low' | 'middle' | 'high'}
+            estimateId={estimateId} // 견적 ID 전달
           />
         ) : (
           <ReactMarkdown className="prose prose-sm dark:prose-invert break-words">
