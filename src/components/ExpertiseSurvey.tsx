@@ -22,8 +22,8 @@ const ExpertiseSurvey: React.FC<ExpertiseSurveyProps> = ({
       <div className="flex flex-col gap-4">
         <SurveyOption
           id={1}
-          title="전문가"
-          description="예시: RTX 4060 (AD107 기반)는 DLSS 3와 4세대 NVENC를 지원해 영상 인코딩/AI 워크플로우에 최적입니다."
+          title="입문자"
+          description="예시: 영상이 끊기지 않고 부드럽게 재생되도록 도와주는 그래픽카드예요"
           isSelected={selectedAnswer === 1}
           onSelect={() => onSelectAnswer(1)}
         />
@@ -36,8 +36,8 @@ const ExpertiseSurvey: React.FC<ExpertiseSurveyProps> = ({
         />
         <SurveyOption
           id={3}
-          title="입문자"
-          description="예시: 영상이 끊기지 않고 부드럽게 재생되도록 도와주는 그래픽카드예요"
+          title="전문가"
+          description="예시: RTX 4060 (AD107 기반)는 DLSS 3와 4세대 NVENC를 지원해 영상 인코딩/AI 워크플로우에 최적입니다."
           isSelected={selectedAnswer === 3}
           onSelect={() => onSelectAnswer(3)}
         />

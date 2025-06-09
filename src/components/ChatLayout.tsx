@@ -109,15 +109,15 @@ export const ChatLayout: React.FC = () => {
     }
   }, [estimates, autoSwitchDisabled, checkForNewBuilds]);
 
-  // Map the selected answer to an expertise level
+  // Map the selected answer to an expertise level (순서 변경됨)
   const getExpertiseLevel = useCallback(() => {
     switch(selectedAnswer) {
       case 1:
-        return 'high';
+        return 'low';     // 입문자
       case 2:
-        return 'middle';
+        return 'middle';  // 중급자
       case 3:
-        return 'low';
+        return 'high';    // 전문가
       default:
         return 'low';
     }
