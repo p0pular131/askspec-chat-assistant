@@ -41,35 +41,26 @@ interface BuildRecommendationRendererProps {
   sessionId?: string;
   expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
   recommendationData?: EstimateResponse;
-  estimateId?: string | null; // 견적 ID prop 추가
 }
 
 const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = ({ 
   content, 
   sessionId,
   expertiseLevel = 'beginner',
-  recommendationData,
-  estimateId = null // 견적 ID 받기
+  recommendationData 
 }) => {
   const { saveEstimate, saveLoading } = useEstimates();
   const [isSaving, setIsSaving] = useState(false);
 
   // Try to parse content as JSON, fallback to sample data if parsing fails
   let buildData;
-  let finalEstimateId = estimateId; // 먼저 prop으로 받은 견적 ID 사용
-  
-  console.log('[🔍 BuildRecommendationRenderer] 받은 estimateId:', estimateId);
-  console.log('[🔍 BuildRecommendationRenderer] content:', content.substring(0, 200));
+  let estimateId = null;
   
   try {
     const parsedData = JSON.parse(content);
-    console.log('[🔍 BuildRecommendationRenderer] 파싱된 데이터:', parsedData);
     
-    // Extract estimate ID if available in content and not provided via prop
-    if (!finalEstimateId && parsedData.id) {
-      finalEstimateId = parsedData.id;
-      console.log('[🔍 견적 ID] content에서 견적 ID 추출:', finalEstimateId);
-    }
+    // Extract estimate ID if available
+    estimateId = parsedData.id;
     
     // Check if the parsed data has the expected structure
     if (parsedData.response && parsedData.response.title && parsedData.response.parts) {
@@ -83,8 +74,6 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     console.warn('Failed to parse build recommendation data, using sample data');
     buildData = recommendationData || sampleBuildRecommendation;
   }
-  
-  console.log('[🔍 BuildRecommendationRenderer] 최종 estimateId:', finalEstimateId);
   
   // Function to get standardized part type from part details
   const getStandardizedPartType = (part: PartDetail): string => {
@@ -190,9 +179,9 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     try {
       setIsSaving(true);
       
-      // Use the final estimate ID (from prop or content)
-      if (!finalEstimateId) {
-        console.warn('No estimate ID found, cannot save estimate');
+      // Use the actual estimate ID from the API response
+      if (!estimateId) {
+        console.warn('No estimate ID found in response, cannot save estimate');
         toast({
           title: "저장 실패",
           description: "견적 ID를 찾을 수 없습니다.",
@@ -201,8 +190,8 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         return;
       }
       
-      console.log('[💾 견적 저장] 견적 ID로 저장 시도:', finalEstimateId);
-      const success = await saveEstimate(finalEstimateId);
+      console.log('Saving estimate with ID:', estimateId);
+      const success = await saveEstimate(estimateId);
       
       if (success) {
         // Trigger a custom event to notify other components
@@ -252,11 +241,6 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
             <CardDescription className="text-xl font-semibold text-blue-600 dark:text-blue-400">
               총 예상 가격: {buildData.total_price}
             </CardDescription>
-            {finalEstimateId && (
-              <CardDescription className="text-sm text-muted-foreground">
-                견적 ID: {finalEstimateId}
-              </CardDescription>
-            )}
           </div>
         </CardHeader>
         <CardContent className="pt-4">

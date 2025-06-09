@@ -1,46 +1,26 @@
 
+// 백엔드 API 응답에 맞는 세션 타입
 export interface Session {
   id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-}
-
-// Add SessionResponse type to match API response
-export interface SessionResponse {
-  id: number;
   session_name: string;
-  created_at: string;
-  updated_at?: string;
+  last_modified: string;
+  messages: any[];
 }
 
+// 백엔드 API 응답에 맞는 메시지 타입
 export interface ApiMessage {
-  id: number;
   content: string;
-  role: 'user' | 'assistant';
-  session_id: number;
-  created_at: string;
-  mode: string;
-  estimate_id?: string | null; // 견적 ID 추가
-}
-
-// Add MessageResponse type to match API response
-export interface MessageResponse {
-  id: number;
-  input_text: string;
-  response_json?: any;
   role: string;
+  mode: string;
+  id: number;
   session_id: number;
   created_at: string;
-  chat_mode?: string;
-  expertise_level?: string;
-  estimate_id?: string | null; // 견적 ID 추가
 }
 
+// UI에서 사용하는 메시지 타입 (기존 유지)
 export interface UIMessage {
   text: string;
   isUser: boolean;
   chatMode?: string;
-  expertiseLevel?: string;
-  estimateId?: string | null; // 견적 ID 추가
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert';
 }

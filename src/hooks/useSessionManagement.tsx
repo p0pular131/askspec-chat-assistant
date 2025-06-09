@@ -1,35 +1,25 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { Session, SessionResponse } from '../types/sessionTypes';
-import { createSession, fetchSessions, deleteSession, updateSessionName } from '../services/sessionApiService';
+import { useState, useCallback } from 'react';
+import { Session } from '../types/sessionTypes';
+import { createSession, getSessions, deleteSession } from '../services/sessionApiService';
 import { toast } from '../components/ui/use-toast';
 
 export function useSessionManagement() {
-  const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [showExample, setShowExample] = useState(true);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
 
-  // Convert SessionResponse to Session
-  const convertSessionResponse = (response: SessionResponse): Session => ({
-    id: response.id,
-    name: response.session_name,
-    created_at: response.created_at,
-    updated_at: response.updated_at || response.created_at
-  });
-
+  // 세션 목록 로드
   const fetchSessions = useCallback(async () => {
+    setSessionsLoading(true);
     try {
-      setSessionsLoading(true);
       console.log('[🔄 세션 목록] API 호출 시작');
-      const response = await fetchSessions();
-      console.log('[✅ 세션 목록] API 응답 성공:', response.length, '개 세션');
-      
-      // Convert SessionResponse[] to Session[]
-      const convertedSessions = response.map(convertSessionResponse);
-      setSessions(convertedSessions);
+      const sessionsData = await getSessions();
+      console.log('[✅ 세션 목록] API 응답 성공:', sessionsData.length, '개 세션');
+      setSessions(sessionsData);
     } catch (error) {
-      console.error('[❌ 세션 목록] 실패:', error);
+      console.error('[❌ 세션 목록] 로드 실패:', error);
       toast({
         title: "오류",
         description: "세션 목록을 불러오는데 실패했습니다.",
@@ -40,20 +30,19 @@ export function useSessionManagement() {
     }
   }, []);
 
+  // 새 세션 생성
   const startNewConversation = useCallback(async () => {
     try {
-      console.log('[🆕 새 세션] 생성 시작');
-      const response = await createSession();
-      console.log('[✅새 세션] 생성 완료:', response);
+      console.log('[🔄 세션 생성] API 호출 시작');
+      const newSession = await createSession();
+      console.log('[✅ 세션 생성] API 응답 성공:', newSession.id);
       
-      // Convert SessionResponse to Session
-      const newSession = convertSessionResponse(response);
       setCurrentSession(newSession);
       setSessions(prevSessions => [newSession, ...prevSessions]);
-      
+      setShowExample(false);
       return newSession;
     } catch (error) {
-      console.error('[❌ 새 세션] 생성 실패:', error);
+      console.error('[❌ 세션 생성] 실패:', error);
       toast({
         title: "오류",
         description: "새 세션을 생성하는데 실패했습니다.",

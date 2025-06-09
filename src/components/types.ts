@@ -2,36 +2,35 @@
 export interface Message {
   text: string;
   isUser: boolean;
-  chatMode?: string;
-  expertiseLevel?: string;
-  estimateId?: string | null; // 견적 ID 추가
-}
-
-export interface ChatMode {
-  id: string;
-  name: string;
-  description: string;
-  examples: string[];
-}
-
-// Add missing interface exports
-export interface MessageInputProps {
-  onSendMessage: (message: string) => void;
-  disabled?: boolean;
-  placeholder?: string;
+  chatMode?: string; // Add chatMode to store the category when the message was created
+  expertiseLevel?: 'beginner' | 'intermediate' | 'expert'; // Add expertiseLevel
 }
 
 export interface SidebarProps {
+  children: React.ReactNode;
   isOpen: boolean;
   onToggle: () => void;
   title: string;
   position: 'left' | 'right';
-  children: React.ReactNode;
+}
+
+export interface ChatMessageProps {
+  message: Message;
+}
+
+export interface MessageInputProps {
+  onSendMessage: (text: string) => void;
+  chatMode: string;
+  setChatMode: (mode: string) => void;
+  showExample: boolean;
+  exampleText: string;
+  isDisabled?: boolean;
 }
 
 export interface SurveyOptionProps {
-  number: number;
-  text: string;
+  id: number;
+  title: string;
+  description: string;
   isSelected: boolean;
-  onClick: () => void;
+  onSelect: () => void;
 }

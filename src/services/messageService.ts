@@ -1,3 +1,4 @@
+
 import { supabase } from '../integrations/supabase/client';
 import { DatabaseMessage } from '../types/messages';
 import { responseModules } from '../modules/responseModules';
@@ -48,9 +49,8 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
     const enhancedData = typedData.map(message => {
       let chatMode = '범용 검색'; // Default mode
       let expertiseLevel = 'beginner'; // Default expertise level
-      let estimateId = null; // 견적 ID 추가
       
-      // Try to extract chat mode, expertise level, and estimate ID from response_json
+      // Try to extract chat mode and expertise level from response_json
       if (message.response_json) {
         try {
           // Check if response_json is already an object or a string
@@ -66,14 +66,10 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
             if (jsonData.expertise_level) {
               expertiseLevel = jsonData.expertise_level;
             }
-            // 견적 ID 추출
-            if (jsonData.estimate_id) {
-              estimateId = jsonData.estimate_id;
-            }
           }
         } catch (e) {
           // If parsing fails, use default mode and level
-          console.warn('Failed to parse response_json for chat mode, expertise level, or estimate ID');
+          console.warn('Failed to parse response_json for chat mode or expertise level');
         }
       }
       
@@ -81,8 +77,7 @@ export async function loadMessagesForSession(sessionId: string): Promise<Databas
         ...message,
         role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user',
         chat_mode: chatMode,
-        expertise_level: expertiseLevel,
-        estimate_id: estimateId // 견적 ID 추가
+        expertise_level: expertiseLevel
       };
     });
     
@@ -105,7 +100,7 @@ export async function addMessageToDatabase(
     // Get the next message ID
     const nextMessageId = await getNextId('messages');
     
-    // For assistant messages, try to parse the content to determine response_type and extract estimate_id
+    // For assistant messages, try to parse the content to determine response_type
     let responseJson: any = { 
       chat_mode: chatMode,
       expertise_level: expertiseLevel
@@ -121,12 +116,6 @@ export async function addMessageToDatabase(
             chat_mode: chatMode,
             expertise_level: expertiseLevel
           };
-          
-          // 견적 ID 추출 및 저장
-          if (parsedContent.id) {
-            responseJson.estimate_id = parsedContent.id;
-            console.log('[💾 견적 ID 저장] 메시지에 견적 ID 저장:', parsedContent.id);
-          }
         } else {
           // If content is not JSON, determine response_type based on chat mode
           const responseTypeMap: Record<string, string> = {
@@ -177,14 +166,13 @@ export async function addMessageToDatabase(
       throw new Error('Failed to add message');
     }
     
-    // Return the message with chat mode, expertise level, and estimate_id
+    // Return the message with chat mode and expertise level
     const message = data[0];
     return {
       ...message,
       role: message.role === 'user' || message.role === 'assistant' ? message.role : 'user',
       chat_mode: chatMode,
-      expertise_level: expertiseLevel,
-      estimate_id: responseJson.estimate_id || null
+      expertise_level: expertiseLevel
     } as DatabaseMessage;
   } catch (error) {
     console.error('Error in addMessageToDatabase:', error);

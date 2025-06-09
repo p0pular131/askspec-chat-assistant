@@ -1,6 +1,6 @@
 
 import { useCallback, useState } from 'react';
-import { Session, ApiMessage, UIMessage, MessageResponse } from '../types/sessionTypes';
+import { Session, ApiMessage, UIMessage } from '../types/sessionTypes';
 import { getSessionMessages } from '../services/sessionApiService';
 import { processMessage } from '../services/messageService';
 import { toast } from '../components/ui/use-toast';
@@ -8,17 +8,6 @@ import { toast } from '../components/ui/use-toast';
 export function useMessageActions(currentSession: Session | null) {
   const [dbMessages, setDbMessages] = useState<ApiMessage[]>([]);
   const [msgLoading, setMsgLoading] = useState(false);
-
-  // Convert MessageResponse to ApiMessage
-  const convertMessageResponse = (response: MessageResponse): ApiMessage => ({
-    id: response.id,
-    content: response.input_text,
-    role: response.role as 'user' | 'assistant',
-    session_id: response.session_id,
-    created_at: response.created_at,
-    mode: response.chat_mode || '범용 검색',
-    estimate_id: response.estimate_id || null
-  });
 
   // 메시지 로드
   const loadMessages = useCallback(async (sessionId: string) => {
@@ -31,19 +20,10 @@ export function useMessageActions(currentSession: Session | null) {
       const messages = await getSessionMessages(numericId);
       console.log('[✅ 메시지 로드] API 응답 성공:', messages.length, '개 메시지');
       
-      // Convert MessageResponse[] to ApiMessage[]
-      const convertedMessages = messages.map(convertMessageResponse);
-      
       // 메시지를 생성 시간 순으로 정렬 (오래된 것부터 최신 순)
-      const sortedMessages = convertedMessages.sort((a, b) => 
+      const sortedMessages = messages.sort((a, b) => 
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
-      
-      console.log('[🔍 메시지 변환] 견적 ID 포함 메시지들:', sortedMessages.map(m => ({ 
-        id: m.id, 
-        role: m.role, 
-        estimate_id: m.estimate_id 
-      })));
       
       setDbMessages(sortedMessages);
     } catch (error) {
@@ -91,8 +71,7 @@ export function useMessageActions(currentSession: Session | null) {
         mode: chatMode,
         id: Date.now(), // 임시 ID
         session_id: session.id,
-        created_at: new Date().toISOString(),
-        estimate_id: null // 사용자 메시지는 견적 ID 없음
+        created_at: new Date().toISOString()
       };
       
       setDbMessages(prevMessages => [...prevMessages, userMessage]);
@@ -108,18 +87,6 @@ export function useMessageActions(currentSession: Session | null) {
       const response = await processMessage(apiMessages, chatMode, session.id.toString(), expertiseLevel);
       
       if (response) {
-        // 견적 ID 추출 시도
-        let estimateId = null;
-        try {
-          const parsedResponse = JSON.parse(response);
-          if (parsedResponse.id) {
-            estimateId = parsedResponse.id;
-            console.log('[🔍 견적 ID 추출] 응답에서 견적 ID 발견:', estimateId);
-          }
-        } catch (e) {
-          // JSON이 아닌 경우 견적 ID 없음
-        }
-        
         // 어시스턴트 응답을 로컬 상태에 추가
         const assistantMessage: ApiMessage = {
           content: response,
@@ -127,8 +94,7 @@ export function useMessageActions(currentSession: Session | null) {
           mode: chatMode,
           id: Date.now() + 1, // 임시 ID
           session_id: session.id,
-          created_at: new Date().toISOString(),
-          estimate_id: estimateId // 견적 ID 포함
+          created_at: new Date().toISOString()
         };
         
         setDbMessages(prevMessages => [...prevMessages, assistantMessage]);
