@@ -6,6 +6,7 @@ import CompatibilityCheckRenderer from './CompatibilityCheckRenderer';
 import BuildEvaluationRenderer from './BuildEvaluationRenderer';
 import SpecUpgradeRenderer from './SpecUpgradeRenderer';
 import GeneralSearchRenderer from './GeneralSearchRenderer';
+import ErrorMessageRenderer from './ErrorMessageRenderer';
 import ReactMarkdown from 'react-markdown';
 
 interface ResponseData {
@@ -40,6 +41,32 @@ const isJsonResponse = (text: string): boolean => {
   }
 };
 
+// Helper function to detect if content is an error message
+const isErrorMessage = (text: string): boolean => {
+  try {
+    const parsed = JSON.parse(text);
+    
+    // Check for API response errors with detail object
+    if (parsed.detail && parsed.detail.success === false) {
+      return true;
+    }
+    
+    // Check for direct error objects
+    if (parsed.success === false) {
+      return true;
+    }
+    
+    // Check for error response type
+    if (parsed.response_type === 'error') {
+      return true;
+    }
+    
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 // Helper function to determine response type based on chat mode
 const getResponseTypeFromChatMode = (chatMode: string): string => {
   const chatModeToResponseType: Record<string, string> = {
@@ -61,6 +88,17 @@ export const ResponseRenderer: React.FC<ResponseRendererProps> = ({
   expertiseLevel = "low"
 }) => {
   const convertedExpertiseLevel = convertExpertiseLevel(expertiseLevel);
+  
+  // Check if the content is an error message first
+  if (isErrorMessage(content)) {
+    return (
+      <ErrorMessageRenderer
+        content={content}
+        sessionId={sessionId}
+        expertiseLevel={expertiseLevel}
+      />
+    );
+  }
   
   // Check if the content is a JSON response
   if (isJsonResponse(content)) {
