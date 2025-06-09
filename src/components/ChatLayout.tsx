@@ -38,7 +38,8 @@ export const ChatLayout: React.FC = () => {
     getExamplePrompt,
     autoSwitchDisabled,
     checkForNewBuilds,
-    disableAutoSwitch
+    disableAutoSwitch,
+    resetToInitialState
   } = useConversationState();
 
   const {
@@ -149,6 +150,25 @@ export const ChatLayout: React.FC = () => {
         position="left"
       >
         <div className="flex flex-col gap-2">
+          <button
+            className="flex gap-2 items-center p-3 w-full text-sm text-left rounded-lg text-zinc-900 hover:bg-neutral-100"
+            onClick={() => {
+              resetToInitialState();
+              setActiveTab('chat');
+            }}
+          >
+            <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
+              <path
+                d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.495V14.5M2.5 6l5.5-4.5L13.5 6v7a1 1 0 01-1 1h-9a1 1 0 01-1-1V6z"
+                stroke="#404040"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            초기 화면
+          </button>
+          
           <button
             className={`flex gap-2 items-center p-3 w-full text-sm text-left rounded-lg text-zinc-900 ${
               activeTab === 'chat' ? 'bg-neutral-100' : ''

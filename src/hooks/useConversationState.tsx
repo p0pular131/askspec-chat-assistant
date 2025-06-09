@@ -48,6 +48,15 @@ export function useConversationState() {
     getExamplePrompt
   } = useChatMode();
 
+  // 초기 상태로 돌아가는 함수
+  const resetToInitialState = useCallback(() => {
+    setMessages([]);
+    setShowExample(true);
+    setIsLoading(false);
+    // 현재 세션 선택 해제를 위해 null 세션 선택
+    selectConversation(null);
+  }, [setShowExample, selectConversation]);
+
   // 초기 세션 목록 로드
   useEffect(() => {
     fetchSessions();
@@ -173,6 +182,7 @@ export function useConversationState() {
     autoSwitchDisabled,
     checkForNewBuilds,
     disableAutoSwitch,
+    resetToInitialState,
     sessionId: currentSession?.id?.toString()
   };
 }

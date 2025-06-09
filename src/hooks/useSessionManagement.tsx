@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Session } from '../types/sessionTypes';
 import { createSession, getSessions, deleteSession } from '../services/sessionApiService';
@@ -52,11 +51,17 @@ export function useSessionManagement() {
     }
   }, []);
 
-  // 세션 선택
-  const selectConversation = useCallback(async (session: Session) => {
-    console.log('[📋 세션 선택]:', session.id);
-    setCurrentSession(session);
-    setShowExample(false);
+  // 세션 선택 - null 값도 받을 수 있도록 수정
+  const selectConversation = useCallback(async (session: Session | null) => {
+    if (session) {
+      console.log('[📋 세션 선택]:', session.id);
+      setCurrentSession(session);
+      setShowExample(false);
+    } else {
+      console.log('[🏠 초기 상태로 돌아가기]');
+      setCurrentSession(null);
+      setShowExample(true);
+    }
   }, []);
 
   // 세션 삭제
