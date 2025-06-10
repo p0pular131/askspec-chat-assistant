@@ -48,23 +48,37 @@ const BuildsList: React.FC<BuildsListProps> = ({
     fetchEstimates();
   }, [fetchEstimates]);
 
-  // Updated handleViewEstimate to use API data and show modal
+  // Improved handleViewEstimate with better error handling and logging
   const handleViewEstimate = useCallback(async (estimateId: string) => {
     try {
-      console.log('Fetching estimate details for ID:', estimateId);
+      console.log('[🔄 견적 상세 조회] 견적 ID:', estimateId);
+      
+      // Show loading state
+      setSelectedEstimate(null);
+      setModalOpen(true);
+      
       const estimateDetails = await getEstimateDetails(estimateId);
+      
       if (estimateDetails) {
-        console.log('Successfully fetched estimate details:', estimateDetails);
+        console.log('[✅ 견적 상세 조회] 성공:', estimateDetails);
         setSelectedEstimate(estimateDetails);
-        setModalOpen(true);
+      } else {
+        console.error('[❌ 견적 상세 조회] 데이터 없음');
+        toast({
+          title: "견적 조회 실패",
+          description: "견적 상세 정보를 찾을 수 없습니다.",
+          variant: "destructive",
+        });
+        setModalOpen(false);
       }
     } catch (error) {
-      console.error('Error viewing estimate:', error);
+      console.error('[❌ 견적 상세 조회] 오류:', error);
       toast({
-        title: "Error",
-        description: "Failed to load estimate details",
+        title: "견적 조회 실패",
+        description: "견적 상세 정보를 불러오는데 실패했습니다.",
         variant: "destructive",
       });
+      setModalOpen(false);
     }
   }, [getEstimateDetails]);
 
@@ -230,7 +244,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       
       {renderContent()}
 
-      {/* Estimate Details Modal using BuildDetails component */}
+      {/* Enhanced Estimate Details Modal with loading state */}
       <EstimateDetailsModal
         estimate={selectedEstimate}
         isOpen={modalOpen}

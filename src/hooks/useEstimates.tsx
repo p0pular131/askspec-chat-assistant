@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from '../components/ui/use-toast';
 import {
@@ -14,6 +13,12 @@ import {
 export interface EstimateItem extends EstimateResponse {
   id: string;
   created_at: string;
+  rating?: {
+    performance?: number;
+    price_performance?: number;
+    expandability?: number;
+    noise?: number;
+  };
 }
 
 export function useEstimates() {
@@ -38,8 +43,9 @@ export function useEstimates() {
       // Transform response to include IDs and timestamps
       const transformedEstimates: EstimateItem[] = response.responses.map((estimate, index) => ({
         ...estimate,
-        id: `estimate_${Date.now()}_${index}`, // Generate temporary ID
-        created_at: new Date().toISOString()
+        id: estimate.id || `estimate_${Date.now()}_${index}`, // Use actual ID if available
+        created_at: estimate.created_at || new Date().toISOString(),
+        rating: estimate.rating || undefined // Include rating if available
       }));
 
       setEstimates(transformedEstimates);
@@ -103,7 +109,7 @@ export function useEstimates() {
     }
   }, [fetchEstimates]);
 
-  // Get estimate details
+  // Get estimate details - improved to handle API response structure
   const getEstimateDetails = useCallback(async (estimateId: string) => {
     try {
       setDetailsLoading(true);
@@ -118,11 +124,12 @@ export function useEstimates() {
         const detailedEstimate: EstimateItem = {
           ...estimateData,
           id: estimateId,
-          created_at: new Date().toISOString()
+          created_at: estimateData.created_at || new Date().toISOString(),
+          rating: estimateData.rating || undefined
         };
 
         setSelectedEstimate(detailedEstimate);
-        console.log('[✅ 견적 상세 조회] 완료');
+        console.log('[✅ 견적 상세 조회] 완료:', detailedEstimate);
         return detailedEstimate;
       } else {
         throw new Error('견적 상세 정보를 찾을 수 없습니다.');
