@@ -15,8 +15,16 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
     if (Array.isArray(estimate.parts)) {
       // If parts is already an array
       estimate.parts.forEach((part, index) => {
-        const priceMatch = part.price?.toString().match(/[\d,]+/);
-        const price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
+        // Safe price extraction with proper type checking
+        let price = 0;
+        if (part.price) {
+          if (typeof part.price === 'string') {
+            const priceMatch = part.price.match(/[\d,]+/);
+            price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
+          } else if (typeof part.price === 'number') {
+            price = part.price;
+          }
+        }
         
         const component: Component = {
           name: part.name || `Component ${index + 1}`,
@@ -34,8 +42,16 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
     } else {
       // If parts is an object with category keys
       Object.entries(estimate.parts).forEach(([category, part]) => {
-        const priceMatch = part.price?.toString().match(/[\d,]+/);
-        const price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
+        // Safe price extraction with proper type checking
+        let price = 0;
+        if (part.price) {
+          if (typeof part.price === 'string') {
+            const priceMatch = part.price.match(/[\d,]+/);
+            price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
+          } else if (typeof part.price === 'number') {
+            price = part.price;
+          }
+        }
         
         const component: Component = {
           name: part.name,
