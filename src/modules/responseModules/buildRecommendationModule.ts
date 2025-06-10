@@ -20,24 +20,16 @@ export const buildRecommendationModule: ResponseModule = {
         userLevel: expertiseLevel as 'beginner' | 'intermediate' | 'expert' || 'beginner'
       });
 
-      console.log('[✅ 견적 추천] API 응답 성공:', apiResponse);
+      console.log('[✅ 견적 추천] API 응답 성공');
       
-      // Ensure the estimateId is included at multiple levels for better extraction
+      // Ensure the estimateId is included in the top level of the response
       const responseWithId = {
-        success: true,
+        id: apiResponse.id, // Include estimate ID at the top level
         response_type: 'build_recommendation',
-        id: apiResponse.id, // Top level ID
-        estimate_id: apiResponse.id, // Alternative ID field
-        estimateId: apiResponse.id, // Another alternative ID field
-        response: {
-          ...apiResponse.response,
-          id: apiResponse.id, // ID in response object
-          estimate_id: apiResponse.id // Alternative ID in response object
-        },
+        response: apiResponse.response || apiResponse, // Keep the original response structure
         ...apiResponse // Include all other fields from the API response
       };
       
-      console.log('[🔍 견적 추천] 최종 응답 구조:', responseWithId);
       return JSON.stringify(responseWithId);
     } catch (error) {
       console.error('[❌ 견적 추천] API 호출 실패:', error);
