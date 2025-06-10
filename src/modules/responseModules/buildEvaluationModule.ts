@@ -20,14 +20,34 @@ export const buildEvaluationModule: ResponseModule = {
         userLevel: expertiseLevel as 'beginner' | 'intermediate' | 'expert'
       });
 
-      console.log('[✅ 견적 평가] API 응답 성공');
+      console.log('[✅ 견적 평가] API 응답 성공:', apiResponse);
       
-      // API 응답이 JSON 형태인지 확인
-      if (typeof apiResponse === 'object') {
-        return JSON.stringify(apiResponse);
+      // Include estimate ID in the response if available
+      let responseWithId;
+      if (apiResponse.id) {
+        responseWithId = {
+          success: true,
+          response_type: 'build_evaluation',
+          id: apiResponse.id,
+          estimate_id: apiResponse.id,
+          estimateId: apiResponse.id,
+          ...apiResponse
+        };
+      } else {
+        // API 응답이 JSON 형태인지 확인
+        if (typeof apiResponse === 'object') {
+          responseWithId = {
+            success: true,
+            response_type: 'build_evaluation',
+            ...apiResponse
+          };
+        } else {
+          responseWithId = apiResponse;
+        }
       }
       
-      return apiResponse;
+      console.log('[🔍 견적 평가] 최종 응답 구조:', responseWithId);
+      return typeof responseWithId === 'object' ? JSON.stringify(responseWithId) : responseWithId;
     } catch (error) {
       console.error('[❌ 견적 평가] API 호출 실패:', error);
       

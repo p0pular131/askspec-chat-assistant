@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardHeader, 
@@ -52,6 +51,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
 }) => {
   const { saveEstimate, saveLoading } = useEstimates();
   const [isSaving, setIsSaving] = useState(false);
+  const [extractedEstimateId, setExtractedEstimateId] = useState<string | null>(null);
 
   // Try to parse content as JSON, fallback to sample data if parsing fails
   let buildData;
@@ -61,8 +61,14 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     const parsedData = JSON.parse(content);
     console.log('[🔍 견적 데이터] 파싱된 데이터:', parsedData);
     
-    // Extract estimate ID from various possible locations
-    estimateId = parsedData.id || parsedData.estimate_id || null;
+    // Extract estimate ID from various possible locations with more thorough checking
+    estimateId = parsedData.id || 
+                parsedData.estimate_id || 
+                parsedData.estimateId ||
+                (parsedData.response && parsedData.response.id) ||
+                (parsedData.response && parsedData.response.estimate_id) ||
+                null;
+    
     console.log('[🔍 견적 ID] 추출된 견적 ID:', estimateId);
     
     // Check if the parsed data has the expected structure
@@ -79,7 +85,15 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     console.warn('[⚠️ 견적 데이터] 파싱 실패, 샘플 데이터 사용:', error);
     buildData = recommendationData || sampleBuildRecommendation;
   }
-  
+
+  // Set the extracted estimate ID when component mounts or content changes
+  useEffect(() => {
+    if (estimateId) {
+      console.log('[🔄 견적 ID 설정] 추출된 ID를 상태에 저장:', estimateId);
+      setExtractedEstimateId(estimateId);
+    }
+  }, [content, estimateId]);
+
   // Function to get standardized part type from part details
   const getStandardizedPartType = (part: PartDetail): string => {
     const name = part.name.toLowerCase();
@@ -184,19 +198,25 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     try {
       setIsSaving(true);
       
-      // Use the actual estimate ID from the API response
-      if (!estimateId) {
+      // Use the extracted estimate ID from state or fallback to the parsed ID
+      const idToUse = extractedEstimateId || estimateId;
+      
+      if (!idToUse) {
         console.warn('[⚠️ 견적 저장] 견적 ID를 찾을 수 없음');
+        console.log('[🔍 디버그] content:', content);
+        console.log('[🔍 디버그] extractedEstimateId:', extractedEstimateId);
+        console.log('[🔍 디버그] estimateId:', estimateId);
+        
         toast({
           title: "저장 실패",
-          description: "견적 ID를 찾을 수 없습니다.",
+          description: "견적 ID를 찾을 수 없습니다. 잠시 후 다시 시도해주세요.",
           variant: "destructive",
         });
         return;
       }
       
-      console.log('[🔄 견적 저장] 견적 ID로 저장 시작:', estimateId);
-      const success = await saveEstimate(estimateId);
+      console.log('[🔄 견적 저장] 견적 ID로 저장 시작:', idToUse);
+      const success = await saveEstimate(idToUse);
       
       if (success) {
         // Trigger a custom event to notify other components
@@ -215,6 +235,9 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     }
   };
 
+  // Check if we have a valid estimate ID for the save button
+  const hasValidEstimateId = Boolean(extractedEstimateId || estimateId);
+
   return (
     <div className="build-recommendation-response space-y-6">
       {/* Summary Card with Total Price and Reasoning */}
@@ -227,12 +250,17 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
               size="sm" 
               className="flex items-center gap-1"
               onClick={handleSaveEstimate}
-              disabled={isSaving || saveLoading}
+              disabled={isSaving || saveLoading || !hasValidEstimateId}
             >
               {isSaving || saveLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   <span>저장 중...</span>
+                </>
+              ) : !hasValidEstimateId ? (
+                <>
+                  <Save size={16} />
+                  <span>ID 확인 중...</span>
                 </>
               ) : (
                 <>
@@ -246,6 +274,11 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
             <CardDescription className="text-xl font-semibold text-blue-600 dark:text-blue-400">
               총 예상 가격: {buildData.total_price}
             </CardDescription>
+            {hasValidEstimateId && (
+              <CardDescription className="text-xs text-gray-500">
+                견적 ID: {extractedEstimateId || estimateId}
+              </CardDescription>
+            )}
           </div>
         </CardHeader>
         <CardContent className="pt-4">
