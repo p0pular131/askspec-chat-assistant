@@ -10,8 +10,6 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
   
   if (estimate.parts) {
     // Handle both object and array formats for parts
-    const partsData = Array.isArray(estimate.parts) ? estimate.parts : Object.entries(estimate.parts);
-    
     if (Array.isArray(estimate.parts)) {
       // If parts is already an array
       estimate.parts.forEach((part, index) => {
@@ -70,9 +68,15 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
   }
   
   // Extract total price as number
-  const totalPrice = typeof estimate.total_price === 'number' ? estimate.total_price : 
-    (typeof estimate.total_price === 'string' ? 
-      parseInt(estimate.total_price.replace(/[^\d]/g, '')) || 0 : 0);
+  let totalPrice = 0;
+  if (estimate.total_price) {
+    if (typeof estimate.total_price === 'number') {
+      totalPrice = estimate.total_price;
+    } else if (typeof estimate.total_price === 'string') {
+      const priceMatch = estimate.total_price.match(/[\d,]+/);
+      totalPrice = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
+    }
+  }
   
   // Create Build object compatible with BuildDetails component
   const build: Build = {

@@ -11,15 +11,10 @@ import {
   EstimatesListResponse
 } from '../services/estimatesApiService';
 
+// EstimateItem now properly extends EstimateResponse and includes all necessary fields
 export interface EstimateItem extends EstimateResponse {
   id: string;
   created_at: string;
-  rating?: {
-    performance?: number;
-    price_performance?: number;
-    expandability?: number;
-    noise?: number;
-  };
 }
 
 export function useEstimates() {
@@ -46,12 +41,6 @@ export function useEstimates() {
         ...estimate,
         id: estimate.id || `estimate_${Date.now()}_${index}`, // Use actual ID if available, fallback to generated ID
         created_at: estimate.created_at || new Date().toISOString(), // Use actual timestamp if available, fallback to current time
-        rating: estimate.rating || {
-          performance: estimate.performance,
-          price_performance: estimate.price_performance,
-          expandability: estimate.expandability,
-          noise: estimate.noise
-        }
       }));
 
       setEstimates(transformedEstimates);
@@ -115,7 +104,7 @@ export function useEstimates() {
     }
   }, [fetchEstimates]);
 
-  // Get estimate details - updated to handle direct EstimateResponse
+  // Get estimate details - now properly handles all EstimateResponse fields
   const getEstimateDetails = useCallback(async (estimateId: string) => {
     try {
       setDetailsLoading(true);
@@ -125,16 +114,11 @@ export function useEstimates() {
       const estimateData = await getEstimateDetailsAPI(estimateId);
       
       if (estimateData) {
+        // EstimateItem now properly extends EstimateResponse, so all fields are included
         const detailedEstimate: EstimateItem = {
-          ...estimateData,
+          ...estimateData, // This includes all fields from EstimateResponse
           id: estimateId,
           created_at: estimateData.created_at || new Date().toISOString(),
-          rating: estimateData.rating || {
-            performance: estimateData.performance,
-            price_performance: estimateData.price_performance,
-            expandability: estimateData.expandability,
-            noise: estimateData.noise
-          }
         };
 
         setSelectedEstimate(detailedEstimate);
