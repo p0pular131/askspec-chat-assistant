@@ -46,7 +46,12 @@ export function useEstimates() {
         ...estimate,
         id: estimate.id || `estimate_${Date.now()}_${index}`, // Use actual ID if available, fallback to generated ID
         created_at: estimate.created_at || new Date().toISOString(), // Use actual timestamp if available, fallback to current time
-        rating: estimate.rating || undefined // Include rating if available
+        rating: estimate.rating || {
+          performance: estimate.performance,
+          price_performance: estimate.price_performance,
+          expandability: estimate.expandability,
+          noise: estimate.noise
+        }
       }));
 
       setEstimates(transformedEstimates);
@@ -110,23 +115,26 @@ export function useEstimates() {
     }
   }, [fetchEstimates]);
 
-  // Get estimate details - improved to handle API response structure
+  // Get estimate details - updated to handle direct EstimateResponse
   const getEstimateDetails = useCallback(async (estimateId: string) => {
     try {
       setDetailsLoading(true);
       setError(null);
       console.log('[🔄 견적 상세 조회] useEstimates 시작:', estimateId);
 
-      const response = await getEstimateDetailsAPI(estimateId);
+      const estimateData = await getEstimateDetailsAPI(estimateId);
       
-      if (response.responses && response.responses.length > 0) {
-        const estimateData = response.responses[0];
-        
+      if (estimateData) {
         const detailedEstimate: EstimateItem = {
           ...estimateData,
           id: estimateId,
-          created_at: estimateData.created_at || new Date().toISOString(), // Use actual timestamp if available, fallback to current time
-          rating: estimateData.rating || undefined // Include rating if available
+          created_at: estimateData.created_at || new Date().toISOString(),
+          rating: estimateData.rating || {
+            performance: estimateData.performance,
+            price_performance: estimateData.price_performance,
+            expandability: estimateData.expandability,
+            noise: estimateData.noise
+          }
         };
 
         setSelectedEstimate(detailedEstimate);

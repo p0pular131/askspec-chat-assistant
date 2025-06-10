@@ -1,13 +1,16 @@
+
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Types for API responses
 export interface PartDetail {
+  product_id: number;
   name: string;
   reason: string;
   price: string;
-  specs: string;
+  specs: any; // Can be object or string
+  specs_text: string;
   link: string;
   image_url: string;
   image?: string; // Optional image property for backward compatibility
@@ -17,9 +20,14 @@ export interface EstimateResponse {
   id?: string; // Optional ID field
   title: string;
   parts: Record<string, PartDetail>;
-  total_price: string;
+  total_price: number;
   total_reason: string;
   suggestion: string;
+  score?: number;
+  price_performance?: number;
+  performance?: number;
+  expandability?: number;
+  noise?: number;
   created_at?: string; // Optional created_at field
   rating?: {
     performance?: number;
@@ -81,8 +89,8 @@ export const saveEstimate = async (estimateId: string): Promise<SaveEstimateResp
   }
 };
 
-// 견적 상세 조회 API
-export const getEstimateDetails = async (estimateId: string): Promise<EstimatesListResponse> => {
+// 견적 상세 조회 API - 단일 견적 객체 반환
+export const getEstimateDetails = async (estimateId: string): Promise<EstimateResponse> => {
   try {
     console.log('[🔄 견적 상세 조회] API 호출 시작:', estimateId);
     const response = await axios.get(`${API_BASE_URL}/estimates/${estimateId}`);

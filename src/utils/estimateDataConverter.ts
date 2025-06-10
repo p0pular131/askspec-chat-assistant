@@ -15,14 +15,14 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
     if (Array.isArray(estimate.parts)) {
       // If parts is already an array
       estimate.parts.forEach((part, index) => {
-        const priceMatch = part.price?.match(/[\d,]+/);
+        const priceMatch = part.price?.toString().match(/[\d,]+/);
         const price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
         
         const component: Component = {
           name: part.name || `Component ${index + 1}`,
           type: part.type || 'Unknown',
           image: part.image_url || part.image || '', // Use image_url first, then fallback to image if it exists
-          specs: part.specs || '',
+          specs: part.specs_text || part.specs || '',
           reason: part.reason || '',
           purchase_link: part.link || '',
           price: price,
@@ -34,14 +34,14 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
     } else {
       // If parts is an object with category keys
       Object.entries(estimate.parts).forEach(([category, part]) => {
-        const priceMatch = part.price?.match(/[\d,]+/);
+        const priceMatch = part.price?.toString().match(/[\d,]+/);
         const price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
         
         const component: Component = {
           name: part.name,
           type: category,
           image: part.image_url || part.image || '', // Use image_url first, then fallback to image if it exists
-          specs: part.specs || '',
+          specs: part.specs_text || part.specs || '',
           reason: part.reason || '',
           purchase_link: part.link || '',
           price: price,
@@ -54,8 +54,9 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
   }
   
   // Extract total price as number
-  const totalPriceMatch = estimate.total_price?.match(/[\d,]+/);
-  const totalPrice = totalPriceMatch ? parseInt(totalPriceMatch[0].replace(/,/g, '')) : 0;
+  const totalPrice = typeof estimate.total_price === 'number' ? estimate.total_price : 
+    (typeof estimate.total_price === 'string' ? 
+      parseInt(estimate.total_price.replace(/[^\d]/g, '')) || 0 : 0);
   
   // Create Build object compatible with BuildDetails component
   const build: Build = {
@@ -66,12 +67,11 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
     total_price: totalPrice,
     recommendation: estimate.total_reason || estimate.suggestion || '견적 추천 설명이 없습니다.',
     created_at: estimate.created_at || new Date().toISOString(),
-    rating: {
-      // 실제 평가 데이터가 있다면 사용, 없으면 기본값
-      performance: estimate.rating?.performance || 8,
-      price_performance: estimate.rating?.price_performance || 7,
-      expandability: estimate.rating?.expandability || 6,
-      noise: estimate.rating?.noise || 5
+    rating: estimate.rating || {
+      performance: estimate.performance || 0,
+      price_performance: estimate.price_performance || 0,
+      expandability: estimate.expandability || 0,
+      noise: estimate.noise || 0
     }
   };
   
