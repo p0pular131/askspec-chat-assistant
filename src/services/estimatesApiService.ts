@@ -10,14 +10,23 @@ export interface PartDetail {
   specs: string;
   link: string;
   image_url: string;
+  image?: string; // Optional image property for backward compatibility
 }
 
 export interface EstimateResponse {
+  id?: string; // Optional ID field
   title: string;
   parts: Record<string, PartDetail>;
   total_price: string;
   total_reason: string;
   suggestion: string;
+  created_at?: string; // Optional created_at field
+  rating?: {
+    performance?: number;
+    price_performance?: number;
+    expandability?: number;
+    noise?: number;
+  }; // Optional rating field
 }
 
 export interface EstimatesListResponse {

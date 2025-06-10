@@ -21,7 +21,7 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
         const component: Component = {
           name: part.name || `Component ${index + 1}`,
           type: part.type || 'Unknown',
-          image: part.image_url || part.image || '',
+          image: part.image_url || part.image || '', // Use image_url first, then fallback to image if it exists
           specs: part.specs || '',
           reason: part.reason || '',
           purchase_link: part.link || '',
@@ -40,7 +40,7 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
         const component: Component = {
           name: part.name,
           type: category,
-          image: part.image_url || part.image || '',
+          image: part.image_url || part.image || '', // Use image_url first, then fallback to image if it exists
           specs: part.specs || '',
           reason: part.reason || '',
           purchase_link: part.link || '',

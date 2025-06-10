@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { toast } from '../components/ui/use-toast';
 import {
@@ -43,8 +44,8 @@ export function useEstimates() {
       // Transform response to include IDs and timestamps
       const transformedEstimates: EstimateItem[] = response.responses.map((estimate, index) => ({
         ...estimate,
-        id: estimate.id || `estimate_${Date.now()}_${index}`, // Use actual ID if available
-        created_at: estimate.created_at || new Date().toISOString(),
+        id: estimate.id || `estimate_${Date.now()}_${index}`, // Use actual ID if available, fallback to generated ID
+        created_at: estimate.created_at || new Date().toISOString(), // Use actual timestamp if available, fallback to current time
         rating: estimate.rating || undefined // Include rating if available
       }));
 
@@ -124,8 +125,8 @@ export function useEstimates() {
         const detailedEstimate: EstimateItem = {
           ...estimateData,
           id: estimateId,
-          created_at: estimateData.created_at || new Date().toISOString(),
-          rating: estimateData.rating || undefined
+          created_at: estimateData.created_at || new Date().toISOString(), // Use actual timestamp if available, fallback to current time
+          rating: estimateData.rating || undefined // Include rating if available
         };
 
         setSelectedEstimate(detailedEstimate);
