@@ -158,10 +158,17 @@ export function useConversationState() {
       setShowExample(false);
       
       // 첫 번째 메시지인 경우 세션 제목 즉시 업데이트
+      console.log('[🔍 첫 메시지 체크] dbMessages 길이:', dbMessages.length);
       if (dbMessages.length === 0) {
         const sessionTitle = text.substring(0, 50);
-        console.log('[📝 세션 제목 업데이트] 즉시 업데이트:', sessionTitle);
-        await updateSession(sessionToUse.id, sessionTitle);
+        console.log('[📝 세션 제목 업데이트 호출] sessionId:', sessionToUse.id, 'title:', sessionTitle);
+        
+        // updateSession 함수 호출 전후 로그 추가
+        console.log('[🔄 updateSession 호출 전] updateSession 함수 존재:', typeof updateSession === 'function');
+        const updateResult = await updateSession(sessionToUse.id, sessionTitle);
+        console.log('[✅ updateSession 호출 후] 결과:', updateResult);
+        
+        console.log('[🔄 fetchSessions 호출] 세션 목록 새로고침');
         await fetchSessions();
       }
       
