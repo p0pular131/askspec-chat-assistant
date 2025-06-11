@@ -130,6 +130,7 @@ export function useConversationState() {
         const sessionTitle = text.substring(0, 50);
         console.log('[📝 세션 제목 업데이트] 즉시 업데이트:', sessionTitle);
         await updateSession(sessionToUse.id, sessionTitle);
+        await fetchSessions();
       }
       
       // API를 통해 메시지 전송 및 자동 응답 처리
@@ -157,7 +158,8 @@ export function useConversationState() {
     updateSession, 
     dbMessages,
     loadBuilds,
-    setShowExample
+    setShowExample,
+    fetchSessions
   ]);
 
   return {
