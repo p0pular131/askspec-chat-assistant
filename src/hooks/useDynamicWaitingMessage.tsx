@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect, useRef } from 'react';
 
 interface MessageSequence {
@@ -142,3 +143,4 @@ export function useDynamicWaitingMessage(chatMode: string = '범용 검색') {
     stopWaiting
   };
 }
+
