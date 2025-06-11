@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { Session } from '../types/sessionTypes';
-import { createSession, getSessions, deleteSession } from '../services/sessionApiService';
+import { createSession, getSessions, deleteSession, updateSession as updateSessionApi } from '../services/sessionApiService';
 import { toast } from '../components/ui/use-toast';
 
 export function useSessionManagement() {
@@ -97,12 +97,17 @@ export function useSessionManagement() {
     }
   }, [currentSession]);
 
-  // 세션 업데이트 (getSessions API로 목록 다시 로드하면서 즉시 UI 업데이트)
+  // 세션 업데이트 (실제 API 호출로 수정)
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
     console.log('[📝 세션 업데이트] 요청:', sessionId, sessionName);
     
     try {
-      // 로컬 상태 즉시 업데이트 (UI 반응성을 위해)
+      // 실제 백엔드 API 호출
+      console.log('[🔄 세션 업데이트] API 호출 시작');
+      const updatedSession = await updateSessionApi(sessionId, sessionName);
+      console.log('[✅ 세션 업데이트] API 응답 성공:', updatedSession);
+      
+      // 로컬 상태 즉시 업데이트
       setSessions(prevSessions => 
         prevSessions.map(session => 
           session.id === sessionId 
@@ -116,20 +121,7 @@ export function useSessionManagement() {
         setCurrentSession(prev => prev ? { ...prev, session_name: sessionName } : null);
       }
       
-      // getSessions API를 호출하여 최신 세션 목록으로 동기화
-      console.log('[🔄 세션 목록 재로드] getSessions API 호출');
-      const freshSessions = await getSessions();
-      console.log('[✅ 세션 목록 재로드] 완료, 업데이트된 세션 수:', freshSessions.length);
-      
-      // 새로 받아온 세션 목록으로 상태 업데이트
-      setSessions(freshSessions);
-      
-      // 현재 세션이 업데이트된 경우 현재 세션 정보도 갱신
-      const updatedCurrentSession = freshSessions.find(session => session.id === sessionId);
-      if (updatedCurrentSession && currentSession?.id === sessionId) {
-        setCurrentSession(updatedCurrentSession);
-      }
-      
+      console.log('[✅ 세션 업데이트] 로컬 상태 업데이트 완료');
       return true;
     } catch (error) {
       console.error('[❌ 세션 업데이트] 실패:', error);
