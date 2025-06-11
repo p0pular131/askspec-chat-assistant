@@ -1,6 +1,5 @@
 
-
-import { useState, useEffect, useRef } from 'react';
+import { useMemo } from 'react';
 
 interface MessageSequence {
   timeRange: [number, number] | [number, 'infinite'];
@@ -49,50 +48,7 @@ const defaultSequence: MessageSequence[] = [
   { timeRange: [0, 'infinite'], message: '답변을 생성하고 있습니다...' }
 ];
 
-export function useDynamicWaitingMessage(chatMode: string = '범용 검색') {
-  const [currentMessage, setCurrentMessage] = useState('답변을 생성하고 있습니다...');
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const startTimeRef = useRef<number | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Start timing when the hook is first used
-  const startWaiting = () => {
-    console.log('Starting waiting timer for mode:', chatMode);
-    const now = Date.now();
-    startTimeRef.current = now;
-    setElapsedTime(0);
-    
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    
-    // Start the timer
-    intervalRef.current = setInterval(() => {
-      if (startTimeRef.current) {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        console.log('Elapsed time:', elapsed, 'seconds');
-        setElapsedTime(elapsed);
-        
-        const sequence = getMessageSequence(chatMode);
-        const message = getCurrentMessage(elapsed, sequence);
-        console.log('Current message:', message);
-        setCurrentMessage(message);
-      }
-    }, 1000);
-  };
-
-  // Stop timing and reset
-  const stopWaiting = () => {
-    console.log('Stopping waiting timer');
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    startTimeRef.current = null;
-    setElapsedTime(0);
-  };
-
+export function useDynamicWaitingMessage(chatMode: string = '범용 검색', elapsedTime: number = 0) {
   // Get the appropriate message sequence for the current chat mode
   const getMessageSequence = (mode: string): MessageSequence[] => {
     return waitingMessageSequences[mode] || defaultSequence;
@@ -100,6 +56,8 @@ export function useDynamicWaitingMessage(chatMode: string = '범용 검색') {
 
   // Find the current message based on elapsed time
   const getCurrentMessage = (elapsed: number, sequence: MessageSequence[]): string => {
+    console.log(`[메시지 선택] 모드: ${chatMode}, 경과시간: ${elapsed}초`);
+    
     // Sort sequence by start time to ensure correct order
     const sortedSequence = [...sequence].sort((a, b) => a.timeRange[0] - b.timeRange[0]);
     
@@ -107,40 +65,28 @@ export function useDynamicWaitingMessage(chatMode: string = '범용 검색') {
       const [start, end] = item.timeRange;
       if (end === 'infinite') {
         if (elapsed >= start) {
+          console.log(`[메시지 매칭] ${elapsed}초 >= ${start}초: "${item.message}"`);
           return item.message;
         }
       } else {
         if (elapsed >= start && elapsed < end) {
+          console.log(`[메시지 매칭] ${start}초 <= ${elapsed}초 < ${end}초: "${item.message}"`);
           return item.message;
         }
       }
     }
-    return sortedSequence[sortedSequence.length - 1]?.message || '답변을 생성하고 있습니다...';
+    
+    const fallback = sortedSequence[sortedSequence.length - 1]?.message || '답변을 생성하고 있습니다...';
+    console.log(`[메시지 fallback] "${fallback}"`);
+    return fallback;
   };
 
-  // Initialize message when chat mode changes
-  useEffect(() => {
-    if (startTimeRef.current) {
-      const sequence = getMessageSequence(chatMode);
-      const message = getCurrentMessage(elapsedTime, sequence);
-      setCurrentMessage(message);
-    }
-  }, [chatMode]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
+  const currentMessage = useMemo(() => {
+    const sequence = getMessageSequence(chatMode);
+    return getCurrentMessage(elapsedTime, sequence);
+  }, [chatMode, elapsedTime]);
 
   return {
-    currentMessage,
-    elapsedTime,
-    startWaiting,
-    stopWaiting
+    currentMessage
   };
 }
-

@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { Message } from './types';
 import { Loader2 } from 'lucide-react';
@@ -22,16 +22,50 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { currentMessage, startWaiting, stopWaiting } = useDynamicWaitingMessage(chatMode);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const startTimeRef = useRef<number | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Manage waiting message timing based on loading state
+  const { currentMessage } = useDynamicWaitingMessage(chatMode, elapsedTime);
+
+  // Manage elapsed time based on loading state
   useEffect(() => {
     if (isLoading) {
-      startWaiting();
+      console.log(`[타이머 시작] 모드: ${chatMode}`);
+      const now = Date.now();
+      startTimeRef.current = now;
+      setElapsedTime(0);
+      
+      // Clear any existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      
+      // Start the timer
+      intervalRef.current = setInterval(() => {
+        if (startTimeRef.current) {
+          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          console.log(`[타이머] 경과시간: ${elapsed}초`);
+          setElapsedTime(elapsed);
+        }
+      }, 1000);
     } else {
-      stopWaiting();
+      console.log(`[타이머 정지]`);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      startTimeRef.current = null;
+      setElapsedTime(0);
     }
-  }, [isLoading, startWaiting, stopWaiting]);
+
+    // Cleanup function
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isLoading, chatMode]);
 
   // Auto-scroll to bottom when messages change or loading state changes
   useEffect(() => {
