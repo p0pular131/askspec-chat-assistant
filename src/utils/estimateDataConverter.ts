@@ -99,7 +99,7 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
   
   // Create Build object compatible with BuildDetails component
   const build: Build = {
-    id: parseInt(estimate.id) || Date.now(),
+    id: parseInt(String(estimate.id)) || Date.now(),
     name: estimate.title || '견적 상세',
     session_id: 0,
     components: components,

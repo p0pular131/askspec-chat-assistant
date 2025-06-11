@@ -21,13 +21,6 @@ export interface MessageResponse {
   created_at: string;
 }
 
-// 메시지 전송 요청 타입
-export interface MessageRequest {
-  message: string;
-  chat_mode: string;
-  expertise_level: string;
-}
-
 // 세션 생성 API
 export const createSession = async (): Promise<SessionResponse> => {
   try {
@@ -57,25 +50,6 @@ export const getSessionMessages = async (sessionId: number): Promise<MessageResp
     return response.data;
   } catch (error) {
     console.error('[❌세션 메시지 조회 API 오류]:', error);
-    throw error;
-  }
-};
-
-// 메시지 전송 API (새로 추가)
-export const sendMessageToSession = async (
-  sessionId: number, 
-  messageData: MessageRequest
-): Promise<MessageResponse> => {
-  try {
-    console.log('[🔄 메시지 전송 API] 호출:', { sessionId, messageData });
-    const response = await axios.post(
-      `${API_BASE_URL}/${sessionId}/messages/`, 
-      messageData
-    );
-    console.log('[✅ 메시지 전송 API] 응답:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('[❌ 메시지 전송 API 오류]:', error);
     throw error;
   }
 };

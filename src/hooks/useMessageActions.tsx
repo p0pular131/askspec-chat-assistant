@@ -1,7 +1,8 @@
 
 import { useCallback, useState } from 'react';
-import { Session, ApiMessage, UIMessage } from '../types/sessionTypes';
-import { getSessionMessages, sendMessageToSession, MessageRequest } from '../services/sessionApiService';
+import { Session, ApiMessage } from '../types/sessionTypes';
+import { getSessionMessages } from '../services/sessionApiService';
+import { responseModules } from '../modules/responseModules';
 import { toast } from '../components/ui/use-toast';
 
 export function useMessageActions(currentSession: Session | null) {
@@ -38,7 +39,7 @@ export function useMessageActions(currentSession: Session | null) {
     }
   }, []);
 
-  // 메시지 전송 (API 기반으로 변경)
+  // 메시지 전송 (각 chat mode별 API 사용으로 변경)
   const sendMessage = useCallback(async (
     text: string, 
     expertiseLevel: string = 'intermediate',
@@ -65,14 +66,16 @@ export function useMessageActions(currentSession: Session | null) {
     try {
       console.log('[🔄 메시지 전송] 시작:', { sessionId: session.id, chatMode });
       
-      // API로 메시지 전송
-      const messageRequest: MessageRequest = {
-        message: text,
-        chat_mode: chatMode,
-        expertise_level: expertiseLevel
-      };
+      // 선택된 chat mode에 해당하는 모듈 가져오기
+      const selectedModule = responseModules[chatMode];
       
-      await sendMessageToSession(session.id, messageRequest);
+      if (!selectedModule) {
+        throw new Error(`지원하지 않는 채팅 모드: ${chatMode}`);
+      }
+      
+      // 해당 모듈의 API를 호출하여 메시지 처리
+      await selectedModule.process(text, expertiseLevel, String(session.id));
+      
       console.log('[✅ 메시지 전송] 완료');
       
       // 메시지 전송 후 즉시 세션의 모든 메시지를 다시 로드
