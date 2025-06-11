@@ -63,6 +63,11 @@ export function useMessageActions(currentSession: Session | null) {
     
     setMsgLoading(true);
     
+    // 메시지 전송 전에 먼저 현재 메시지들을 로드하여 사용자 메시지 전송 직후 화면에 표시
+    console.log('[🔄 메시지 전송 전 로드] 시작');
+    await loadMessages(String(session.id));
+    console.log('[✅ 메시지 전송 전 로드] 완료');
+    
     try {
       console.log('[🔄 메시지 전송] 시작:', { sessionId: session.id, chatMode });
       
