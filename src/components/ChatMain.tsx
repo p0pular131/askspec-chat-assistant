@@ -1,8 +1,11 @@
 
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
 import { MessageInput } from './MessageInput';
+import { MessageStatistics } from './MessageStatistics';
+import { Button } from './ui/button';
+import { BarChart3, MessageCircle } from 'lucide-react';
 
 interface ChatMainProps {
   messages: Array<{ text: string; isUser: boolean; chatMode?: string }>;
@@ -27,6 +30,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
   expertiseLevel,
   sessionId
 }) => {
+  const [showStatistics, setShowStatistics] = useState(false);
   const exampleText = getExamplePrompt();
 
   const handleSendMessage = (text: string) => {
@@ -41,7 +45,29 @@ const ChatMain: React.FC<ChatMainProps> = ({
     <main className="flex-1 p-6 relative">
       <div className="flex relative flex-col bg-white rounded-xl border border-gray-200 shadow-sm h-full">
         <div className="p-6 pb-0">
-          <ChatHeader expertiseLevel={expertiseLevel} />
+          <div className="flex items-center justify-between">
+            <ChatHeader expertiseLevel={expertiseLevel} />
+            {messages.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowStatistics(!showStatistics)}
+                className="flex items-center gap-2"
+              >
+                {showStatistics ? (
+                  <>
+                    <MessageCircle className="h-4 w-4" />
+                    메시지 보기
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="h-4 w-4" />
+                    통계 보기
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
 
         {shouldShowInitialUI ? (
@@ -71,12 +97,18 @@ const ChatMain: React.FC<ChatMainProps> = ({
           </div>
         ) : (
           <div className="flex-1 px-6 min-h-0 mb-24">
-            <ChatMessages 
-              messages={messages} 
-              sessionId={sessionId}
-              isLoading={isLoading}
-              chatMode={chatMode}
-            />
+            {showStatistics ? (
+              <div className="h-full overflow-y-auto">
+                <MessageStatistics messages={messages} />
+              </div>
+            ) : (
+              <ChatMessages 
+                messages={messages} 
+                sessionId={sessionId}
+                isLoading={isLoading}
+                chatMode={chatMode}
+              />
+            )}
           </div>
         )}
 
