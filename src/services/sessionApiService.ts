@@ -54,20 +54,7 @@ export const getSessionMessages = async (sessionId: number): Promise<MessageResp
   }
 };
 
-// 세션 업데이트 API
-export const updateSession = async (sessionId: number, sessionName: string): Promise<SessionResponse> => {
-  try {
-    const response = await axios.put(`${API_BASE_URL}/sessions/${sessionId}`, {
-      session_name: sessionName
-    });
-    return response.data;
-  } catch (error) {
-    console.error('[❌ 세션 업데이트 API 오류]:', error);
-    throw error;
-  }
-};
-
-// 세션 삭제 API (기존 기능 유지를 위해)
+// 세션 삭제 API
 export const deleteSession = async (sessionId: number): Promise<void> => {
   try {
     await axios.delete(`${API_BASE_URL}/sessions/${sessionId}`);

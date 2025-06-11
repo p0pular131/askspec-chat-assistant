@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Session } from '../types/sessionTypes';
-import { createSession, getSessions, deleteSession, updateSession as updateSessionApi } from '../services/sessionApiService';
+import { createSession, getSessions, deleteSession } from '../services/sessionApiService';
 import { toast } from '../components/ui/use-toast';
 
 export function useSessionManagement() {
@@ -96,44 +96,33 @@ export function useSessionManagement() {
     }
   }, [currentSession]);
 
-  // 세션 업데이트 (getSessions로 최신 데이터 동기화)
+  // 세션 업데이트 (getSessions로 최신 데이터 동기화만)
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
-    console.log('[📝 세션 업데이트] 요청:', sessionId, sessionName);
+    console.log('[📝 세션 업데이트] 요청 - 세션 목록 재로드:', sessionId);
     
     try {
-      // 백엔드 API 호출로 세션 제목 업데이트
-      console.log('[🔄 세션 업데이트] API 호출 시작');
-      await updateSessionApi(sessionId, sessionName);
-      console.log('[✅ 세션 업데이트] API 응답 성공');
+      // 백엔드에서 자동으로 세션 제목이 업데이트되므로 getSessions만 호출
+      console.log('[🔄 세션 목록 재로드] getSessions API 호출');
+      const freshSessions = await getSessions();
+      console.log('[✅ 세션 목록 재로드] 완료, 업데이트된 세션 수:', freshSessions.length);
       
-      // 짧은 지연 후 getSessions로 최신 세션 목록 가져오기
-      setTimeout(async () => {
-        try {
-          console.log('[🔄 세션 목록 재로드] getSessions API 호출');
-          const freshSessions = await getSessions();
-          console.log('[✅ 세션 목록 재로드] 완료, 업데이트된 세션 수:', freshSessions.length);
-          
-          // 새로 받아온 세션 목록으로 상태 업데이트
-          setSessions(freshSessions);
-          
-          // 현재 세션이 업데이트된 경우 현재 세션 정보도 갱신
-          const updatedCurrentSession = freshSessions.find(session => session.id === sessionId);
-          if (updatedCurrentSession && currentSession?.id === sessionId) {
-            setCurrentSession(updatedCurrentSession);
-            console.log('[✅ 현재 세션 업데이트] 완료:', updatedCurrentSession.session_name);
-          }
-        } catch (refreshError) {
-          console.error('[❌ 세션 목록 재로드] 실패:', refreshError);
-        }
-      }, 500); // 500ms 지연 후 목록 새로고침
+      // 새로 받아온 세션 목록으로 상태 업데이트
+      setSessions(freshSessions);
+      
+      // 현재 세션이 업데이트된 경우 현재 세션 정보도 갱신
+      const updatedCurrentSession = freshSessions.find(session => session.id === sessionId);
+      if (updatedCurrentSession && currentSession?.id === sessionId) {
+        setCurrentSession(updatedCurrentSession);
+        console.log('[✅ 현재 세션 업데이트] 완료:', updatedCurrentSession.session_name);
+      }
       
       console.log('[✅ 세션 업데이트] 완료');
       return true;
     } catch (error) {
-      console.error('[❌ 세션 업데이트] 실패:', error);
+      console.error('[❌ 세션 목록 재로드] 실패:', error);
       toast({
         title: "오류",
-        description: "세션 업데이트에 실패했습니다.",
+        description: "세션 목록을 불러오는데 실패했습니다.",
         variant: "destructive",
       });
       return false;
