@@ -101,15 +101,6 @@ export function useConversationState() {
     
     console.log('[📤 메시지 전송] 시작:', { currentSession: currentSession?.id });
     
-    // 사용자 메시지를 즉시 UI에 추가
-    const userMessage: UIMessage = {
-      text,
-      isUser: true,
-      chatMode,
-      expertiseLevel
-    };
-    
-    setMessages(prevMessages => [...prevMessages, userMessage]);
     setIsLoading(true);
     
     try {
@@ -134,6 +125,17 @@ export function useConversationState() {
       
       console.log('[📤 메시지 전송] 세션 사용:', sessionToUse.id);
       
+      // 사용자 메시지를 즉시 UI에 추가 (DB 메시지 로드 전에)
+      const userMessage: UIMessage = {
+        text,
+        isUser: true,
+        chatMode,
+        expertiseLevel
+      };
+      
+      setMessages(prevMessages => [...prevMessages, userMessage]);
+      setShowExample(false);
+      
       // 첫 번째 메시지인 경우 세션 제목 즉시 업데이트
       if (dbMessages.length === 0) {
         const sessionTitle = text.substring(0, 50);
@@ -153,12 +155,15 @@ export function useConversationState() {
         }, 6000);
       });
       
-      setShowExample(false);
       console.log('[✅ 메시지 전송] 완료');
     } catch (error) {
       console.error('[❌ 메시지 전송] 실패:', error);
-      // 에러 발생 시 사용자 메시지를 제거하여 원래 상태로 복원
-      setMessages(prevMessages => prevMessages.slice(0, -1));
+      // 에러 발생 시 모든 메시지를 다시 로드하여 정확한 상태로 복원
+      if (currentSession?.id) {
+        await loadMessages(String(currentSession.id));
+      } else {
+        setMessages([]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -170,7 +175,8 @@ export function useConversationState() {
     dbMessages,
     loadBuilds,
     setShowExample,
-    fetchSessions
+    fetchSessions,
+    loadMessages
   ]);
 
   return {
