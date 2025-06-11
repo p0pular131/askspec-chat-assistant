@@ -74,14 +74,14 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
         }
         
         const component: Component = {
-          name: (part && typeof part === 'object' && 'name' in part ? part.name : '') || category,
+          name: (part && typeof part === 'object' && 'name' in part ? part.name as string : '') || category,
           type: category,
-          image: (part && typeof part === 'object' && 'image_url' in part ? part.image_url : '') || 
-                 (part && typeof part === 'object' && 'image' in part ? part.image : '') || '',
-          specs: (part && typeof part === 'object' && 'specs_text' in part ? part.specs_text : '') || 
-                 (part && typeof part === 'object' && 'specs' in part ? part.specs : '') || '',
-          reason: (part && typeof part === 'object' && 'reason' in part ? part.reason : '') || '',
-          purchase_link: (part && typeof part === 'object' && 'link' in part ? part.link : '') || '',
+          image: (part && typeof part === 'object' && 'image_url' in part ? part.image_url as string : '') || 
+                 (part && typeof part === 'object' && 'image' in part ? part.image as string : '') || '',
+          specs: (part && typeof part === 'object' && 'specs_text' in part ? part.specs_text as string : '') || 
+                 (part && typeof part === 'object' && 'specs' in part ? part.specs as string : '') || '',
+          reason: (part && typeof part === 'object' && 'reason' in part ? part.reason as string : '') || '',
+          purchase_link: (part && typeof part === 'object' && 'link' in part ? part.link as string : '') || '',
           price: price,
           alternatives: []
         };

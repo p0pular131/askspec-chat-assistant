@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { Message } from './types';
 import { Loader2 } from 'lucide-react';
@@ -21,23 +21,52 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(sessionId);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
-  // Auto-scroll to bottom when messages change or loading state changes
+  // 세션이 변경되었을 때만 자동 스크롤을 활성화
   useEffect(() => {
-    const scrollToBottom = () => {
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'end'
-        });
-      }
-    };
+    if (sessionId !== currentSessionId) {
+      setCurrentSessionId(sessionId);
+      setShouldAutoScroll(true);
+    }
+  }, [sessionId, currentSessionId]);
 
-    // Add a small delay to ensure DOM updates are complete
-    const timeoutId = setTimeout(scrollToBottom, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [messages, isLoading]);
+  // 세션 변경 시에만 자동 스크롤
+  useEffect(() => {
+    if (shouldAutoScroll && sessionId !== undefined) {
+      const scrollToBottom = () => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'end'
+          });
+        }
+      };
+
+      const timeoutId = setTimeout(scrollToBottom, 100);
+      setShouldAutoScroll(false); // 한 번만 스크롤하고 비활성화
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [shouldAutoScroll, sessionId]);
+
+  // 로딩 상태가 변경될 때만 스크롤 (새 메시지 응답 시)
+  useEffect(() => {
+    if (isLoading) {
+      const scrollToBottom = () => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'end'
+          });
+        }
+      };
+
+      const timeoutId = setTimeout(scrollToBottom, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isLoading]);
 
   return (
     <ScrollArea className="flex-1 h-full w-full pr-4" ref={scrollAreaRef}>

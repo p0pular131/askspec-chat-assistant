@@ -50,13 +50,11 @@ export function useMessageActions(currentSession: Session | null) {
     
     // 새로운 interval 시작 (2초마다 로드)
     intervalRef.current = setInterval(() => {
-      if (!msgLoading) {
-        loadMessages(sessionId);
-      }
+      loadMessages(sessionId);
     }, 2000);
     
     console.log('[⏰ 주기적 메시지 로드] 시작:', sessionId);
-  }, [loadMessages, msgLoading]);
+  }, [loadMessages]);
 
   // 주기적 로딩 중지
   const stopPeriodicMessageLoading = useCallback(() => {
@@ -120,11 +118,6 @@ export function useMessageActions(currentSession: Session | null) {
       
       console.log('[✅ 메시지 전송] 완료');
       
-      // 메시지 전송 후 즉시 한 번 로드
-      console.log('[🔄 메시지 즉시 재로드] 시작');
-      await loadMessages(String(session.id));
-      console.log('[✅ 메시지 즉시 재로드] 완료');
-      
       if (onSuccess) {
         onSuccess();
       }
@@ -138,7 +131,7 @@ export function useMessageActions(currentSession: Session | null) {
     } finally {
       setMsgLoading(false);
     }
-  }, [currentSession, loadMessages]);
+  }, [currentSession]);
 
   return {
     dbMessages,
