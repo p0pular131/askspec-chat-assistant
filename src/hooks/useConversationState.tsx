@@ -10,7 +10,6 @@ export function useConversationState() {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [autoRefreshTriggered, setAutoRefreshTriggered] = useState(false);
-  const [isMessageBeingSent, setIsMessageBeingSent] = useState(false);
   
   const {
     currentSession,
@@ -55,7 +54,6 @@ export function useConversationState() {
     setMessages([]);
     setShowExample(true);
     setIsLoading(false);
-    setIsMessageBeingSent(false);
     // 현재 세션 선택 해제를 위해 null 세션 선택
     selectConversation(null);
   }, [setShowExample, selectConversation]);
@@ -75,59 +73,35 @@ export function useConversationState() {
         expertiseLevel: 'beginner' // 기본값
       }));
       
-      console.log('[🔄 메시지 동기화] DB에서 UI로:', uiMessages.length, '개 메시지', 'isMessageBeingSent:', isMessageBeingSent);
-      
-      // 메시지를 보내는 중이 아닐 때만 DB에서 UI로 동기화
-      if (!isMessageBeingSent) {
-        setMessages(uiMessages);
-      }
+      console.log('[🔄 메시지 동기화] DB에서 UI로:', uiMessages.length, '개 메시지');
+      setMessages(uiMessages);
     }
-  }, [isMessageBeingSent]);
+  }, []);
 
   // 세션이 변경되면 메시지 로드
   useEffect(() => {
     if (currentSession?.id) {
       console.log('[📥 세션 변경] 메시지 로드 시작:', currentSession.id);
-      // 메시지를 보내는 중이 아닐 때만 로드
-      if (!isMessageBeingSent) {
-        loadMessages(String(currentSession.id));
-      }
+      loadMessages(String(currentSession.id));
     } else {
       console.log('[🏠 세션 해제] 메시지 초기화');
-      // 메시지를 보내는 중이 아닐 때만 초기화
-      if (!isMessageBeingSent) {
-        setMessages([]);
-      }
+      setMessages([]);
     }
-  }, [currentSession, loadMessages, isMessageBeingSent]);
+  }, [currentSession, loadMessages]);
 
   // DB 메시지가 변경되면 UI 메시지 동기화
   useEffect(() => {
-    console.log('[📊 DB 메시지 변경] 길이:', dbMessages.length, 'isMessageBeingSent:', isMessageBeingSent);
+    console.log('[📊 DB 메시지 변경] 길이:', dbMessages.length);
     syncMessagesFromDB(dbMessages);
   }, [dbMessages, syncMessagesFromDB]);
 
-  // 메시지 전송 함수
+  // 메시지 전송 함수 (API 기반으로 단순화)
   const sendMessage = useCallback(async (text: string, expertiseLevel: 'beginner' | 'intermediate' | 'expert' = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
     console.log('[📤 메시지 전송] 시작:', { currentSession: currentSession?.id });
     
     setIsLoading(true);
-    setIsMessageBeingSent(true);
-    
-    // 사용자 메시지를 즉시 UI에 추가
-    const userMessage: UIMessage = {
-      text: text,
-      isUser: true,
-      chatMode: chatMode,
-      expertiseLevel: expertiseLevel
-    };
-    
-    setMessages(prevMessages => {
-      console.log('[📨 사용자 메시지 추가] 현재 메시지 수:', prevMessages.length);
-      return [...prevMessages, userMessage];
-    });
     
     try {
       let sessionToUse = currentSession;
@@ -158,7 +132,7 @@ export function useConversationState() {
         await updateSession(sessionToUse.id, sessionTitle);
       }
       
-      // 실제 메시지 전송
+      // API를 통해 메시지 전송 및 자동 응답 처리
       await sendMessageAction(text, expertiseLevel, chatMode, sessionToUse, () => {
         setAutoRefreshTriggered(false);
         setTimeout(() => loadBuilds(), 1000);
@@ -173,25 +147,8 @@ export function useConversationState() {
       console.log('[✅ 메시지 전송] 완료');
     } catch (error) {
       console.error('[❌ 메시지 전송] 실패:', error);
-      // 에러 발생 시 사용자 메시지 제거
-      setMessages(prevMessages => prevMessages.slice(0, -1));
     } finally {
       setIsLoading(false);
-      console.log('[🔄 메시지 전송 상태] 해제 시작');
-      
-      // 메시지 전송 상태 해제를 약간 지연시켜 응답이 완전히 처리된 후 동기화
-      setTimeout(() => {
-        setIsMessageBeingSent(false);
-        console.log('[🔄 메시지 전송 상태] 해제 완료 - DB 동기화 재개');
-        
-        // 현재 세션의 메시지를 다시 로드하여 완전 동기화
-        if (currentSession?.id) {
-          setTimeout(() => {
-            console.log('[🔄 최종 동기화] DB에서 메시지 재로드');
-            loadMessages(String(currentSession.id));
-          }, 200);
-        }
-      }, 1000); // 1초 후 동기화 재개
     }
   }, [
     currentSession, 
@@ -200,15 +157,14 @@ export function useConversationState() {
     updateSession, 
     dbMessages,
     loadBuilds,
-    setShowExample,
-    loadMessages
+    setShowExample
   ]);
 
   return {
     currentConversation: currentSession,
     messages,
     showExample,
-    isLoading,
+    isLoading: isLoading || msgLoading,
     conversations: sessions,
     convoLoading: sessionsLoading,
     msgLoading,
