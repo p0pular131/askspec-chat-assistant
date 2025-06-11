@@ -1,6 +1,24 @@
-
 import { Build, Component } from '../hooks/useBuilds';
 import { EstimateItem } from '../hooks/useEstimates';
+
+export const convertEstimateToApiFormat = (estimate: any) => {
+  return {
+    estimate_name: estimate.estimate_name || estimate.title || "견적서",
+    total_price: estimate.total_price || estimate.totalPrice || 0,
+    components: estimate.components?.map((comp: any) => ({
+      name: comp.name || comp.component_name || "",
+      category: comp.category || comp.component_category || "",
+      price: typeof comp.price === 'string' && comp.price ? 
+        parseInt(comp.price.replace(/[^0-9]/g, '')) : 
+        (typeof comp.price === 'number' ? comp.price : 0),
+      image_url: comp.image_url || comp.imageUrl || null,
+      specs: comp.specs || comp.specifications || {},
+      vendor: comp.vendor || comp.brand || "",
+      model: comp.model || "",
+      purchase_url: comp.purchase_url || comp.purchaseUrl || ""
+    })) || []
+  };
+};
 
 export function convertEstimateToBuil(estimate: EstimateItem): Build {
   console.log('[🔄 견적 변환] 원본 견적 데이터:', estimate);

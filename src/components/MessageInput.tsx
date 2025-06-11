@@ -40,8 +40,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   };
 
-  // Determine placeholder text based on whether we're showing examples
-  const placeholderText = showExample ? exampleText : "컴퓨터 견적 관련 질문을 입력하세요...";
+  // Always use the example text from the current chat mode
+  const placeholderText = exampleText;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
