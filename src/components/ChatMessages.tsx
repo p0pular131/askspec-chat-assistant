@@ -26,7 +26,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   const startTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { currentMessage } = useDynamicWaitingMessage(chatMode, elapsedTime);
+  const { messagesWithStatus } = useDynamicWaitingMessage(chatMode, elapsedTime);
 
   // Manage elapsed time based on loading state
   useEffect(() => {
@@ -103,9 +103,23 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               <AvatarFallback className="bg-teal-600 text-white text-xs">PC봇</AvatarFallback>
             </Avatar>
             <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 mb-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>{currentMessage}</span>
+                <span className="text-sm text-gray-600">처리 중...</span>
+              </div>
+              <div className="space-y-1">
+                {messagesWithStatus.map((messageItem, index) => (
+                  <div 
+                    key={index}
+                    className={`text-sm ${
+                      messageItem.status === 'current' 
+                        ? 'text-gray-900 font-medium' 
+                        : 'text-gray-500'
+                    }`}
+                  >
+                    {messageItem.message}
+                  </div>
+                ))}
               </div>
             </div>
           </div>

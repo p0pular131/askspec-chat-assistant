@@ -7,6 +7,11 @@ interface MessageSequence {
   interval?: number; // For repeating messages
 }
 
+interface MessageWithStatus {
+  message: string;
+  status: 'completed' | 'current' | 'pending';
+}
+
 const waitingMessageSequences: Record<string, MessageSequence[]> = {
   '부품 추천': [
     { timeRange: [0, 2], message: '사용자의 요청을 분석 중이에요.' },
@@ -17,7 +22,7 @@ const waitingMessageSequences: Record<string, MessageSequence[]> = {
   '견적 추천': [
     { timeRange: [0, 5], message: '사용자의 요청을 받아 견적 제작을 준비하는 중이에요.' },
     { timeRange: [5, 35], message: '견적 제작을 위해 사용자의 요청을 세심하게 분석하고 있어요.' },
-    { timeRange: [35, 115], message: '부품을 조합하며 견적을 제작하고 있어요.', interval: 10 },
+    { timeRange: [35, 115], message: '부품을 조합하며 견적을 제작하고 있어요.' },
     { timeRange: [115, 125], message: '제작한 견적을 분석하고 있어요.' },
     { timeRange: [125, 'infinite'], message: '견적 제작이 완료되었어요. 잠시만 기다려주세요.' }
   ],
@@ -32,7 +37,7 @@ const waitingMessageSequences: Record<string, MessageSequence[]> = {
     { timeRange: [0, 2], message: '사용자의 요청을 받아 견적 업그레이드를 준비하는 중이에요.' },
     { timeRange: [2, 26], message: '사용자가 입력한 부품에 대한 정보를 꼼꼼하게 파악하는 중이에요.' },
     { timeRange: [26, 58], message: '견적 제작을 위해 업그레이드 대상 부품을 선정하는 중이에요.' },
-    { timeRange: [58, 75], message: '업그레이드 부품을 찾고 있어요.', interval: 7 },
+    { timeRange: [58, 75], message: '업그레이드 부품을 찾고 있어요.' },
     { timeRange: [75, 'infinite'], message: '견적 업그레이드가 완료되었어요. 잠시만 기다려주세요.' }
   ],
   '견적 평가': [
@@ -54,39 +59,61 @@ export function useDynamicWaitingMessage(chatMode: string = '범용 검색', ela
     return waitingMessageSequences[mode] || defaultSequence;
   };
 
-  // Find the current message based on elapsed time
-  const getCurrentMessage = (elapsed: number, sequence: MessageSequence[]): string => {
-    console.log(`[메시지 선택] 모드: ${chatMode}, 경과시간: ${elapsed}초`);
+  // Get all messages with their status based on elapsed time
+  const getMessagesWithStatus = (elapsed: number, sequence: MessageSequence[]): MessageWithStatus[] => {
+    console.log(`[메시지 상태 계산] 모드: ${chatMode}, 경과시간: ${elapsed}초`);
     
     // Sort sequence by start time to ensure correct order
     const sortedSequence = [...sequence].sort((a, b) => a.timeRange[0] - b.timeRange[0]);
     
+    const messagesWithStatus: MessageWithStatus[] = [];
+    
     for (const item of sortedSequence) {
       const [start, end] = item.timeRange;
+      let status: 'completed' | 'current' | 'pending';
+      
       if (end === 'infinite') {
         if (elapsed >= start) {
-          console.log(`[메시지 매칭] ${elapsed}초 >= ${start}초: "${item.message}"`);
-          return item.message;
+          status = 'current';
+        } else {
+          status = 'pending';
         }
       } else {
-        if (elapsed >= start && elapsed < end) {
-          console.log(`[메시지 매칭] ${start}초 <= ${elapsed}초 < ${end}초: "${item.message}"`);
-          return item.message;
+        if (elapsed >= end) {
+          status = 'completed';
+        } else if (elapsed >= start) {
+          status = 'current';
+        } else {
+          status = 'pending';
         }
+      }
+      
+      // Only include messages that are current or completed
+      if (status === 'current' || status === 'completed') {
+        messagesWithStatus.push({
+          message: item.message,
+          status
+        });
       }
     }
     
-    const fallback = sortedSequence[sortedSequence.length - 1]?.message || '답변을 생성하고 있습니다...';
-    console.log(`[메시지 fallback] "${fallback}"`);
-    return fallback;
+    console.log(`[메시지 상태] 총 ${messagesWithStatus.length}개 메시지:`, messagesWithStatus);
+    return messagesWithStatus;
   };
 
-  const currentMessage = useMemo(() => {
+  const messagesWithStatus = useMemo(() => {
     const sequence = getMessageSequence(chatMode);
-    return getCurrentMessage(elapsedTime, sequence);
+    return getMessagesWithStatus(elapsedTime, sequence);
   }, [chatMode, elapsedTime]);
 
+  // Get current message for backward compatibility
+  const currentMessage = useMemo(() => {
+    const currentMsg = messagesWithStatus.find(msg => msg.status === 'current');
+    return currentMsg?.message || '답변을 생성하고 있습니다...';
+  }, [messagesWithStatus]);
+
   return {
-    currentMessage
+    currentMessage,
+    messagesWithStatus
   };
 }
