@@ -97,7 +97,7 @@ export function useSessionManagement() {
     }
   }, [currentSession]);
 
-  // 세션 업데이트 (getSessions API로 목록 다시 로드)
+  // 세션 업데이트 (getSessions API로 목록 다시 로드하면서 즉시 UI 업데이트)
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
     console.log('[📝 세션 업데이트] 요청:', sessionId, sessionName);
     
@@ -118,8 +118,17 @@ export function useSessionManagement() {
       
       // getSessions API를 호출하여 최신 세션 목록으로 동기화
       console.log('[🔄 세션 목록 재로드] getSessions API 호출');
-      await fetchSessions();
-      console.log('[✅ 세션 목록 재로드] 완료');
+      const freshSessions = await getSessions();
+      console.log('[✅ 세션 목록 재로드] 완료, 업데이트된 세션 수:', freshSessions.length);
+      
+      // 새로 받아온 세션 목록으로 상태 업데이트
+      setSessions(freshSessions);
+      
+      // 현재 세션이 업데이트된 경우 현재 세션 정보도 갱신
+      const updatedCurrentSession = freshSessions.find(session => session.id === sessionId);
+      if (updatedCurrentSession && currentSession?.id === sessionId) {
+        setCurrentSession(updatedCurrentSession);
+      }
       
       return true;
     } catch (error) {
@@ -131,7 +140,7 @@ export function useSessionManagement() {
       });
       return false;
     }
-  }, [currentSession, fetchSessions]);
+  }, [currentSession]);
 
   return {
     currentSession,
