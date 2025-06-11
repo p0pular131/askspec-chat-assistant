@@ -97,7 +97,9 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
     if (typeof estimate.total_price === 'number') {
       totalPrice = estimate.total_price;
     } else if (typeof estimate.total_price === 'string') {
-      const priceMatch = estimate.total_price.match(/[\d,]+/);
+      // Safe string price extraction
+      const priceStr = String(estimate.total_price);
+      const priceMatch = priceStr.match(/[\d,]+/);
       totalPrice = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
     }
   }

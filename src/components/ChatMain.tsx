@@ -34,8 +34,8 @@ const ChatMain: React.FC<ChatMainProps> = ({
     sendMessage(text);
   };
 
-  // Show initial UI when no messages exist (regardless of session state)
-  const shouldShowInitialUI = messages.length === 0;
+  // 더 안정적인 초기 UI 표시 조건 (세션 ID와 메시지 모두 확인)
+  const shouldShowInitialUI = !sessionId && messages.length === 0 && !isLoading;
 
   return (
     <main className="flex-1 p-6 relative">
