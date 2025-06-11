@@ -5,6 +5,7 @@ import { Message } from './types';
 import { Loader2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { useDynamicWaitingMessage } from '../hooks/useDynamicWaitingMessage';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -21,6 +22,16 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { currentMessage, startWaiting, stopWaiting } = useDynamicWaitingMessage(chatMode);
+
+  // Manage waiting message timing based on loading state
+  useEffect(() => {
+    if (isLoading) {
+      startWaiting();
+    } else {
+      stopWaiting();
+    }
+  }, [isLoading, startWaiting, stopWaiting]);
 
   // Auto-scroll to bottom when messages change or loading state changes
   useEffect(() => {
@@ -60,7 +71,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
             <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-zinc-900 rounded-tl-none">
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>답변을 생성하고 있습니다...</span>
+                <span>{currentMessage}</span>
               </div>
             </div>
           </div>
