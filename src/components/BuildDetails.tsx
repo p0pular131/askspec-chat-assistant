@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Build, Component } from '@/hooks/useBuilds';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -288,12 +287,12 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
                   <TableCell className="font-medium">{component.name}</TableCell>
                   <TableCell>{getStandardizedComponentType(component)}</TableCell>
                   <TableCell>
-                    <div className="h-12 w-20 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                    <div className="h-16 w-24 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center overflow-hidden">
                       {component.image ? (
                         <img 
                           src={component.image} 
                           alt={component.name} 
-                          className="rounded-md object-cover h-12 w-20"
+                          className="max-h-full max-w-full object-contain"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
@@ -336,12 +335,12 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="h-40 w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                    <div className="h-64 w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center overflow-hidden p-4">
                       {component.image ? (
                         <img 
                           src={component.image} 
                           alt={component.name} 
-                          className="rounded-md object-cover h-40 w-full"
+                          className="max-h-full max-w-full object-contain"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
@@ -418,3 +417,5 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
     </div>
   );
 };
+
+export default BuildDetails;

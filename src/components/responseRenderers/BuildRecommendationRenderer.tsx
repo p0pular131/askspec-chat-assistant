@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -256,12 +257,12 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedParts.map((part, index) => (
           <Card key={index} className="overflow-hidden h-full flex flex-col">
-            <div className="h-48 overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <div className="h-56 overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center p-4">
               {(part.image || part.image_url) ? (
                 <img 
                   src={part.image || part.image_url} 
                   alt={part.name}
-                  className="w-full h-full object-contain"
+                  className="max-h-full max-w-full object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
