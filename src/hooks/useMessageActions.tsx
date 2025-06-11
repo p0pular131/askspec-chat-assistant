@@ -1,5 +1,5 @@
 
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import { Session, ApiMessage } from '../types/sessionTypes';
 import { getSessionMessages } from '../services/sessionApiService';
 import { responseModules } from '../modules/responseModules';
@@ -8,14 +8,12 @@ import { toast } from '../components/ui/use-toast';
 export function useMessageActions(currentSession: Session | null) {
   const [dbMessages, setDbMessages] = useState<ApiMessage[]>([]);
   const [msgLoading, setMsgLoading] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isLoadingRef = useRef(false);
 
   // 메시지 로드
   const loadMessages = useCallback(async (sessionId: string) => {
-    if (!sessionId || isLoadingRef.current) return;
+    if (!sessionId) return;
     
-    isLoadingRef.current = true;
+    setMsgLoading(true);
     try {
       console.log('[🔄 메시지 로드] API 호출 시작:', sessionId);
       const numericId = parseInt(sessionId, 10);
@@ -37,47 +35,9 @@ export function useMessageActions(currentSession: Session | null) {
       });
       setDbMessages([]);
     } finally {
-      isLoadingRef.current = false;
+      setMsgLoading(false);
     }
   }, []);
-
-  // 주기적으로 메시지 로드하는 함수
-  const startPeriodicMessageLoading = useCallback((sessionId: string) => {
-    // 기존 interval 정리
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    
-    // 새로운 interval 시작 (2초마다 로드)
-    intervalRef.current = setInterval(() => {
-      loadMessages(sessionId);
-    }, 2000);
-    
-    console.log('[⏰ 주기적 메시지 로드] 시작:', sessionId);
-  }, [loadMessages]);
-
-  // 주기적 로딩 중지
-  const stopPeriodicMessageLoading = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-      console.log('[⏹️ 주기적 메시지 로드] 중지');
-    }
-  }, []);
-
-  // 세션이 변경되면 주기적 로딩 관리
-  useEffect(() => {
-    if (currentSession?.id) {
-      startPeriodicMessageLoading(String(currentSession.id));
-    } else {
-      stopPeriodicMessageLoading();
-    }
-
-    // 컴포넌트 언마운트 시 정리
-    return () => {
-      stopPeriodicMessageLoading();
-    };
-  }, [currentSession, startPeriodicMessageLoading, stopPeriodicMessageLoading]);
 
   // 메시지 전송 (각 chat mode별 API 사용으로 변경)
   const sendMessage = useCallback(async (
@@ -103,6 +63,11 @@ export function useMessageActions(currentSession: Session | null) {
     
     setMsgLoading(true);
     
+    // 메시지 전송 전에 먼저 현재 메시지들을 로드하여 사용자 메시지 전송 직후 화면에 표시
+    console.log('[🔄 메시지 전송 전 로드] 시작');
+    await loadMessages(String(session.id));
+    console.log('[✅ 메시지 전송 전 로드] 완료');
+    
     try {
       console.log('[🔄 메시지 전송] 시작:', { sessionId: session.id, chatMode });
       
@@ -118,6 +83,11 @@ export function useMessageActions(currentSession: Session | null) {
       
       console.log('[✅ 메시지 전송] 완료');
       
+      // 메시지 전송 후 즉시 세션의 모든 메시지를 다시 로드
+      console.log('[🔄 메시지 재로드] 시작');
+      await loadMessages(String(session.id));
+      console.log('[✅ 메시지 재로드] 완료');
+      
       if (onSuccess) {
         onSuccess();
       }
@@ -131,14 +101,12 @@ export function useMessageActions(currentSession: Session | null) {
     } finally {
       setMsgLoading(false);
     }
-  }, [currentSession]);
+  }, [currentSession, loadMessages]);
 
   return {
     dbMessages,
     msgLoading,
     sendMessage,
-    loadMessages,
-    startPeriodicMessageLoading,
-    stopPeriodicMessageLoading
+    loadMessages
   };
 }
