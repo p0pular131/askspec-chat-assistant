@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Session } from '../types/sessionTypes';
 import { createSession, getSessions, deleteSession } from '../services/sessionApiService';
@@ -96,26 +97,41 @@ export function useSessionManagement() {
     }
   }, [currentSession]);
 
-  // 세션 업데이트 (제목 변경)
+  // 세션 업데이트 (getSessions API로 목록 다시 로드)
   const updateSession = useCallback(async (sessionId: number, sessionName: string) => {
     console.log('[📝 세션 업데이트] 요청:', sessionId, sessionName);
     
-    // 로컬 상태 즉시 업데이트
-    setSessions(prevSessions => 
-      prevSessions.map(session => 
-        session.id === sessionId 
-          ? { ...session, session_name: sessionName }
-          : session
-      )
-    );
-    
-    // 현재 세션도 업데이트
-    if (currentSession?.id === sessionId) {
-      setCurrentSession(prev => prev ? { ...prev, session_name: sessionName } : null);
+    try {
+      // 로컬 상태 즉시 업데이트 (UI 반응성을 위해)
+      setSessions(prevSessions => 
+        prevSessions.map(session => 
+          session.id === sessionId 
+            ? { ...session, session_name: sessionName }
+            : session
+        )
+      );
+      
+      // 현재 세션도 업데이트
+      if (currentSession?.id === sessionId) {
+        setCurrentSession(prev => prev ? { ...prev, session_name: sessionName } : null);
+      }
+      
+      // getSessions API를 호출하여 최신 세션 목록으로 동기화
+      console.log('[🔄 세션 목록 재로드] getSessions API 호출');
+      await fetchSessions();
+      console.log('[✅ 세션 목록 재로드] 완료');
+      
+      return true;
+    } catch (error) {
+      console.error('[❌ 세션 업데이트] 실패:', error);
+      toast({
+        title: "오류",
+        description: "세션 업데이트에 실패했습니다.",
+        variant: "destructive",
+      });
+      return false;
     }
-    
-    return true;
-  }, [currentSession]);
+  }, [currentSession, fetchSessions]);
 
   return {
     currentSession,

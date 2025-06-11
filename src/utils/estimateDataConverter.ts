@@ -61,22 +61,27 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
       Object.entries(estimate.parts).forEach(([category, part]) => {
         // Safe price extraction with proper type checking
         let price = 0;
-        if (part.price !== undefined && part.price !== null) {
-          if (typeof part.price === 'string') {
-            const priceMatch = part.price.match(/[\d,]+/);
-            price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
-          } else if (typeof part.price === 'number') {
-            price = part.price;
+        if (part && typeof part === 'object' && 'price' in part) {
+          const partPrice = part.price;
+          if (partPrice !== undefined && partPrice !== null) {
+            if (typeof partPrice === 'string') {
+              const priceMatch = partPrice.match(/[\d,]+/);
+              price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
+            } else if (typeof partPrice === 'number') {
+              price = partPrice;
+            }
           }
         }
         
         const component: Component = {
-          name: part.name,
+          name: (part && typeof part === 'object' && 'name' in part) ? part.name : 'Unknown Component',
           type: category,
-          image: part.image_url || part.image || '', // Use image_url first, then fallback to image if it exists
-          specs: part.specs_text || part.specs || '',
-          reason: part.reason || '',
-          purchase_link: part.link || '',
+          image: (part && typeof part === 'object' && 'image_url' in part) ? part.image_url : 
+                 (part && typeof part === 'object' && 'image' in part) ? part.image : '',
+          specs: (part && typeof part === 'object' && 'specs_text' in part) ? part.specs_text :
+                 (part && typeof part === 'object' && 'specs' in part) ? part.specs : '',
+          reason: (part && typeof part === 'object' && 'reason' in part) ? part.reason : '',
+          purchase_link: (part && typeof part === 'object' && 'link' in part) ? part.link : '',
           price: price,
           alternatives: []
         };
