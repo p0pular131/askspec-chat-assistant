@@ -69,7 +69,7 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
   
   // Extract total price as number
   let totalPrice = 0;
-  if (estimate.total_price) {
+  if (estimate.total_price !== undefined && estimate.total_price !== null) {
     if (typeof estimate.total_price === 'number') {
       totalPrice = estimate.total_price;
     } else if (typeof estimate.total_price === 'string') {

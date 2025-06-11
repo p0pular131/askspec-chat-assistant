@@ -2,7 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
-import { X, Download, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { EstimateItem } from '../hooks/useEstimates';
 import { BuildDetails } from './BuildDetails';
 import { convertEstimateToBuil } from '../utils/estimateDataConverter';
@@ -63,9 +63,6 @@ const EstimateDetailsModal: React.FC<EstimateDetailsModalProps> = ({
                   )}
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
