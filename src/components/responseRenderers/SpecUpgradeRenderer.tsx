@@ -133,10 +133,31 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <h4 className="font-semibold text-gray-700">현재 사양</h4>
                   <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="mb-2 h-20 w-full bg-gray-100 rounded flex items-center justify-center">
+                      {upgrade?.current?.image ? (
+                        <img 
+                          src={upgrade.current.image} 
+                          alt={upgrade?.current?.name || '현재 제품'}
+                          className="w-full h-full object-contain rounded"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-xs">이미지 준비중</div>';
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500 text-xs">
+                          이미지 준비중
+                        </div>
+                      )}
+                    </div>
                     <p className="font-medium">{upgrade?.current?.name || '현재 제품 없음'}</p>
                     <p className="text-sm text-gray-600">{upgrade?.current?.specs || '사양 정보 없음'}</p>
                   </div>
@@ -149,6 +170,27 @@ const SpecUpgradeRenderer: React.FC<SpecUpgradeRendererProps> = ({
                 <div className="space-y-2">
                   <h4 className="font-semibold text-green-700">업그레이드 제안</h4>
                   <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                    <div className="mb-2 h-20 w-full bg-green-100 rounded flex items-center justify-center">
+                      {upgrade?.recommended?.image ? (
+                        <img 
+                          src={upgrade.recommended.image} 
+                          alt={upgrade?.recommended?.name || '추천 제품'}
+                          className="w-full h-full object-contain rounded"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-xs">이미지 준비중</div>';
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500 text-xs">
+                          이미지 준비중
+                        </div>
+                      )}
+                    </div>
                     <p className="font-medium text-green-800">{upgrade?.recommended?.name || '추천 제품 없음'}</p>
                     <p className="text-sm text-green-600">{upgrade?.recommended?.specs || '사양 정보 없음'}</p>
                     <p className="text-sm font-semibold text-green-800 mt-1">

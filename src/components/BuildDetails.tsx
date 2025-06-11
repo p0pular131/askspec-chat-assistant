@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Build, Component } from '@/hooks/useBuilds';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -287,13 +288,27 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
                   <TableCell className="font-medium">{component.name}</TableCell>
                   <TableCell>{getStandardizedComponentType(component)}</TableCell>
                   <TableCell>
-                    {component.image && (
-                      <img 
-                        src={component.image} 
-                        alt={component.name} 
-                        className="rounded-md object-cover h-12 w-20"
-                      />
-                    )}
+                    <div className="h-12 w-20 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                      {component.image ? (
+                        <img 
+                          src={component.image} 
+                          alt={component.name} 
+                          className="rounded-md object-cover h-12 w-20"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-xs">이미지 준비중</div>';
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500 text-xs">
+                          이미지 준비중
+                        </div>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="max-w-xs truncate">{component.specs}</TableCell>
                   <TableCell className="text-right">
@@ -321,15 +336,27 @@ export const BuildDetails: React.FC<BuildDetailsProps> = ({ build }) => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {component.image && (
-                      <div>
+                    <div className="h-40 w-full bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center">
+                      {component.image ? (
                         <img 
                           src={component.image} 
                           alt={component.name} 
                           className="rounded-md object-cover h-40 w-full"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-sm">이미지 준비중</div>';
+                            }
+                          }}
                         />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+                          이미지 준비중
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <h3 className="font-medium mb-1">Specifications</h3>
                       <p className="text-sm">{component.specs}</p>
