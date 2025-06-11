@@ -95,12 +95,21 @@ export function useConversationState() {
     syncMessagesFromDB(dbMessages);
   }, [dbMessages, syncMessagesFromDB]);
 
-  // 메시지 전송 함수 (API 기반으로 단순화)
+  // 메시지 전송 함수 (사용자 메시지 즉시 표시)
   const sendMessage = useCallback(async (text: string, expertiseLevel: 'beginner' | 'intermediate' | 'expert' = 'intermediate', chatMode: string = '범용 검색') => {
     if (!text.trim()) return;
     
     console.log('[📤 메시지 전송] 시작:', { currentSession: currentSession?.id });
     
+    // 사용자 메시지를 즉시 UI에 추가
+    const userMessage: UIMessage = {
+      text,
+      isUser: true,
+      chatMode,
+      expertiseLevel
+    };
+    
+    setMessages(prevMessages => [...prevMessages, userMessage]);
     setIsLoading(true);
     
     try {
@@ -148,6 +157,8 @@ export function useConversationState() {
       console.log('[✅ 메시지 전송] 완료');
     } catch (error) {
       console.error('[❌ 메시지 전송] 실패:', error);
+      // 에러 발생 시 사용자 메시지를 제거하여 원래 상태로 복원
+      setMessages(prevMessages => prevMessages.slice(0, -1));
     } finally {
       setIsLoading(false);
     }

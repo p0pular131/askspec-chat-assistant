@@ -62,7 +62,7 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
         // Safe price extraction with proper type checking
         let price = 0;
         if (part && typeof part === 'object' && 'price' in part) {
-          const partPrice = part.price;
+          const partPrice = (part as any).price;
           if (partPrice !== undefined && partPrice !== null) {
             if (typeof partPrice === 'string') {
               const priceMatch = partPrice.match(/[\d,]+/);
@@ -74,14 +74,14 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
         }
         
         const component: Component = {
-          name: (part && typeof part === 'object' && 'name' in part) ? String(part.name) : 'Unknown Component',
+          name: (part && typeof part === 'object' && 'name' in part) ? String((part as any).name) : 'Unknown Component',
           type: category,
-          image: (part && typeof part === 'object' && 'image_url' in part) ? String(part.image_url) : 
-                 (part && typeof part === 'object' && 'image' in part) ? String(part.image) : '',
-          specs: (part && typeof part === 'object' && 'specs_text' in part) ? String(part.specs_text) :
-                 (part && typeof part === 'object' && 'specs' in part) ? String(part.specs) : '',
-          reason: (part && typeof part === 'object' && 'reason' in part) ? String(part.reason) : '',
-          purchase_link: (part && typeof part === 'object' && 'link' in part) ? String(part.link) : '',
+          image: (part && typeof part === 'object' && 'image_url' in part) ? String((part as any).image_url) : 
+                 (part && typeof part === 'object' && 'image' in part) ? String((part as any).image) : '',
+          specs: (part && typeof part === 'object' && 'specs_text' in part) ? String((part as any).specs_text) :
+                 (part && typeof part === 'object' && 'specs' in part) ? String((part as any).specs) : '',
+          reason: (part && typeof part === 'object' && 'reason' in part) ? String((part as any).reason) : '',
+          purchase_link: (part && typeof part === 'object' && 'link' in part) ? String((part as any).link) : '',
           price: price,
           alternatives: []
         };
