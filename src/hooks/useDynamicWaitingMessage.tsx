@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface MessageSequence {
   timeRange: [number, number] | [number, 'infinite'];
@@ -51,18 +51,44 @@ const defaultSequence: MessageSequence[] = [
 export function useDynamicWaitingMessage(chatMode: string = '범용 검색') {
   const [currentMessage, setCurrentMessage] = useState('답변을 생성하고 있습니다...');
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Start timing when the hook is first used
   const startWaiting = () => {
+    console.log('Starting waiting timer for mode:', chatMode);
     const now = Date.now();
-    setStartTime(now);
+    startTimeRef.current = now;
     setElapsedTime(0);
+    
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    
+    // Start the timer
+    intervalRef.current = setInterval(() => {
+      if (startTimeRef.current) {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        console.log('Elapsed time:', elapsed, 'seconds');
+        setElapsedTime(elapsed);
+        
+        const sequence = getMessageSequence(chatMode);
+        const message = getCurrentMessage(elapsed, sequence);
+        console.log('Current message:', message);
+        setCurrentMessage(message);
+      }
+    }, 1000);
   };
 
   // Stop timing and reset
   const stopWaiting = () => {
-    setStartTime(null);
+    console.log('Stopping waiting timer');
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    startTimeRef.current = null;
     setElapsedTime(0);
   };
 
@@ -73,7 +99,10 @@ export function useDynamicWaitingMessage(chatMode: string = '범용 검색') {
 
   // Find the current message based on elapsed time
   const getCurrentMessage = (elapsed: number, sequence: MessageSequence[]): string => {
-    for (const item of sequence) {
+    // Sort sequence by start time to ensure correct order
+    const sortedSequence = [...sequence].sort((a, b) => a.timeRange[0] - b.timeRange[0]);
+    
+    for (const item of sortedSequence) {
       const [start, end] = item.timeRange;
       if (end === 'infinite') {
         if (elapsed >= start) {
@@ -85,33 +114,26 @@ export function useDynamicWaitingMessage(chatMode: string = '범용 검색') {
         }
       }
     }
-    return sequence[sequence.length - 1]?.message || '답변을 생성하고 있습니다...';
+    return sortedSequence[sortedSequence.length - 1]?.message || '답변을 생성하고 있습니다...';
   };
-
-  // Update elapsed time and current message
-  useEffect(() => {
-    if (!startTime) return;
-
-    const interval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      setElapsedTime(elapsed);
-      
-      const sequence = getMessageSequence(chatMode);
-      const message = getCurrentMessage(elapsed, sequence);
-      setCurrentMessage(message);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [startTime, chatMode]);
 
   // Initialize message when chat mode changes
   useEffect(() => {
-    if (startTime) {
+    if (startTimeRef.current) {
       const sequence = getMessageSequence(chatMode);
       const message = getCurrentMessage(elapsedTime, sequence);
       setCurrentMessage(message);
     }
-  }, [chatMode, elapsedTime, startTime]);
+  }, [chatMode]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   return {
     currentMessage,
