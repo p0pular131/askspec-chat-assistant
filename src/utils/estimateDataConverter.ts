@@ -15,7 +15,7 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
       estimate.parts.forEach((part, index) => {
         // Safe price extraction with proper type checking
         let price = 0;
-        if (part.price) {
+        if (part.price !== undefined && part.price !== null) {
           if (typeof part.price === 'string') {
             const priceMatch = part.price.match(/[\d,]+/);
             price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;
@@ -42,7 +42,7 @@ export function convertEstimateToBuil(estimate: EstimateItem): Build {
       Object.entries(estimate.parts).forEach(([category, part]) => {
         // Safe price extraction with proper type checking
         let price = 0;
-        if (part.price) {
+        if (part.price !== undefined && part.price !== null) {
           if (typeof part.price === 'string') {
             const priceMatch = part.price.match(/[\d,]+/);
             price = priceMatch ? parseInt(priceMatch[0].replace(/,/g, '')) : 0;

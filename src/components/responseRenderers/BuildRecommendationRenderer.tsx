@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -257,17 +256,25 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedParts.map((part, index) => (
           <Card key={index} className="overflow-hidden h-full flex flex-col">
-            <div className="h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
-              {(part.image || part.image_url) && (
+            <div className="h-48 overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              {(part.image || part.image_url) ? (
                 <img 
                   src={part.image || part.image_url} 
                   alt={part.name}
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = "https://placehold.co/600x400?text=이미지+없음";
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 text-sm">이미지 준비중</div>';
+                    }
                   }}
                 />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+                  이미지 준비중
+                </div>
               )}
             </div>
             
