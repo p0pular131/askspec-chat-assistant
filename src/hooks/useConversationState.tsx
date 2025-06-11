@@ -11,6 +11,7 @@ export function useConversationState() {
   const [isLoading, setIsLoading] = useState(false);
   const [autoRefreshTriggered, setAutoRefreshTriggered] = useState(false);
   const [pendingUserMessage, setPendingUserMessage] = useState<UIMessage | null>(null);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
   
   const {
     currentSession,
@@ -56,6 +57,7 @@ export function useConversationState() {
     setShowExample(true);
     setIsLoading(false);
     setPendingUserMessage(null);
+    setIsCreatingSession(false);
     // 현재 세션 선택 해제를 위해 null 세션 선택
     selectConversation(null);
   }, [setShowExample, selectConversation]);
@@ -67,6 +69,12 @@ export function useConversationState() {
 
   // API 메시지를 UI 메시지로 변환
   const syncMessagesFromDB = useCallback((apiMessages: typeof dbMessages) => {
+    // 세션 생성 중이거나 첫 번째 메시지를 보내는 중이면 DB 메시지 동기화를 건너뜀
+    if (isCreatingSession && pendingUserMessage) {
+      console.log('[⏸️ 메시지 동기화] 세션 생성 중이므로 건너뜀');
+      return;
+    }
+    
     if (apiMessages) {
       const uiMessages: UIMessage[] = apiMessages.map(msg => ({
         text: msg.content,
@@ -84,18 +92,20 @@ export function useConversationState() {
         setMessages(uiMessages);
       }
     }
-  }, [pendingUserMessage]);
+  }, [pendingUserMessage, isCreatingSession]);
 
   // 세션이 변경되면 메시지 로드
   useEffect(() => {
     if (currentSession?.id) {
       console.log('[📥 세션 변경] 메시지 로드 시작:', currentSession.id);
       setPendingUserMessage(null); // 세션 변경 시 pending 메시지 초기화
+      setIsCreatingSession(false);
       loadMessages(String(currentSession.id));
     } else {
       console.log('[🏠 세션 해제] 메시지 초기화');
       setMessages([]);
       setPendingUserMessage(null);
+      setIsCreatingSession(false);
     }
   }, [currentSession, loadMessages]);
 
@@ -119,6 +129,7 @@ export function useConversationState() {
       // 세션이 없으면 새로 생성
       if (!currentSession) {
         console.log('[🆕 세션 생성] 첫 메시지를 위한 새 세션 생성');
+        setIsCreatingSession(true);
         const newSession = await startNewConversation();
         
         if (!newSession || !newSession.id) {
@@ -165,14 +176,16 @@ export function useConversationState() {
         }, 6000);
       });
       
-      // 메시지 전송 완료 후 pending 메시지 제거
+      // 메시지 전송 완료 후 pending 메시지 제거 및 세션 생성 상태 해제
       setPendingUserMessage(null);
+      setIsCreatingSession(false);
       
       console.log('[✅ 메시지 전송] 완료');
     } catch (error) {
       console.error('[❌ 메시지 전송] 실패:', error);
       // 에러 발생 시 pending 메시지 제거하고 정확한 상태로 복원
       setPendingUserMessage(null);
+      setIsCreatingSession(false);
       if (currentSession?.id) {
         await loadMessages(String(currentSession.id));
       } else {
