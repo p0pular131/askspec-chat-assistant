@@ -69,7 +69,7 @@ const ChatConversationList: React.FC<ChatConversationListProps> = ({
           }`}
           onClick={() => onSelect(convo)}
         >
-          {convo.session_name || 'Untitled conversation'}
+          {convo.session_name || '새로운 세션'}
         </button>
         <button
           onClick={(e) => handleDelete(e, String(convo.id))}
