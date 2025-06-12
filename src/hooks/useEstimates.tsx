@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from '../components/ui/use-toast';
 import {
@@ -187,22 +186,45 @@ export function useEstimates() {
     }
   }, [selectedEstimate]);
 
-  // Generate PDF
+  // Generate PDF with custom filename based on estimate title
   const generatePdf = useCallback(async (estimateId: string) => {
     try {
       setPdfLoading(true);
       console.log('[🔄 PDF 생성] useEstimates 시작:', estimateId);
       
+      // First, get the estimate details to retrieve the title
+      let estimateTitle = 'PC견적서';
+      try {
+        const estimateDetails = await getEstimateDetailsAPI(estimateId);
+        if (estimateDetails && estimateDetails.title) {
+          // Clean the title for use as filename (remove invalid characters)
+          estimateTitle = estimateDetails.title
+            .replace(/[<>:"/\\|?*]/g, '_') // Replace invalid filename characters
+            .substring(0, 50); // Limit length
+          console.log('[📝 PDF 제목] 견적 제목 사용:', estimateTitle);
+        }
+      } catch (titleError) {
+        console.warn('[⚠️ PDF 제목] 견적 제목 가져오기 실패, 기본값 사용:', titleError);
+      }
+      
       const response = await generatePdfAPI(estimateId);
       
       if (response.success && response.pdf_url) {
-        // Open PDF in new window or download
-        window.open(response.pdf_url, '_blank');
+        // Create a download link with custom filename
+        const link = document.createElement('a');
+        link.href = response.pdf_url;
+        link.download = `${estimateTitle}.pdf`;
+        link.target = '_blank';
         
-        console.log('[✅ PDF 생성] 완료:', response.pdf_url);
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log('[✅ PDF 생성] 완료:', response.pdf_url, '파일명:', `${estimateTitle}.pdf`);
         toast({
           title: "PDF 생성 완료",
-          description: "PDF가 성공적으로 생성되었습니다.",
+          description: `${estimateTitle}.pdf 파일이 다운로드됩니다.`,
         });
         
         return response.pdf_url;
