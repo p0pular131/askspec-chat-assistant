@@ -35,6 +35,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
     error,
     saveLoading,
     deleteLoading,
+    pdfLoading,
     fetchEstimates,
     deleteEstimate,
     generatePdf,
@@ -189,12 +190,12 @@ const BuildsList: React.FC<BuildsListProps> = ({
           </button>
 
           <div className="flex flex-col gap-1">
-            {/* PDF Generation Button - now uses per-estimate loading state */}
+            {/* PDF Generation Button - disabled when any PDF is loading */}
             <button
               onClick={(e) => handleGeneratePdf(e, estimate.id)}
               className="p-1 text-blue-600 rounded hover:bg-blue-50 disabled:opacity-50"
               aria-label="PDF 다운로드"
-              disabled={isPdfLoading(estimate.id)}
+              disabled={pdfLoading}
               title="PDF 다운로드"
             >
               {isPdfLoading(estimate.id) ? (
@@ -220,7 +221,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
         </div>
       </div>
     ));
-  }, [estimates, loading, error, isPdfLoading, deleteLoading, handleViewEstimate, handleDelete, handleGeneratePdf, handleRefresh]);
+  }, [estimates, loading, error, pdfLoading, deleteLoading, handleViewEstimate, handleDelete, handleGeneratePdf, handleRefresh, isPdfLoading]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -242,7 +243,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       </div>
       
       {renderContent()}
-
+      
       {/* Enhanced Estimate Details Modal with per-estimate loading state */}
       <EstimateDetailsModal
         estimate={selectedEstimate}
