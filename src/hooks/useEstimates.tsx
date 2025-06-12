@@ -24,7 +24,7 @@ export function useEstimates() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfLoadingStates, setPdfLoadingStates] = useState<Record<string, boolean>>({});
 
   // Fetch estimates list
   const fetchEstimates = useCallback(async () => {
@@ -189,7 +189,7 @@ export function useEstimates() {
   // Generate PDF with custom filename based on estimate title
   const generatePdf = useCallback(async (estimateId: string) => {
     try {
-      setPdfLoading(true);
+      setPdfLoadingStates(prev => ({ ...prev, [estimateId]: true }));
       console.log('[🔄 PDF 생성] useEstimates 시작:', estimateId);
       
       // First, get the estimate details to retrieve the title
@@ -243,9 +243,14 @@ export function useEstimates() {
       
       return null;
     } finally {
-      setPdfLoading(false);
+      setPdfLoadingStates(prev => ({ ...prev, [estimateId]: false }));
     }
   }, []);
+
+  // Helper function to check if a specific estimate is loading PDF
+  const isPdfLoading = useCallback((estimateId: string) => {
+    return pdfLoadingStates[estimateId] || false;
+  }, [pdfLoadingStates]);
 
   return {
     estimates,
@@ -255,12 +260,13 @@ export function useEstimates() {
     detailsLoading,
     saveLoading,
     deleteLoading,
-    pdfLoading,
+    pdfLoading: Object.values(pdfLoadingStates).some(loading => loading), // Keep for backward compatibility
     fetchEstimates,
     saveEstimate,
     getEstimateDetails,
     deleteEstimate,
     generatePdf,
-    setSelectedEstimate
+    setSelectedEstimate,
+    isPdfLoading
   };
 }

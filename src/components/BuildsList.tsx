@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, memo, useEffect } from 'react';
 import { toast } from '../components/ui/use-toast';
 import { 
@@ -36,11 +35,11 @@ const BuildsList: React.FC<BuildsListProps> = ({
     error,
     saveLoading,
     deleteLoading,
-    pdfLoading,
     fetchEstimates,
     deleteEstimate,
     generatePdf,
-    getEstimateDetails
+    getEstimateDetails,
+    isPdfLoading
   } = useEstimates();
 
   // Load estimates when component mounts
@@ -190,15 +189,15 @@ const BuildsList: React.FC<BuildsListProps> = ({
           </button>
 
           <div className="flex flex-col gap-1">
-            {/* PDF Generation Button */}
+            {/* PDF Generation Button - now uses per-estimate loading state */}
             <button
               onClick={(e) => handleGeneratePdf(e, estimate.id)}
               className="p-1 text-blue-600 rounded hover:bg-blue-50 disabled:opacity-50"
               aria-label="PDF 다운로드"
-              disabled={pdfLoading}
+              disabled={isPdfLoading(estimate.id)}
               title="PDF 다운로드"
             >
-              {pdfLoading ? (
+              {isPdfLoading(estimate.id) ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Download className="w-4 h-4" />
@@ -221,7 +220,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
         </div>
       </div>
     ));
-  }, [estimates, loading, error, pdfLoading, deleteLoading, handleViewEstimate, handleDelete, handleGeneratePdf, handleRefresh]);
+  }, [estimates, loading, error, isPdfLoading, deleteLoading, handleViewEstimate, handleDelete, handleGeneratePdf, handleRefresh]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -244,7 +243,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
       
       {renderContent()}
 
-      {/* Enhanced Estimate Details Modal with loading state */}
+      {/* Enhanced Estimate Details Modal with per-estimate loading state */}
       <EstimateDetailsModal
         estimate={selectedEstimate}
         isOpen={modalOpen}
@@ -253,7 +252,7 @@ const BuildsList: React.FC<BuildsListProps> = ({
           setSelectedEstimate(null);
         }}
         onGeneratePdf={generatePdf}
-        pdfLoading={pdfLoading}
+        pdfLoading={selectedEstimate ? isPdfLoading(selectedEstimate.id) : false}
       />
 
       {/* Confirmation Dialog */}
