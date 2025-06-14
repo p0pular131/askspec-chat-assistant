@@ -5,11 +5,44 @@ import { getSessionMessages } from '../services/sessionApiService';
 import { responseModules } from '../modules/responseModules';
 import { toast } from '../components/ui/use-toast';
 
+/**
+ * useMessageActions - 메시지 처리 전용 훅
+ * 
+ * 이 훅은 메시지의 실제 전송과 AI 응답 처리를 담당합니다.
+ * useConversationState에서 사용되며, 순수한 메시지 로직에만 집중합니다.
+ * 
+ * 주요 기능:
+ * 1. 메시지 로드 - DB에서 세션의 메시지들을 가져옴
+ * 2. 메시지 전송 - 각 채팅 모드에 맞는 AI API 호출
+ * 3. 응답 처리 - AI 응답을 받아서 DB에 저장하고 UI에 반영
+ * 
+ * 지원하는 채팅 모드:
+ * - 범용 검색: 일반적인 질의응답
+ * - 견적 추천: PC 견적 추천
+ * - 부품 추천: 개별 부품 추천
+ * - 호환성 검사: 부품간 호환성 확인
+ * - 견적 평가: 기존 견적 평가
+ * - 스펙 업그레이드: 업그레이드 제안
+ * 
+ * @param currentSession - 현재 활성 세션
+ */
 export function useMessageActions(currentSession: Session | null) {
+  // DB에서 로드된 메시지 목록
   const [dbMessages, setDbMessages] = useState<ApiMessage[]>([]);
+  
+  // 메시지 로딩 상태
   const [msgLoading, setMsgLoading] = useState(false);
 
-  // 메시지 로드
+  /**
+   * 세션의 메시지 로드 함수
+   * 
+   * 플로우:
+   * 1. API를 통해 세션의 모든 메시지 가져오기
+   * 2. 시간순으로 정렬 (오래된 것부터)
+   * 3. 상태에 저장
+   * 
+   * @param sessionId - 로드할 세션 ID (문자열)
+   */
   const loadMessages = useCallback(async (sessionId: string) => {
     if (!sessionId) return;
     
@@ -39,7 +72,22 @@ export function useMessageActions(currentSession: Session | null) {
     }
   }, []);
 
-  // 메시지 전송 (각 chat mode별 API 사용으로 변경)
+  /**
+   * 메시지 전송 및 AI 응답 처리 함수
+   * 
+   * 전체 플로우:
+   * 1. 현재 메시지 로드 (전송 전 상태 동기화)
+   * 2. 채팅 모드에 맞는 responseModule 선택
+   * 3. AI API 호출하여 응답 생성
+   * 4. 응답 완료 후 메시지 다시 로드
+   * 5. 성공 콜백 실행 (빌드 관련 후처리)
+   * 
+   * @param text - 전송할 메시지 텍스트
+   * @param expertiseLevel - 전문가 수준 (기본값: 'intermediate')
+   * @param chatMode - 채팅 모드 (기본값: '범용 검색')
+   * @param sessionToUse - 사용할 세션 (없으면 currentSession 사용)
+   * @param onSuccess - 성공시 실행할 콜백 함수
+   */
   const sendMessage = useCallback(async (
     text: string, 
     expertiseLevel: string = 'intermediate',
@@ -51,6 +99,7 @@ export function useMessageActions(currentSession: Session | null) {
     
     const session = sessionToUse || currentSession;
     
+    // 세션 유효성 검사
     if (!session || !session.id) {
       console.error('[❌ 메시지 전송] 세션 없음:', session);
       toast({
@@ -63,7 +112,7 @@ export function useMessageActions(currentSession: Session | null) {
     
     setMsgLoading(true);
     
-    // 메시지 전송 전에 먼저 현재 메시지들을 로드하여 사용자 메시지 전송 직후 화면에 표시
+    // 메시지 전송 전에 현재 상태 로드
     console.log('[🔄 메시지 전송 전 로드] 시작');
     await loadMessages(String(session.id));
     console.log('[✅ 메시지 전송 전 로드] 완료');
@@ -71,7 +120,7 @@ export function useMessageActions(currentSession: Session | null) {
     try {
       console.log('[🔄 메시지 전송] 시작:', { sessionId: session.id, chatMode });
       
-      // 선택된 chat mode에 해당하는 모듈 가져오기
+      // 선택된 채팅 모드에 해당하는 모듈 가져오기
       const selectedModule = responseModules[chatMode];
       
       if (!selectedModule) {
@@ -79,6 +128,7 @@ export function useMessageActions(currentSession: Session | null) {
       }
       
       // 해당 모듈의 API를 호출하여 메시지 처리
+      // 각 모듈은 사용자 메시지를 DB에 저장하고 AI 응답을 생성하여 저장
       await selectedModule.process(text, expertiseLevel, String(session.id));
       
       console.log('[✅ 메시지 전송] 완료');
@@ -88,6 +138,7 @@ export function useMessageActions(currentSession: Session | null) {
       await loadMessages(String(session.id));
       console.log('[✅ 메시지 재로드] 완료');
       
+      // 성공 콜백 실행 (주로 빌드 관련 후처리 작업)
       if (onSuccess) {
         onSuccess();
       }
@@ -103,10 +154,18 @@ export function useMessageActions(currentSession: Session | null) {
     }
   }, [currentSession, loadMessages]);
 
+  /**
+   * 훅에서 제공하는 상태와 함수들 반환
+   */
   return {
+    // DB 메시지 목록
     dbMessages,
+    
+    // 로딩 상태
     msgLoading,
-    sendMessage,
-    loadMessages
+    
+    // 액션 함수들
+    sendMessage,    // 메시지 전송 및 AI 응답 처리
+    loadMessages    // 메시지 로드
   };
 }
