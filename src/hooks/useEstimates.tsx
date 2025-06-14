@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { toast } from '../components/ui/use-toast';
 import {
@@ -10,6 +11,28 @@ import {
   EstimatesListResponse
 } from '../services/estimatesApiService';
 
+/**
+ * useEstimates - 견적 관리 전용 훅
+ * 
+ * 이 훅은 PC 견적의 전체 생명주기를 관리합니다.
+ * AI가 생성한 견적을 저장하고, 조회하고, 삭제하고, PDF로 내보내는 기능을 제공합니다.
+ * 
+ * 주요 기능:
+ * 1. 견적 목록 조회 - 사용자가 저장한 모든 견적 목록 가져오기
+ * 2. 견적 저장 - AI가 생성한 견적을 사용자 계정에 저장
+ * 3. 견적 상세 조회 - 특정 견적의 상세 정보 가져오기 (부품 목록, 가격, 추천 이유 등)
+ * 4. 견적 삭제 - 불필요한 견적 제거
+ * 5. PDF 생성 - 견적을 PDF 파일로 다운로드
+ * 
+ * 데이터 흐름:
+ * - AI 응답 → 견적 생성 → 저장 → 목록 조회 → 상세 조회 → PDF 생성
+ * 
+ * 상태 관리:
+ * - estimates: 저장된 견적 목록
+ * - selectedEstimate: 현재 선택된 견적의 상세 정보
+ * - loading 상태들: 각 작업별 로딩 상태 추적
+ */
+
 // EstimateItem now properly extends EstimateResponse and includes all necessary fields
 export interface EstimateItem extends EstimateResponse {
   id: string;
@@ -17,16 +40,41 @@ export interface EstimateItem extends EstimateResponse {
 }
 
 export function useEstimates() {
+  // 사용자가 저장한 견적 목록
   const [estimates, setEstimates] = useState<EstimateItem[]>([]);
+  
+  // 견적 목록 로딩 상태
   const [loading, setLoading] = useState(false);
+  
+  // 에러 상태
   const [error, setError] = useState<string | null>(null);
+  
+  // 현재 선택된 견적의 상세 정보
   const [selectedEstimate, setSelectedEstimate] = useState<EstimateItem | null>(null);
+  
+  // 견적 상세 조회 로딩 상태
   const [detailsLoading, setDetailsLoading] = useState(false);
+  
+  // 견적 저장 로딩 상태
   const [saveLoading, setSaveLoading] = useState(false);
+  
+  // 견적 삭제 로딩 상태
   const [deleteLoading, setDeleteLoading] = useState(false);
+  
+  // PDF 생성 로딩 상태 (견적별로 관리)
   const [pdfLoadingStates, setPdfLoadingStates] = useState<Record<string, boolean>>({});
 
-  // Fetch estimates list
+  /**
+   * 견적 목록 조회 함수
+   * 
+   * 사용자가 저장한 모든 견적을 API에서 가져와 상태에 저장합니다.
+   * 앱 시작시, 견적 저장/삭제 후에 호출되어 최신 목록을 유지합니다.
+   * 
+   * API 응답 처리:
+   * - 서버에서 받은 견적 목록을 EstimateItem 형태로 변환
+   * - ID와 생성일시가 없는 경우 자동 생성
+   * - 에러 발생시 사용자에게 토스트 알림
+   */
   const fetchEstimates = useCallback(async () => {
     try {
       setLoading(true);
@@ -65,7 +113,20 @@ export function useEstimates() {
     }
   }, []);
 
-  // Save estimate
+  /**
+   * 견적 저장 함수
+   * 
+   * AI가 생성한 견적을 사용자 계정에 저장합니다.
+   * BuildRecommendationRenderer에서 "견적 저장" 버튼을 클릭할 때 호출됩니다.
+   * 
+   * 처리 과정:
+   * 1. 견적 ID로 서버에 저장 요청
+   * 2. 저장 성공시 견적 목록 새로고침
+   * 3. 사용자에게 결과 알림
+   * 
+   * @param estimateId - 저장할 견적의 고유 ID (AI 응답에서 제공)
+   * @returns 저장 성공 여부
+   */
   const saveEstimate = useCallback(async (estimateId: string) => {
     try {
       setSaveLoading(true);
@@ -103,7 +164,21 @@ export function useEstimates() {
     }
   }, [fetchEstimates]);
 
-  // Get estimate details - now properly handles all EstimateResponse fields
+  /**
+   * 견적 상세 조회 함수
+   * 
+   * 특정 견적의 상세 정보를 가져옵니다.
+   * BuildsList에서 견적을 클릭하거나 EstimateDetailsModal을 열 때 호출됩니다.
+   * 
+   * 상세 정보에는 다음이 포함됩니다:
+   * - 견적 제목과 총 가격
+   * - 각 부품별 상세 정보 (이름, 스펙, 가격, 추천 이유, 구매 링크, 이미지)
+   * - 견적 평가 점수 (성능, 가성비, 확장성, 소음)
+   * - 추천 설명 및 제안사항
+   * 
+   * @param estimateId - 조회할 견적의 고유 ID
+   * @returns 견적 상세 정보 또는 null (실패시)
+   */
   const getEstimateDetails = useCallback(async (estimateId: string) => {
     try {
       setDetailsLoading(true);
@@ -143,7 +218,21 @@ export function useEstimates() {
     }
   }, []);
 
-  // Delete estimate
+  /**
+   * 견적 삭제 함수
+   * 
+   * 불필요한 견적을 영구적으로 삭제합니다.
+   * BuildsList에서 삭제 버튼을 클릭하고 확인 다이얼로그에서 승인할 때 호출됩니다.
+   * 
+   * 처리 과정:
+   * 1. 서버에서 견적 삭제
+   * 2. 로컬 상태에서도 즉시 제거 (UI 응답성 향상)
+   * 3. 현재 선택된 견적이 삭제된 경우 선택 해제
+   * 4. 사용자에게 결과 알림
+   * 
+   * @param estimateId - 삭제할 견적의 고유 ID
+   * @returns 삭제 성공 여부
+   */
   const deleteEstimate = useCallback(async (estimateId: string) => {
     try {
       setDeleteLoading(true);
@@ -186,7 +275,27 @@ export function useEstimates() {
     }
   }, [selectedEstimate]);
 
-  // Generate PDF with custom filename based on estimate title
+  /**
+   * PDF 생성 함수
+   * 
+   * 견적을 PDF 파일로 변환하여 다운로드합니다.
+   * BuildsList나 EstimateDetailsModal에서 PDF 다운로드 버튼을 클릭할 때 호출됩니다.
+   * 
+   * 처리 과정:
+   * 1. 견적 상세 정보를 가져와서 제목 추출 (파일명 생성용)
+   * 2. 서버에 PDF 생성 요청
+   * 3. 응답받은 PDF URL로 자동 다운로드 실행
+   * 4. 견적 제목을 파일명으로 사용 (예: "게임용 고사양 PC.pdf")
+   * 
+   * PDF 내용:
+   * - 견적 제목 및 총 가격
+   * - 각 부품별 상세 정보
+   * - 추천 이유 및 설명
+   * - 견적 평가 점수
+   * 
+   * @param estimateId - PDF로 변환할 견적의 고유 ID
+   * @returns PDF URL 또는 null (실패시)
+   */
   const generatePdf = useCallback(async (estimateId: string) => {
     try {
       setPdfLoadingStates(prev => ({ ...prev, [estimateId]: true }));
@@ -247,11 +356,27 @@ export function useEstimates() {
     }
   }, []);
 
-  // Helper function to check if a specific estimate is loading PDF
+  /**
+   * 특정 견적의 PDF 생성 로딩 상태 확인 함수
+   * 
+   * 견적별로 PDF 생성 로딩 상태를 개별적으로 관리합니다.
+   * 여러 견적의 PDF를 동시에 생성할 때 각각의 상태를 구분하기 위해 사용됩니다.
+   * 
+   * @param estimateId - 확인할 견적의 고유 ID
+   * @returns 해당 견적의 PDF 생성 로딩 상태
+   */
   const isPdfLoading = useCallback((estimateId: string) => {
     return pdfLoadingStates[estimateId] || false;
   }, [pdfLoadingStates]);
 
+  /**
+   * 훅에서 제공하는 상태와 함수들 반환
+   * 
+   * 반환되는 요소들:
+   * - 상태: estimates, loading, error, selectedEstimate, 각종 로딩 상태
+   * - 액션 함수: fetchEstimates, saveEstimate, getEstimateDetails, deleteEstimate, generatePdf
+   * - 유틸리티 함수: setSelectedEstimate, isPdfLoading
+   */
   return {
     estimates,
     loading,

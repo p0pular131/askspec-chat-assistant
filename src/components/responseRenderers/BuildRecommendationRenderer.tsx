@@ -15,6 +15,41 @@ import { toast } from '@/hooks/use-toast';
 import { sampleBuildRecommendation } from '../../data/sampleData';
 import { useEstimates } from '../../hooks/useEstimates';
 
+/**
+ * BuildRecommendationRenderer - AI 견적 추천 응답 렌더러
+ * 
+ * 이 컴포넌트는 AI가 생성한 PC 견적 추천을 시각적으로 표시합니다.
+ * 견적 추천 모드에서 AI 응답을 받았을 때 ResponseRenderer에 의해 호출됩니다.
+ * 
+ * 주요 기능:
+ * 1. 견적 정보 표시 - 제목, 총 가격, 추천 이유
+ * 2. 부품별 상세 정보 - 각 부품의 이름, 스펙, 가격, 추천 이유, 구매 링크, 이미지
+ * 3. 견적 저장 - 사용자가 견적을 계정에 저장할 수 있는 기능
+ * 4. 부품 정렬 - 일관된 순서로 부품 표시 (VGA → CPU → 메인보드 → 메모리 → 저장장치 → 파워 → 케이스 → 쿨러)
+ * 5. 추가 제안 - AI의 추가 제안사항 표시
+ * 
+ * 데이터 처리:
+ * - JSON 파싱: AI 응답을 JSON으로 파싱하여 구조화된 데이터 추출
+ * - 견적 ID 추출: 저장을 위한 견적 고유 ID 추출
+ * - 부품 정렬: 고정 순서에 따른 부품 배치
+ * - 부품 타입 자동 인식: 부품명 기반 타입 분류
+ * 
+ * 컴포넌트 구조:
+ * - 요약 카드: 견적 제목, 총 가격, 저장 버튼
+ * - 부품 그리드: 각 부품별 상세 카드
+ * - 제안 카드: AI의 추가 제안사항
+ * - 안내 메시지: 가격 및 호환성 안내
+ * 
+ * 상태 관리:
+ * - 견적 저장 로딩 상태
+ * - 에러 처리 및 사용자 알림
+ * 
+ * @param content - AI 응답 JSON 문자열
+ * @param sessionId - 현재 세션 ID (사용하지 않음)
+ * @param expertiseLevel - 사용자 전문가 수준 (사용하지 않음)
+ * @param recommendationData - 대체 추천 데이터 (사용하지 않음)
+ */
+
 // Fixed order for component types
 const COMPONENT_ORDER = ["VGA", "CPU", "Motherboard", "Memory", "Storage", "PSU", "Case", "Cooler"];
 
@@ -53,7 +88,12 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
   const { saveEstimate, saveLoading } = useEstimates();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Try to parse content as JSON, fallback to sample data if parsing fails
+  /**
+   * AI 응답 데이터 파싱 및 견적 ID 추출
+   * 
+   * AI 응답 JSON을 파싱하여 견적 데이터와 견적 ID를 추출합니다.
+   * 파싱에 실패하면 샘플 데이터를 사용합니다.
+   */
   let buildData;
   let estimateId = null;
   
@@ -80,7 +120,15 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     buildData = recommendationData || sampleBuildRecommendation;
   }
   
-  // Function to get standardized part type from part details
+  /**
+   * 부품 타입 자동 인식 함수
+   * 
+   * 부품명을 분석하여 표준화된 부품 타입을 반환합니다.
+   * 부품명에 포함된 키워드를 기반으로 분류합니다.
+   * 
+   * @param part - 부품 정보 객체
+   * @returns 표준화된 부품 타입 문자열
+   */
   const getStandardizedPartType = (part: PartDetail): string => {
     const name = part.name.toLowerCase();
     
@@ -112,7 +160,14 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
     return 'Unknown';
   };
 
-  // Sort parts according to the fixed order
+  /**
+   * 부품 정렬 함수
+   * 
+   * 부품들을 고정된 순서에 따라 정렬합니다.
+   * 배열 형태와 객체 형태 데이터를 모두 처리할 수 있습니다.
+   * 
+   * @returns 정렬된 부품 배열
+   */
   const getSortedParts = (): PartDetail[] => {
     let partsToSort: PartDetail[];
     
@@ -179,7 +234,18 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
 
   const sortedParts = getSortedParts();
   
-  // Function to save the estimate via API
+  /**
+   * 견적 저장 핸들러
+   * 
+   * 사용자가 "견적 저장" 버튼을 클릭했을 때 실행됩니다.
+   * 견적 ID를 사용하여 서버에 견적을 저장합니다.
+   * 
+   * 처리 과정:
+   * 1. 견적 ID 유효성 검사
+   * 2. useEstimates 훅을 통한 저장 API 호출
+   * 3. 저장 성공시 다른 컴포넌트에 알림 (estimatesSaved 이벤트)
+   * 4. 에러 처리 및 사용자 알림
+   */
   const handleSaveEstimate = async () => {
     try {
       setIsSaving(true);
@@ -217,7 +283,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
 
   return (
     <div className="build-recommendation-response space-y-6">
-      {/* Summary Card with Total Price and Reasoning */}
+      {/* 견적 요약 카드 - 제목, 총 가격, 저장 버튼 */}
       <Card className="w-full border-2 border-blue-200">
         <CardHeader className="bg-blue-50 dark:bg-blue-950/30">
           <div className="flex justify-between items-center">
@@ -253,10 +319,11 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         </CardContent>
       </Card>
 
-      {/* Components Grid - now sorted by fixed order */}
+      {/* 부품 그리드 - 정렬된 순서로 부품 표시 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedParts.map((part, index) => (
           <Card key={index} className="overflow-hidden h-full flex flex-col">
+            {/* 부품 이미지 영역 */}
             <div className="h-56 overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center p-4">
               {(part.image || part.image_url) ? (
                 <img 
@@ -279,6 +346,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
               )}
             </div>
             
+            {/* 부품 정보 헤더 */}
             <CardHeader>
               <div className="flex justify-between items-start">
                 <CardTitle className="text-lg font-bold">{part.name}</CardTitle>
@@ -291,6 +359,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
               </CardDescription>
             </CardHeader>
             
+            {/* 부품 상세 정보 */}
             <CardContent className="flex-grow">
               <div className="space-y-2">
                 <div>
@@ -305,6 +374,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
               </div>
             </CardContent>
             
+            {/* 구매 링크 버튼 */}
             <CardFooter className="pt-0">
               <a 
                 href={part.link} 
@@ -322,7 +392,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         ))}
       </div>
       
-      {/* Suggestion Card */}
+      {/* AI 추가 제안 카드 */}
       {buildData.suggestion && (
         <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
           <CardHeader>
@@ -339,6 +409,7 @@ const BuildRecommendationRenderer: React.FC<BuildRecommendationRendererProps> = 
         </Card>
       )}
       
+      {/* 안내 메시지 */}
       <Card>
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground">
