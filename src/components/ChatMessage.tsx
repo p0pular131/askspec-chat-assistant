@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Message } from './types';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -86,11 +85,26 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const expertiseLevel = message.expertiseLevel || 'low';
   
   if (message.isUser) {
+    // Extract user message content - use .content.content if available, fallback to .text
+    const getUserMessageContent = (message: Message): string => {
+      try {
+        const parsed = JSON.parse(message.text);
+        if (parsed && parsed.content && parsed.content.content) {
+          return parsed.content.content;
+        }
+      } catch {
+        // If parsing fails, use the original text
+      }
+      return message.text;
+    };
+
+    const userMessageContent = getUserMessageContent(message);
+
     return (
       <div className="flex gap-3 justify-end items-start">
         <div className="max-w-[80%] rounded-lg p-3 bg-blue-100 text-zinc-900 rounded-tr-none">
           <ReactMarkdown className="prose prose-sm dark:prose-invert break-words">
-            {message.text}
+            {userMessageContent}
           </ReactMarkdown>
         </div>
         <Avatar className="h-8 w-8 bg-blue-500 text-white flex items-center justify-center">
